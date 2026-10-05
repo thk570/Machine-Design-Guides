@@ -1,0 +1,1249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<title>Fits (Hole Basis) — Machine Design Guides</title>
+<style>
+  /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #3b6ea5;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --clearance: #2e6da5; --transition: #b8860b; --interference: #b5484d;
+    --input-bg: #eef3f8; --input-border: #b9cde0;
+    /* Fixed identity colours for the hole/shaft diagram and the custom-mode inputs that drive each
+       — independent of the clearance/transition/interference fit-type palette above. */
+    --hole-color: #2e6da5; --shaft-color: #8a4fbf;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+      --clearance: #5b9bd9; --transition: #d4a534; --interference: #e0696d;
+      --input-bg: #1c2833; --input-border: #3a5878;
+      --hole-color: #5b9bd9; --shaft-color: #b489e6;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+    --clearance: #5b9bd9; --transition: #d4a534; --interference: #e0696d;
+    --input-bg: #1c2833; --input-border: #3a5878;
+    --hole-color: #5b9bd9; --shaft-color: #b489e6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); flex-wrap: wrap; }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 920px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  h2 { font-size: 1.05rem; margin: 0 0 0.75rem; }
+  h3 { font-size: 0.92rem; margin: 1rem 0 0.4rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1.1rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); line-height: 1.5; }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  .note { font-size: 0.8rem; color: var(--mdg-text-muted); margin-top: 0.5rem; }
+  label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem; }
+  select, input[type=text], input[type=number] {
+    font-family: var(--mdg-font); font-size: 0.9rem; padding: 0.4rem 0.55rem;
+    border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); color: var(--mdg-text);
+    width: 100%;
+  }
+  #holeGrade, #holeLetter { border-color: var(--hole-color); border-width: 2px; }
+  #shaftLetter, #shaftGrade { border-color: var(--shaft-color); border-width: 2px; }
+  .row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 0.75rem; }
+  .field { display: flex; flex-direction: column; min-width: 150px; flex: 1; }
+  .field.narrow { max-width: 130px; flex: none; }
+  .input-unit { display: flex; align-items: center; gap: 0.5rem; }
+  .input-unit input { flex: 1 1 auto; width: auto; min-width: 0; }
+  .input-unit .unit { font-size: 0.85rem; color: var(--mdg-text-muted); white-space: nowrap; }
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.6rem; margin-top: 0.75rem; }
+  .result { background: var(--mdg-bg); border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.55rem 0.7rem; }
+  .result .k { font-size: 0.72rem; color: var(--mdg-text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+  .result .v { font-family: var(--mdg-font-mono); font-size: 1.05rem; margin-top: 0.15rem; }
+  .pill-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+  .pill { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.4rem 1rem;
+    font-size: 0.85rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text); }
+  .pill.active { background: var(--mdg-accent); border-color: var(--mdg-accent); color: #fff; }
+  .badge { display: inline-block; padding: 0.2rem 0.65rem; border-radius: 999px; font-size: 0.82rem; font-weight: 600; color: #fff; }
+  .badge.clearance { background: var(--clearance); }
+  .badge.transition { background: var(--transition); }
+  .badge.interference { background: var(--interference); }
+  .warn { background: rgba(181,72,77,0.12); border: 1px solid var(--interference); border-radius: 6px;
+    padding: 0.6rem 0.8rem; font-size: 0.85rem; margin-top: 0.75rem; }
+  .ok-note { background: rgba(46,109,165,0.10); border: 1px solid var(--clearance); border-radius: 6px;
+    padding: 0.6rem 0.8rem; font-size: 0.85rem; margin-top: 0.75rem; }
+  .hidden { display: none !important; }
+  /* tolerance-zone bar diagram — hole and shaft side by side, sharing one zero-line between them */
+  .zone-diagram { display: flex; justify-content: center; margin: 0.75rem 0; padding: 0.5rem 0.5rem 0.25rem; }
+  .zone-pair { position: relative; display: flex; gap: 0; align-items: flex-start; }
+  .zone-col { position: relative; display: flex; flex-direction: column; align-items: center; }
+  .zone-track { position: relative; width: 120px; height: 160px; overflow: hidden; }
+  .zone-axis { position: absolute; top: 80px; left: 0; right: 0; height: 2px; background: var(--mdg-text); z-index: 2; }
+  .zone-axis-label { position: absolute; top: 80px; left: 100%; transform: translateY(-50%); margin-left: 0.5rem;
+    white-space: nowrap; font-size: 0.72rem; color: var(--mdg-text-muted); }
+  .zone-minmax { display: flex; flex-direction: column; gap: 0.1rem; margin-top: 0.25rem; }
+  .mm-tag { color: var(--mdg-text-muted); text-transform: uppercase; font-size: 0.62rem; letter-spacing: 0.03em; }
+  .zone-band { position: absolute; left: 15px; right: 15px; border-radius: 3px; }
+  .zone-band.hole { background: color-mix(in srgb, var(--hole-color) 55%, transparent); border: 1px solid var(--hole-color); }
+  .zone-band.shaft { background: color-mix(in srgb, var(--shaft-color) 50%, transparent); border: 1px solid var(--shaft-color); }
+  .zone-label { font-size: 0.72rem; color: var(--mdg-text-muted); margin-top: 0.4rem; text-align: center; }
+  .zone-swatch { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 2px; margin-right: 0.3rem; vertical-align: middle; }
+  .zone-swatch.hole { background: var(--hole-color); }
+  .zone-swatch.shaft { background: var(--shaft-color); }
+  .zone-label strong { color: var(--mdg-text); font-family: var(--mdg-font-mono); }
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+  .ref-list li:target { color: var(--mdg-text); }
+  .toggle-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+  .toggle-row input { width: auto; }
+  @media print { .mdg-header, .mdg-no-print { display: none !important; } }
+  /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). Forces a light,
+     compact one-page A4 layout via a temporary .mdg-pdf-mode class on <html>, applied just
+     before window.print() and removed on afterprint/focus. */
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-collapsible,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+      <strong>Fits (Hole Basis)</strong>
+      <span class="mdg-tag">Fits</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">ISO 286-1 / ISO 286-2</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Fits (Hole Basis)<span class="mdg-print-tag">Fits</span></div>
+    <div class="mdg-print-meta">ISO 286-1 / ISO 286-2 &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+
+  <!-- ============ 1. SIZE & FIT SELECTION ============ -->
+  <div class="mdg-card">
+    <h2>1. Nominal Size &amp; Fit</h2>
+    <div class="row">
+      <div class="field narrow">
+        <label for="nominal">Nominal size, D</label>
+        <div class="input-unit">
+          <input type="number" id="nominal" value="25" min="1" max="500" step="0.1">
+          <span class="unit">mm</span>
+        </div>
+      </div>
+    </div>
+
+    <label>Mode</label>
+    <div class="pill-row">
+      <button type="button" class="pill active" data-mode="preferred">Preferred fit</button>
+      <button type="button" class="pill" data-mode="custom">Custom</button>
+      <button type="button" class="pill" data-mode="dowel">Dowel (ISO 2388)</button>
+    </div>
+
+    <div id="preferred-panel">
+      <div class="row">
+        <div class="field" style="min-width:320px;">
+          <label for="presetSel">Hole-basis fit</label>
+          <select id="presetSel"></select>
+        </div>
+      </div>
+      <p class="note" id="presetDesc"></p>
+      <p class="note">★ = preferred for new designs per Equipmake's internal standard<sup><a href="#ref7">7</a></sup>.
+        Bearing seats use these same fits for the housing/shaft — confirm the exact class against the bearing
+        manufacturer's catalogue.</p>
+    </div>
+
+    <div id="custom-panel" class="hidden">
+      <div class="row">
+        <div class="field">
+          <label style="display:flex; align-items:center; gap:0.4rem; font-weight:400; font-size:0.8rem; color:var(--mdg-text-muted);">
+            <input type="checkbox" id="holeManualToggle" style="width:auto;">
+            Enter hole limits manually
+          </label>
+        </div>
+        <div class="field">
+          <label style="display:flex; align-items:center; gap:0.4rem; font-weight:400; font-size:0.8rem; color:var(--mdg-text-muted);">
+            <input type="checkbox" id="shaftManualToggle" style="width:auto;">
+            Enter shaft limits manually
+          </label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field" id="holeLetterField">
+          <label for="holeLetter">Hole fundamental deviation</label>
+          <select id="holeLetter"></select>
+        </div>
+        <div class="field hidden" id="holeManualESField">
+          <label for="holeManualES">Hole upper deviation, ES</label>
+          <div class="input-unit">
+            <input type="number" id="holeManualES" value="21" step="0.5">
+            <span class="unit">µm</span>
+          </div>
+        </div>
+        <div class="field" id="shaftLetterField">
+          <label for="shaftLetter">Shaft fundamental deviation</label>
+          <select id="shaftLetter"></select>
+        </div>
+        <div class="field hidden" id="shaftManualESField">
+          <label for="shaftManualES">Shaft upper deviation, es</label>
+          <div class="input-unit">
+            <input type="number" id="shaftManualES" value="0" step="0.5">
+            <span class="unit">µm</span>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field" id="holeGradeField">
+          <label for="holeGrade">Hole grade</label>
+          <select id="holeGrade"></select>
+        </div>
+        <div class="field hidden" id="holeManualEIField">
+          <label for="holeManualEI">Hole lower deviation, EI</label>
+          <div class="input-unit">
+            <input type="number" id="holeManualEI" value="0" step="0.5">
+            <span class="unit">µm</span>
+          </div>
+        </div>
+        <div class="field" id="shaftGradeField">
+          <label for="shaftGrade">Shaft grade</label>
+          <select id="shaftGrade"></select>
+        </div>
+        <div class="field hidden" id="shaftManualEIField">
+          <label for="shaftManualEI">Shaft lower deviation, ei</label>
+          <div class="input-unit">
+            <input type="number" id="shaftManualEI" value="-13" step="0.5">
+            <span class="unit">µm</span>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field" style="min-width:320px;">
+          <label for="manualLabel">Description (optional, used when either side is manual)</label>
+          <input type="text" id="manualLabel" placeholder="e.g. off-the-shelf DC motor shaft">
+        </div>
+      </div>
+      <p class="note">c–h/C–G are clearance letters, js/JS is symmetric, k/m/n/p/r/s/u are transition/interference<sup><a href="#ref2">2</a></sup>.
+        Hole letters mirror the same-letter shaft deviation (ISO 286-1's Δ correction is 0 for clearance letters,
+        JS, and P–U); K, M and N use a grade-differential Δ correction instead (Δ&nbsp;=&nbsp;IT<sub>n</sub>&minus;IT<sub>n−1</sub>,
+        ES&nbsp;=&nbsp;&minus;ei<sub>shaft</sub>&nbsp;+&nbsp;Δ<sup><a href="#ref9">9</a></sup>), computed here only at grades
+        6–8 — grade 5 would need an IT4 value this page doesn't tabulate, so K5/M5/N5 stay unsupported rather than
+        guess; switch the hole letter to H to check the shaft side of an unsupported combination instead.
+        Tick "enter manually" on either side to type its deviations directly, in µm from nominal size —
+        upper (ES/es) and lower (EI/ei), positive above nominal and negative below — for a part with a
+        known but non-standard tolerance (an off-the-shelf component, a supplier datasheet, a drawing
+        callout that doesn't match an ISO 286 letter/grade). The two sides are independent: e.g. tick it
+        for the shaft only to check a manufacturer's shaft (say "+0/&minus;0.013&nbsp;mm", i.e.
+        es&nbsp;=&nbsp;0, ei&nbsp;=&nbsp;&minus;13) against a standard hole picked normally above.</p>
+    </div>
+
+    <div id="dowel-panel" class="hidden">
+      <div class="row">
+        <div class="field" style="min-width:170px;">
+          <label for="dowelGrade">Dowel grade</label>
+          <select id="dowelGrade">
+            <option value="m6">m6 (default)</option>
+            <option value="h8">h8</option>
+          </select>
+        </div>
+        <div class="field" style="min-width:220px;">
+          <label for="dowelFit">Fit type</label>
+          <select id="dowelFit">
+            <option value="clearance">Clearance — assembles by hand</option>
+            <option value="sliding">Sliding — by hand or hand tools</option>
+            <option value="press">Press — needs tooling</option>
+          </select>
+        </div>
+      </div>
+      <p class="note">Per Equipmake's dowel guidance<sup><a href="#ref7">7</a></sup>: dowels are ISO 2388, in m6 or
+        h8 grade; m6 is the more widely available and the default for new designs.</p>
+    </div>
+
+  </div>
+
+  <!-- ============ 2. RESULTS ============ -->
+  <div class="mdg-card">
+    <h2>2. Limits &amp; Fit</h2>
+    <div id="doweUnsupportedMsg" class="warn hidden"></div>
+    <div id="fitResultsBody">
+      <p><strong id="fitCallout"></strong> &nbsp;<span class="badge" id="fitBadge"></span></p>
+
+      <div class="zone-diagram">
+        <div class="zone-pair">
+          <div class="zone-axis"></div>
+          <div class="zone-axis-label" id="zoneAxisLabel"></div>
+          <div class="zone-col">
+            <div class="zone-track">
+              <div class="zone-band hole" id="holeBand"></div>
+            </div>
+            <div class="zone-label"><span class="zone-swatch hole"></span>Hole (<span id="holeLabel"></span>)
+              <div class="zone-minmax">
+                <div><span class="mm-tag">max</span> <strong id="holeMax2"></strong></div>
+                <div><span class="mm-tag">min</span> <strong id="holeMin2"></strong></div>
+              </div>
+            </div>
+          </div>
+          <div class="zone-col">
+            <div class="zone-track">
+              <div class="zone-band shaft" id="shaftBand"></div>
+            </div>
+            <div class="zone-label"><span class="zone-swatch shaft"></span>Shaft (<span id="shaftLabel"></span>)
+              <div class="zone-minmax">
+                <div><span class="mm-tag">max</span> <strong id="shaftMax2"></strong></div>
+                <div><span class="mm-tag">min</span> <strong id="shaftMin2"></strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <table class="mdg-table">
+        <thead><tr><th></th><th>Upper deviation</th><th>Lower deviation</th><th>Max size</th><th>Min size</th><th>IT tolerance</th></tr></thead>
+        <tbody>
+          <tr><td>Hole</td><td id="holeES"></td><td id="holeEI"></td><td id="holeMax"></td><td id="holeMin"></td><td id="holeIT"></td></tr>
+          <tr><td>Shaft</td><td id="shaftES"></td><td id="shaftEI"></td><td id="shaftMax"></td><td id="shaftMin"></td><td id="shaftIT"></td></tr>
+        </tbody>
+      </table>
+
+      <div class="result-grid">
+        <div class="result"><div class="k">Min clearance / interference</div><div class="v" id="outMinGap"></div></div>
+        <div class="result"><div class="k">Max clearance / interference</div><div class="v" id="outMaxGap"></div></div>
+      </div>
+      <p class="note">Positive = clearance, negative = interference. A transition fit can land anywhere in this range.</p>
+    </div>
+  </div>
+
+  <!-- ============ 3. OPTIONAL INTERFERENCE-FIT FORCE ESTIMATE ============ -->
+  <div class="mdg-card">
+    <h2>3. Interference-Fit Force Estimate <span style="font-weight:400; font-size:0.8rem; color:var(--mdg-text-muted);">(optional)</span></h2>
+    <div class="toggle-row">
+      <input type="checkbox" id="forceToggle">
+      <label for="forceToggle" style="margin:0;">Estimate press-in force, torque capacity and hub stress for this fit</label>
+    </div>
+
+    <div id="noInterferenceMsg" class="ok-note hidden"></div>
+
+    <div id="forcePanel" class="hidden">
+      <p class="note">Lamé thick-cylinder contact pressure<sup><a href="#ref4">4</a></sup> from section 2's interference,
+        converted to force/torque via Coulomb friction<sup><a href="#ref5">5</a></sup>. A first-pass hand-calc, not a
+        substitute for FEA on a safety-critical joint.</p>
+
+      <div class="row">
+        <div class="field">
+          <label for="hubOD">Hub outer diameter, D<sub>o</sub></label>
+          <div class="input-unit">
+            <input type="number" id="hubOD" value="50" min="0" step="0.5">
+            <span class="unit">mm</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="shaftBore">Shaft bore, D<sub>i</sub> (0 = solid)</label>
+          <div class="input-unit">
+            <input type="number" id="shaftBore" value="0" min="0" step="0.5">
+            <span class="unit">mm</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="engageLength">Engagement length, L</label>
+          <div class="input-unit">
+            <input type="number" id="engageLength" value="25" min="0.1" step="0.5">
+            <span class="unit">mm</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="materialsMissingMsg" class="warn hidden">Shared material library (<code>data/materials.js</code>)
+        didn't load — open this page from within the full Machine Design Guides folder, not standalone.</div>
+
+      <div class="row">
+        <div class="field" style="min-width:170px;">
+          <label for="hubMaterialType">Hub material <span style="font-weight:400;">(shared library)</span></label>
+          <select id="hubMaterialType"></select>
+        </div>
+        <div class="field" style="min-width:210px;">
+          <label for="hubMaterialGrade">Hub grade / condition</label>
+          <select id="hubMaterialGrade"></select>
+        </div>
+        <div class="field narrow">
+          <label for="hubRa">Hub bore roughness, R<sub>a</sub></label>
+          <div class="input-unit">
+            <input type="number" id="hubRa" value="0" min="0" step="0.1">
+            <span class="unit">µm</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field" style="min-width:170px;">
+          <label for="shaftMaterialType">Shaft material <span style="font-weight:400;">(shared library)</span></label>
+          <select id="shaftMaterialType"></select>
+        </div>
+        <div class="field" style="min-width:210px;">
+          <label for="shaftMaterialGrade">Shaft grade / condition</label>
+          <select id="shaftMaterialGrade"></select>
+        </div>
+        <div class="field narrow">
+          <label for="shaftRa">Shaft roughness, R<sub>a</sub></label>
+          <div class="input-unit">
+            <input type="number" id="shaftRa" value="0" min="0" step="0.1">
+            <span class="unit">µm</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Friction coefficient, μ</label>
+          <div class="pill-row" id="muPills" style="margin-bottom:0.4rem;"></div>
+        </div>
+        <div class="field narrow">
+          <label for="muCustom">μ value</label>
+          <input type="number" id="muCustom" value="0.12" min="0.01" max="0.6" step="0.01">
+        </div>
+      </div>
+      <p class="note">Assembly flattens mating roughness peaks, reducing effective interference by roughly
+        0.8×(R<sub>z,shaft</sub>+R<sub>z,hub</sub>)<sup><a href="#ref6">6</a></sup>, with R<sub>a</sub> converted to
+        R<sub>z</sub> at ≈4× (a rough planning estimate, not an exact conversion<sup><a href="#ref8">8</a></sup>).
+        Leave at 0 for the full toleranced value; ~1–2.5 µm R<sub>a</sub> is typical for a turned/reamed fit.</p>
+
+      <div id="forceWarn"></div>
+
+      <table class="mdg-table">
+        <thead><tr><th></th><th>Min interference case</th><th>Max interference case</th></tr></thead>
+        <tbody>
+          <tr><td>Effective diametral interference</td><td id="fEffMin"></td><td id="fEffMax"></td></tr>
+          <tr><td>Contact pressure, p</td><td id="fPMin"></td><td id="fPMax"></td></tr>
+          <tr><td>Axial press-in force, F</td><td id="fFMin"></td><td id="fFMax"></td></tr>
+          <tr><td>Torque capacity, T</td><td id="fTMin"></td><td id="fTMax"></td></tr>
+          <tr><td>Hub hoop stress at bore, σ<sub>θ</sub></td><td id="fSigMin"></td><td id="fSigMax"></td></tr>
+          <tr><td>Hub von Mises stress, safety factor</td><td id="fSFMin"></td><td id="fSFMax"></td></tr>
+        </tbody>
+      </table>
+      <p class="note">Treat F and T as order-of-magnitude — real friction varies with finish and assembly method.
+        Safety factor = hub yield strength ÷ von Mises stress at the bore, no added design margin.</p>
+    </div>
+  </div>
+
+  <div class="mdg-card mdg-footer">
+    <p><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li><a href="https://www.iso.org/standard/45845.html">ISO 286-1:2010</a> — Geometrical product specifications (GPS) — ISO code system for tolerances on linear sizes — Part 1: Basis of tolerances, deviations and fits.</li>
+      <li><a href="https://www.iso.org/standard/45864.html">ISO 286-2:2010</a> — Geometrical product specifications (GPS) — ISO code system for tolerances on linear sizes — Part 2: Tables of standard tolerance classes and limit deviations for holes and shafts.</li>
+      <li><a href="https://www.beuth.de/en/standard/din-7190-1/236830328">DIN 7190-1:2017</a> — Interference fits — Part 1: Calculation and design rules for cylindrical single joints (governs the press/shrink-fit design in section 3, beyond what ISO 286 itself covers).</li>
+    </ul>
+    <p>This page computes limits from the standards' own formulae and fundamental-deviation tables rather than
+      reproducing their tolerance-class tables verbatim; conformance-critical work should refer to the standards
+      themselves.</p>
+
+    <p><strong>References</strong></p>
+    <ol class="ref-list">
+      <li id="ref1"><a href="https://en.wikipedia.org/wiki/IT_Grade">IT Grade — Wikipedia</a> — wikipedia.org, citing ISO 286-1:2010 Table 1 (standard tolerance IT5–IT11 values by nominal-size range, used for the hole and shaft tolerance widths on this page).</li>
+      <li id="ref2"><a href="https://www.cobanengineering.com/Tolerances/UpperAndLowerDeviationsShafts.asp">Calculation of Upper and Lower Deviation for Shaft — Coban Engineering</a> — cobanengineering.com (fundamental-deviation tables for shaft letters c, d, e, f, g, h, k, m, n, p, s, u across the full 0–500&nbsp;mm size-range breakdown, and the es = ei + IT / ei = es − IT relations).</li>
+      <li id="ref3"><a href="https://www.roymech.co.uk/Useful_Tables/ISO_Tolerances/ISO_286_2s.html">ISO 286-2 Shaft Tolerance Limits — RoyMech</a> — roymech.co.uk (independent cross-check of the g6, h6, f7, k6, n6 and p6 deviation values used above).</li>
+      <li id="ref4"><a href="https://metricmech.com/calculators/press-fit">Press-Fit Interference Calculator — MetricMech</a> — metricmech.com (Lamé thick-cylinder contact-pressure and hub hoop-stress formulae for a shaft-in-hub interference fit).</li>
+      <li id="ref5"><a href="https://www.engineersedge.com/calculators/force_to_press_together_hub_and_shaft_15887.htm">Force to Press Together Hub and Shaft — Engineers Edge</a> — engineersedge.com (typical Coulomb friction coefficients: ≈0.085–0.125 dry/unlubricated, ≈0.05 with assembly lubricant).</li>
+      <li id="ref6"><a href="https://technische-antriebselemente.de/en/guides/iso-fits-h7-h6/">ISO Fits H7/H6: Tolerance Tables &amp; Selection Guide — TEA</a> — technische-antriebselemente.de (effective vs. toleranced interference, roughness-flattening reduction of ≈0.8×(Rz,shaft + Rz,hub), and DIN 7190 as the governing interference-fit design standard).</li>
+      <li id="ref7">Equipmake, <em>DESIGN – ISO Fit Selection Guide</em>, STD-V-014 Issue 1 (Sam Peck, approved 09/04/24) — internal standard (not publicly linkable; backs the ★ preferred-fit selection, the dowel and rolling-bearing fit notes, and the plain-English name given to each preset above).</li>
+      <li id="ref8"><a href="https://www.kuslaprototype.com/surface-roughness-ra-rz-explained">Surface Roughness Ra vs Rz Explained</a> — kuslaprototype.com (Rz/Ra ratio of roughly 4–7 on ordinary machined surfaces — an empirical planning estimate, not an ISO-sanctioned conversion; this page uses the low end, ≈4×, since drawings specify Ra directly).</li>
+      <li id="ref9">ISO 286-1's Δ (grade-differential) formula for the K/M/N fundamental deviations — Δ&nbsp;=&nbsp;IT<sub>n</sub>&minus;IT<sub>n−1</sub> for grades up to IT8, ES&nbsp;=&nbsp;&minus;ei(shaft k/m/n)&nbsp;+&nbsp;Δ — supplied by a Google AI Overview summary (source, 2026) and independently cross-checked here against 21 already-agreed K6/K7/K8/M6/M7/M8/N6/N7/N8 values (3–40&nbsp;mm) from three separately-hosted reference charts before being trusted; it also correctly predicted that those same charts' numbers past 40&nbsp;mm are wrong (they imply a non-constant IT7 width within the single 30–50&nbsp;mm coarse range, which ISO 286-1 doesn't allow). Not a primary-standard citation — verify against ISO 286-2 itself before using K5/M5/N5 or anything outside grades 6–8.</li>
+    </ol>
+
+    <p>Materials for the force estimate (E, ν, yield strength) come from the shared library, <code>data/materials.js</code>
+      — see the <a href="../materials/material-library.html">Material Library</a> page for per-grade citations.</p>
+    <p>Last updated: 2026-09-22 &middot; Rev 2</p>
+  </div>
+
+</main>
+
+<script src="../../data/materials.js"></script>
+<script>
+// =====================================================================
+// ISO 286 data. Fine size-range breakpoints for fundamental deviations
+// (24 ranges, 0-500mm) and coarser breakpoints for standard-tolerance
+// (IT) width (13 ranges) — this split matches the actual standard: the
+// fundamental-deviation tables use finer size steps than the IT-grade
+// table. See references 1 and 2 in the footer.
+// =====================================================================
+const FINE_RANGES = [
+  [0,3],[3,6],[6,10],[10,14],[14,18],[18,24],[24,30],[30,40],[40,50],
+  [50,65],[65,80],[80,100],[100,120],[120,140],[140,160],[160,180],
+  [180,200],[200,225],[225,250],[250,280],[280,315],[315,355],[355,400],
+  [400,450],[450,500]
+];
+const COARSE_RANGES = [
+  [0,3],[3,6],[6,10],[10,18],[18,30],[30,50],[50,80],[80,120],
+  [120,180],[180,250],[250,315],[315,400],[400,500]
+];
+// IT5..IT11 standard tolerance, µm, per COARSE_RANGES row (ref 1)
+const IT_TABLE = [
+  [4,6,10,14,25,40,60],
+  [5,8,12,18,30,48,75],
+  [6,9,15,22,36,58,90],
+  [8,11,18,27,43,70,110],
+  [9,13,21,33,52,84,130],
+  [11,16,25,39,62,100,160],
+  [13,19,30,46,74,120,190],
+  [15,22,35,54,87,140,220],
+  [18,25,40,63,100,160,250],
+  [20,29,46,72,115,185,290],
+  [23,32,52,81,130,210,320],
+  [25,36,57,89,140,230,360],
+  [27,40,63,97,155,250,400]
+];
+// Fundamental (upper) deviation es, µm, for clearance-type shaft letters
+// c, d, e, f, g — grade-independent — per FINE_RANGES row (ref 2). h is
+// always 0 and is not tabulated.
+const ES_CDEFG = [
+  [-60,-20,-14,-6,-2],[-70,-30,-20,-10,-4],[-80,-40,-25,-13,-5],
+  [-95,-50,-32,-16,-6],[-95,-50,-32,-16,-6],[-110,-65,-40,-20,-7],
+  [-110,-65,-40,-20,-7],[-120,-80,-50,-25,-9],[-130,-80,-50,-25,-9],
+  [-140,-100,-60,-30,-10],[-150,-100,-60,-30,-10],[-170,-120,-72,-36,-12],
+  [-180,-120,-72,-36,-12],[-200,-145,-85,-43,-14],[-210,-145,-85,-43,-14],
+  [-230,-145,-85,-43,-14],[-240,-170,-100,-50,-15],[-260,-170,-100,-50,-15],
+  [-280,-170,-100,-50,-15],[-300,-190,-110,-56,-17],[-330,-190,-110,-56,-17],
+  [-360,-210,-125,-62,-18],[-400,-210,-125,-62,-18],[-440,-230,-135,-68,-20],
+  [-480,-230,-135,-68,-20]
+];
+// Fundamental (lower) deviation ei, µm, for k at grades 4-7 only (0 outside
+// that grade range) — per FINE_RANGES row (ref 2)
+const EI_K = [0,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,4,4,5,5];
+// Fundamental (lower) deviation ei, µm, for r — per FINE_RANGES row (ref 2). r is
+// the geometric mean of p and s at each range (ISO 286-1's own definition for r);
+// tabulated directly here rather than computed, since the un-rounded geometric
+// mean disagrees with the standard's own rounding at the smallest size step.
+const EI_R = [10,15,19,23,23,28,28,34,34,41,43,51,54,63,65,68,77,80,84,94,98,108,114,126,132];
+// Fundamental (lower) deviation ei, µm, for m, n, p, s, u — grade-independent
+// — per FINE_RANGES row (ref 2). The u column at the 14-18 and 18-24mm rows
+// is corrected from ref 2's own reproduction (33 and 41 µm respectively, not
+// 39/47) to match ISO 286-1 and Equipmake's own published u6 tables (ref 7).
+const EI_MNPSU = [
+  [2,4,6,14,18],[4,8,12,19,23],[6,10,15,23,28],[7,12,18,28,33],
+  [7,12,18,28,33],[8,15,22,35,41],[8,15,22,35,48],[9,17,26,43,60],
+  [9,17,26,43,70],[11,20,32,53,87],[11,20,32,59,102],[13,23,37,71,124],
+  [13,23,37,79,144],[15,27,43,92,170],[15,27,43,100,190],[15,27,43,108,210],
+  [17,31,50,122,236],[17,31,50,130,258],[17,31,50,140,284],[20,34,56,158,315],
+  [20,34,56,170,350],[21,37,62,190,390],[21,37,62,208,435],[23,40,68,232,490],
+  [23,40,68,252,540]
+];
+
+function fineIdx(D){
+  if (D <= 3) return 0;
+  for (let i = 1; i < FINE_RANGES.length; i++){
+    if (D > FINE_RANGES[i][0] && D <= FINE_RANGES[i][1]) return i;
+  }
+  return FINE_RANGES.length - 1;
+}
+function coarseIdx(D){
+  if (D <= 3) return 0;
+  for (let i = 1; i < COARSE_RANGES.length; i++){
+    if (D > COARSE_RANGES[i][0] && D <= COARSE_RANGES[i][1]) return i;
+  }
+  return COARSE_RANGES.length - 1;
+}
+function itWidth(D, grade){ return IT_TABLE[coarseIdx(D)][grade - 5]; }
+
+// Returns {es, ei} in µm for a given shaft letter + grade + nominal size.
+function shaftDeviation(letter, grade, D){
+  const IT = itWidth(D, grade);
+  const fi = fineIdx(D);
+  if (['c','d','e','f','g'].includes(letter)){
+    const es = ES_CDEFG[fi][['c','d','e','f','g'].indexOf(letter)];
+    return { es, ei: es - IT };
+  }
+  if (letter === 'h') return { es: 0, ei: -IT };
+  if (letter === 'js') return { es: IT/2, ei: -IT/2 };
+  if (letter === 'k'){
+    const ei = (grade >= 4 && grade <= 7) ? EI_K[fi] : 0;
+    return { es: ei + IT, ei };
+  }
+  if (letter === 'r') return { es: EI_R[fi] + IT, ei: EI_R[fi] };
+  // m, n, p, s, u
+  const ei = EI_MNPSU[fi][['m','n','p','s','u'].indexOf(letter)];
+  return { es: ei + IT, ei };
+}
+// Hole is always H: EI=0, ES=+IT.
+function holeDeviation(grade, D){ return { es: itWidth(D, grade), ei: 0 }; }
+
+// K, M and N hole classes need a Δ (grade differential) correction rather than a plain mirror —
+// ISO 286-1's rule: Δ = IT(n) − IT(n−1) for "fine" grades (≤ IT8), 0 for coarser grades, and
+// ES = −ei(shaft letter) + Δ, EI = ES − IT(n). ei(shaft letter) is the same grade-independent
+// fundamental-deviation value already tabulated above for shaft k/m/n (EI_K / EI_MNPSU).
+// Cross-checked against every independently-agreed K6/K7/K8/M6/M7/M8/N6/N7/N8 value we could
+// verify (3–40mm, all 21 cells match exactly) — see docs/00-structure-and-conventions.md ("K/M/N
+// hole deviations") for the derivation. Only grades 6–8 are computed: grade 5 would need IT4,
+// which isn't tabulated on this page (IT_TABLE starts at IT5), so K5/M5/N5 stay unsupported
+// rather than guess; grades 9–11 aren't offered for these letters since ISO 286-2 itself doesn't
+// tabulate K/M/N past grade 9, and this page has no verified data to extend further.
+function deltaCorrection(grade, D){
+  if (grade > 8) return 0;
+  return itWidth(D, grade) - itWidth(D, grade - 1);
+}
+
+// Non-H hole letters — needed for dowel mode (ISO 2388 dowel holes are E7/H7/K7/P7) and for
+// Custom mode's full hole-letter freedom. H, the clearance letters (C-G), JS and the
+// interference letters (P,R,S,U) mirror their shaft counterparts exactly (ISO 286-1's Δ
+// correction is 0 for those); K, M and N use the Δ-corrected formula above.
+function holeDeviationExact(letter, grade, D){
+  const IT = itWidth(D, grade);
+  const fi = fineIdx(D);
+  if (letter === 'H') return { es: IT, ei: 0 };
+  if (letter === 'JS') return { es: IT/2, ei: -IT/2 };
+  if (['K','M','N'].includes(letter)){
+    if (grade < 6 || grade > 8) return null; // outside our verified Δ-correction range
+    const eiShaft = letter === 'K' ? EI_K[fi] : EI_MNPSU[fi][{M:0,N:1}[letter]];
+    const es = -eiShaft + deltaCorrection(grade, D);
+    return { es, ei: es - IT };
+  }
+  if (['C','D','E','F','G'].includes(letter)){
+    const shaftEs = ES_CDEFG[fi][['C','D','E','F','G'].indexOf(letter)];
+    const ei = -shaftEs;
+    return { ei, es: ei + IT };
+  }
+  if (letter === 'R'){
+    const es = -EI_R[fi];
+    return { es, ei: es - IT };
+  }
+  if (['P','S','U'].includes(letter)){
+    const shaftEi = EI_MNPSU[fi][{P:2,S:3,U:4}[letter]];
+    const es = -shaftEi;
+    return { es, ei: es - IT };
+  }
+  return null; // anything else not supported
+}
+
+// =====================================================================
+// Dowel fits (ISO 2388), per Equipmake's dowel guidance (ref 7, Table 1).
+// Dowel grade fixes the shaft (m6 or h8); fit type picks the mating hole class.
+// =====================================================================
+const DOWEL_FITS = {
+  m6: {
+    clearance: { holeLetter:'E', holeGrade:7 },
+    sliding:   { holeLetter:'H', holeGrade:7 },
+    press:     { holeLetter:'K', holeGrade:7 }
+  },
+  h8: {
+    clearance: { holeLetter:'H', holeGrade:7 },
+    sliding:   { holeLetter:'K', holeGrade:7 },
+    press:     { holeLetter:'P', holeGrade:7 }
+  }
+};
+const DOWEL_SHAFT = { m6: { letter:'m', grade:6 }, h8: { letter:'h', grade:8 } };
+
+const LETTER_LABEL = {
+  c:'c — loose (clearance)', d:'d — free (clearance)', e:'e — easy (clearance)',
+  f:'f — close (clearance)', g:'g — sliding (clearance)', h:'h — locational (clearance)',
+  js:'js — symmetric (transition)', k:'k — transition', m:'m — transition/light interference',
+  n:'n — transition/interference', p:'p — interference', r:'r — interference (heavy press)',
+  s:'s — interference (medium drive)', u:'u — interference (force fit)'
+};
+
+// Hole-letter equivalent of LETTER_LABEL, for Custom mode's hole side. K, M and N are computed
+// only at grades 6–8 (see holeDeviationExact's Δ-correction note) — picking one at another grade
+// shows the unsupported-fit fallback instead of numbers.
+const HOLE_LETTER_LABEL = {
+  C:'C — loose (clearance)', D:'D — free (clearance)', E:'E — easy (clearance)',
+  F:'F — close (clearance)', G:'G — sliding (clearance)', H:'H — locational (clearance)',
+  JS:'JS — symmetric (transition)', K:'K — transition (grades 6–8 only)',
+  M:'M — transition/light interference (grades 6–8 only)',
+  N:'N — transition/interference (grades 6–8 only)',
+  P:'P — interference', R:'R — interference (heavy press)',
+  S:'S — interference (medium drive)', U:'U — interference (force fit)'
+};
+
+// =====================================================================
+// Preferred hole-basis fits. Based on the ISO 286 preferred-fit set as
+// adopted by Equipmake's internal fit-selection standard (ref 7) — the
+// 10 marked ★ are that standard's Table 2 "preferred" combinations for
+// new designs; the other 4 are its documented alternatives.
+// =====================================================================
+const PRESETS = [
+  { key:'c11', hole:11, letter:'c', grade:11, label:'★ H11 / c11 — Clearance fit',
+    desc:'Large clearance for flexibility under load, easy assembly, or a close fit at elevated temperature.' },
+  { key:'d9', hole:9, letter:'d', grade:9, label:'★ H9 / d9 — Loose running fit',
+    desc:'Gland seals, loose pulleys, or sliding components with poor lubrication; large hydrodynamic bearings.' },
+  { key:'e8', hole:8, letter:'e', grade:8, label:'H8 / e8 — Easy running fit',
+    desc:'A bit tighter than loose-running — bearings with appreciable clearance, e.g. widely-spaced or multiple bearings on one shaft.' },
+  { key:'f7', hole:8, letter:'f', grade:7, label:'★ H8 / f7 — Running fit',
+    desc:'Good general-quality running fit. Hydrodynamic bearings and well-lubricated sliding components.' },
+  { key:'g6', hole:7, letter:'g', grade:6, label:'★ H7 / g6 — Sliding fit',
+    desc:'Not for continuous running — precision sliding and location instead (e.g. spigots, guide pins).' },
+  { key:'h6', hole:7, letter:'h', grade:6, label:'★ H7 / h6 — Location, clearance fit',
+    desc:'Snug location for stationary parts; freely assembled/disassembled by hand.' },
+  { key:'js6', hole:7, letter:'js', grade:6, label:'H7 / js6 — Location, push fit',
+    desc:'Averages a slight clearance with occasional light interference — coupling spigots, gear rings on hubs.' },
+  { key:'k6', hole:7, letter:'k', grade:6, label:'★ H7 / k6 — Light push fit',
+    desc:'Location fit where a slight interference is useful to eliminate motion between components.' },
+  { key:'m6', hole:7, letter:'m', grade:6, label:'H7 / m6 — Push fit',
+    desc:'Averages a slight interference — tight keying fits needing accurate location and no play.' },
+  { key:'n6', hole:7, letter:'n', grade:6, label:'★ H7 / n6 — Heavy push fit',
+    desc:'For location fits when the clearance still allowed by k6 is not acceptable.' },
+  { key:'p6', hole:7, letter:'p', grade:6, label:'★ H7 / p6 — Press fit',
+    desc:'Parts needing alignment and rigidity; can still be disassembled. Interference unlikely to over-strain components.' },
+  { key:'r6', hole:7, letter:'r', grade:6, label:'H7 / r6 — Heavy press fit',
+    desc:'Medium drive on ferrous parts / light drive on non-ferrous — pressed-in bushes, sleeves, seats.' },
+  { key:'s6', hole:7, letter:'s', grade:6, label:'★ H7 / s6 — Heavy drive fit',
+    desc:'Permanent or semi-permanent assembly of steel/cast-iron members. Watch for over-straining aluminium or cast-iron parts.' },
+  { key:'u6', hole:7, letter:'u', grade:6, label:'★ H7 / u6 — Shrink fit',
+    desc:'Permanent assemblies with the heaviest interference — check hub stress (section 3) before using on thin-walled or non-ferrous hubs.' }
+];
+
+// =====================================================================
+// UI wiring
+// =====================================================================
+const nominalEl = document.getElementById('nominal');
+let mode = 'preferred';
+
+document.querySelectorAll('.pill-row .pill[data-mode]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.pill-row .pill[data-mode]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    mode = btn.dataset.mode;
+    document.getElementById('preferred-panel').classList.toggle('hidden', mode !== 'preferred');
+    document.getElementById('custom-panel').classList.toggle('hidden', mode !== 'custom');
+    document.getElementById('dowel-panel').classList.toggle('hidden', mode !== 'dowel');
+    recompute();
+  });
+});
+
+const dowelGradeSel = document.getElementById('dowelGrade');
+const dowelFitSel = document.getElementById('dowelFit');
+[dowelGradeSel, dowelFitSel].forEach(el => el.addEventListener('change', recompute));
+
+const presetSel = document.getElementById('presetSel');
+PRESETS.forEach(p=>{
+  const o = document.createElement('option'); o.value = p.key; o.textContent = p.label;
+  presetSel.appendChild(o);
+});
+presetSel.value = 'g6';
+presetSel.addEventListener('change', recompute);
+
+const holeGradeSel = document.getElementById('holeGrade');
+const shaftGradeSel = document.getElementById('shaftGrade');
+for (let g = 5; g <= 11; g++){
+  const o1 = document.createElement('option'); o1.value = g; o1.textContent = g; holeGradeSel.appendChild(o1);
+  const o2 = document.createElement('option'); o2.value = g; o2.textContent = g; shaftGradeSel.appendChild(o2);
+}
+holeGradeSel.value = 7; shaftGradeSel.value = 6;
+const holeLetterSel = document.getElementById('holeLetter');
+Object.keys(HOLE_LETTER_LABEL).forEach(l=>{
+  const o = document.createElement('option'); o.value = l; o.textContent = HOLE_LETTER_LABEL[l]; holeLetterSel.appendChild(o);
+});
+holeLetterSel.value = 'H';
+const shaftLetterSel = document.getElementById('shaftLetter');
+Object.keys(LETTER_LABEL).forEach(l=>{
+  const o = document.createElement('option'); o.value = l; o.textContent = LETTER_LABEL[l]; shaftLetterSel.appendChild(o);
+});
+shaftLetterSel.value = 'g';
+[holeLetterSel, holeGradeSel, shaftGradeSel, shaftLetterSel, nominalEl].forEach(el => el.addEventListener('input', recompute));
+
+// Per-side manual-entry toggle (Custom mode only) — hole and shaft switch independently between
+// their letter/grade selects and direct ES/EI (or es/ei) µm inputs, so e.g. a manufacturer's shaft
+// can be checked manually against a standard hole picked normally, or vice versa.
+const holeManualToggle = document.getElementById('holeManualToggle');
+const shaftManualToggle = document.getElementById('shaftManualToggle');
+const holeLetterField = document.getElementById('holeLetterField');
+const holeGradeField = document.getElementById('holeGradeField');
+const holeManualESField = document.getElementById('holeManualESField');
+const holeManualEIField = document.getElementById('holeManualEIField');
+const shaftLetterField = document.getElementById('shaftLetterField');
+const shaftGradeField = document.getElementById('shaftGradeField');
+const shaftManualESField = document.getElementById('shaftManualESField');
+const shaftManualEIField = document.getElementById('shaftManualEIField');
+const holeManualESEl = document.getElementById('holeManualES');
+const holeManualEIEl = document.getElementById('holeManualEI');
+const shaftManualESEl = document.getElementById('shaftManualES');
+const shaftManualEIEl = document.getElementById('shaftManualEI');
+const manualLabelEl = document.getElementById('manualLabel');
+
+function syncManualFieldVisibility(){
+  const hm = holeManualToggle.checked, sm = shaftManualToggle.checked;
+  holeLetterField.classList.toggle('hidden', hm);
+  holeGradeField.classList.toggle('hidden', hm);
+  holeManualESField.classList.toggle('hidden', !hm);
+  holeManualEIField.classList.toggle('hidden', !hm);
+  shaftLetterField.classList.toggle('hidden', sm);
+  shaftGradeField.classList.toggle('hidden', sm);
+  shaftManualESField.classList.toggle('hidden', !sm);
+  shaftManualEIField.classList.toggle('hidden', !sm);
+}
+[holeManualToggle, shaftManualToggle].forEach(el => el.addEventListener('change', ()=>{
+  syncManualFieldVisibility();
+  recompute();
+}));
+syncManualFieldVisibility();
+
+[holeManualESEl, holeManualEIEl, shaftManualESEl, shaftManualEIEl, manualLabelEl]
+  .forEach(el => el.addEventListener('input', recompute));
+
+function fmtUm(v){ return (v >= 0 ? '+' : '') + Math.round(v * 10) / 10 + ' µm'; }
+function fmtMm(v){ return v.toFixed(3) + ' mm'; }
+
+// Global tolerance-zone diagram scale: the largest |deviation| reachable by ANY hole or shaft
+// letter/grade this page offers at a given nominal size, so both bands are always drawn to the
+// same fixed µm-per-pixel ratio — one that depends only on the nominal size, never on which
+// fit is currently selected. Every fit at a given size therefore renders on one common ruler,
+// making bands comparable both to the nominal line and to each other, and switching letters or
+// grades never rescales (or shifts) the diagram. Recomputed once per nominal size and cached,
+// since it's the same finite loop over every letter/grade combination each time.
+const GRADES_5_11 = [5,6,7,8,9,10,11];
+let _scaleCacheD = null, _scaleCacheVal = null;
+function globalScaleMaxAbs(D){
+  if (_scaleCacheD === D) return _scaleCacheVal;
+  let m = 1;
+  Object.keys(LETTER_LABEL).forEach(l => GRADES_5_11.forEach(g => {
+    const d = shaftDeviation(l, g, D);
+    m = Math.max(m, Math.abs(d.es), Math.abs(d.ei));
+  }));
+  Object.keys(HOLE_LETTER_LABEL).forEach(l => GRADES_5_11.forEach(g => {
+    const d = l === 'H' ? holeDeviation(g, D) : holeDeviationExact(l, g, D);
+    if (d) m = Math.max(m, Math.abs(d.es), Math.abs(d.ei));
+  }));
+  _scaleCacheD = D; _scaleCacheVal = m * 0.867;
+  return _scaleCacheVal;
+}
+
+let currentFit = null; // exposed for section 3
+
+function recompute(){
+  const D = parseFloat(nominalEl.value);
+  if (!D || D <= 0 || D > 500){ return; }
+
+  let holeGrade, holeLetter = 'H', letter, shaftGrade, label;
+  let hole, shaft;
+  let holeManual = false, shaftManual = false;
+
+  function manualEntryError(which){
+    document.getElementById('fitResultsBody').classList.add('hidden');
+    document.getElementById('doweUnsupportedMsg').classList.remove('hidden');
+    document.getElementById('doweUnsupportedMsg').textContent =
+      'Enter both the upper and lower deviation for the ' + which + ' (in µm) to compute this fit.';
+    currentFit = null;
+    updateForceSection();
+  }
+
+  if (mode === 'preferred'){
+    const p = PRESETS.find(x => x.key === presetSel.value);
+    holeGrade = p.hole; letter = p.letter; shaftGrade = p.grade;
+    label = 'H' + p.hole + ' / ' + p.letter + p.grade;
+    document.getElementById('presetDesc').textContent = p.desc;
+  } else if (mode === 'dowel'){
+    const dg = dowelGradeSel.value;
+    const spec = DOWEL_FITS[dg][dowelFitSel.value];
+    holeLetter = spec.holeLetter; holeGrade = spec.holeGrade;
+    letter = DOWEL_SHAFT[dg].letter; shaftGrade = DOWEL_SHAFT[dg].grade;
+    label = holeLetter + holeGrade + ' / ' + dg;
+  } else { // custom — hole and shaft each independently standard (letter/grade) or manual (ES/EI, es/ei)
+    holeManual = holeManualToggle.checked;
+    shaftManual = shaftManualToggle.checked;
+
+    if (holeManual){
+      const hES = parseFloat(holeManualESEl.value), hEI = parseFloat(holeManualEIEl.value);
+      if (!Number.isFinite(hES) || !Number.isFinite(hEI)){ manualEntryError('hole'); return; }
+      hole = { es: hES, ei: hEI };
+    } else {
+      holeLetter = holeLetterSel.value; holeGrade = parseInt(holeGradeSel.value);
+    }
+
+    if (shaftManual){
+      const sES = parseFloat(shaftManualESEl.value), sEI = parseFloat(shaftManualEIEl.value);
+      if (!Number.isFinite(sES) || !Number.isFinite(sEI)){ manualEntryError('shaft'); return; }
+      shaft = { es: sES, ei: sEI };
+    } else {
+      letter = shaftLetterSel.value; shaftGrade = parseInt(shaftGradeSel.value);
+    }
+
+    const holeCode = holeManual ? 'manual' : (holeLetter + holeGrade);
+    const shaftCode = shaftManual ? 'manual' : (letter + shaftGrade);
+    label = manualLabelEl.value.trim() || (holeCode + ' / ' + shaftCode);
+  }
+
+  if (!holeManual) hole = holeLetter === 'H' ? holeDeviation(holeGrade, D) : holeDeviationExact(holeLetter, holeGrade, D);
+  if (!shaftManual) shaft = shaftDeviation(letter, shaftGrade, D);
+
+  document.getElementById('fitResultsBody').classList.toggle('hidden', !hole);
+  document.getElementById('doweUnsupportedMsg').classList.toggle('hidden', !!hole);
+  if (!hole){
+    document.getElementById('doweUnsupportedMsg').innerHTML = 'ISO code: <strong>' + label + '</strong> — this page '
+      + "doesn't compute exact " + holeLetter + holeGrade + ' hole limits (K/M/N are only computed at grades 6–8); check '
+      + 'ISO 286-2.' + (mode === 'dowel'
+        ? ' The ' + letter + shaftGrade + ' dowel shaft itself can be checked via Custom mode.'
+        : ' Switch the hole letter to H to check the shaft side of this combination instead.');
+    currentFit = null;
+    updateForceSection();
+    return;
+  }
+  // "IT" here means the deviation width (ES-EI or es-ei) — for a manually-entered side it's whatever
+  // width those deviations imply, not a standard IT grade, so it's labelled "(manual)" below.
+  const holeIT = holeManual ? Math.round((hole.es - hole.ei) * 10) / 10 : itWidth(D, holeGrade);
+  const shaftIT = shaftManual ? Math.round((shaft.es - shaft.ei) * 10) / 10 : itWidth(D, shaftGrade);
+
+  const holeMax = D + hole.es/1000, holeMin = D + hole.ei/1000;
+  const shaftMax = D + shaft.es/1000, shaftMin = D + shaft.ei/1000;
+  const maxGap = holeMax - shaftMin;   // most-clearance case
+  const minGap = holeMin - shaftMax;   // most-interference case
+
+  let fitType, badgeClass;
+  if (minGap >= 0){ fitType = 'Clearance fit'; badgeClass = 'clearance'; }
+  else if (maxGap <= 0){ fitType = 'Interference fit'; badgeClass = 'interference'; }
+  else { fitType = 'Transition fit'; badgeClass = 'transition'; }
+
+  document.getElementById('fitCallout').textContent = label + ' at Ø' + D + ' mm:';
+  const badge = document.getElementById('fitBadge');
+  badge.textContent = fitType; badge.className = 'badge ' + badgeClass;
+
+  document.getElementById('holeES').textContent = fmtUm(hole.es);
+  document.getElementById('holeEI').textContent = fmtUm(hole.ei);
+  document.getElementById('holeMax').textContent = fmtMm(holeMax);
+  document.getElementById('holeMin').textContent = fmtMm(holeMin);
+  document.getElementById('holeIT').textContent = holeIT + (holeManual ? ' µm (manual)' : ' µm (IT' + holeGrade + ')');
+
+  document.getElementById('shaftES').textContent = fmtUm(shaft.es);
+  document.getElementById('shaftEI').textContent = fmtUm(shaft.ei);
+  document.getElementById('shaftMax').textContent = fmtMm(shaftMax);
+  document.getElementById('shaftMin').textContent = fmtMm(shaftMin);
+  document.getElementById('shaftIT').textContent = shaftIT + (shaftManual ? ' µm (manual)' : ' µm (IT' + shaftGrade + ')');
+
+  document.getElementById('outMinGap').textContent = fmtUm(minGap * 1000);
+  document.getElementById('outMaxGap').textContent = fmtUm(maxGap * 1000);
+
+  document.getElementById('holeLabel').textContent = holeManual ? 'manual' : (holeLetter + holeGrade);
+  document.getElementById('shaftLabel').textContent = shaftManual ? 'manual' : (letter + shaftGrade);
+  document.getElementById('holeMax2').textContent = holeMax.toFixed(3) + ' mm';
+  document.getElementById('holeMin2').textContent = holeMin.toFixed(3) + ' mm';
+  document.getElementById('shaftMax2').textContent = shaftMax.toFixed(3) + ' mm';
+  document.getElementById('shaftMin2').textContent = shaftMin.toFixed(3) + ' mm';
+  document.getElementById('zoneAxisLabel').textContent = 'Nominal Ø' + D.toFixed(D % 1 === 0 ? 0 : 3) + ' mm';
+
+  // zone diagram — hole and shaft are drawn to one GLOBAL µm-per-pixel scale (see
+  // globalScaleMaxAbs above), fixed for this nominal size regardless of which letter/grade
+  // is picked, so every band on this page is directly comparable to every other.
+  const trackH = 160, half = trackH/2;
+  const maxAbs = globalScaleMaxAbs(D);
+  const ppu = half / maxAbs;
+  const holeBand = document.getElementById('holeBand');
+  const shaftBand = document.getElementById('shaftBand');
+  holeBand.style.top = (half - hole.es*ppu) + 'px';
+  holeBand.style.height = Math.max(2, (hole.es - hole.ei)*ppu) + 'px';
+  shaftBand.style.top = (half - shaft.es*ppu) + 'px';
+  shaftBand.style.height = Math.max(2, (shaft.es - shaft.ei)*ppu) + 'px';
+
+  currentFit = { D, holeGrade, letter, shaftGrade, hole, shaft, holeMax, holeMin, shaftMax, shaftMin, minGap, maxGap, fitType };
+  updateForceSection();
+}
+
+// =====================================================================
+// Section 3 — interference-fit force estimate (Lamé + Coulomb friction)
+// =====================================================================
+const MATERIALS_OK = !!(window.MDG_MATERIALS && window.MDG_MATERIALS.types && window.MDG_MATERIALS.grades);
+document.getElementById('materialsMissingMsg').classList.toggle('hidden', MATERIALS_OK);
+
+// Two-level (type -> grade) pickers, one pair for hub and one for shaft. Populating the grade
+// select depends on which type is currently selected, so each pair is wired to re-populate its
+// grade list whenever its type changes.
+function populateTypeSelect(sel){
+  if (!MATERIALS_OK) return;
+  window.MDG_MATERIALS.types.forEach(t=>{
+    const o = document.createElement('option'); o.value = t.slug; o.textContent = t.title;
+    sel.appendChild(o);
+  });
+}
+function populateGradeSelect(sel, typeSlug){
+  sel.innerHTML = '';
+  if (!MATERIALS_OK) return;
+  window.MDG_MATERIALS.grades.filter(g=>g.type===typeSlug).forEach(g=>{
+    const o = document.createElement('option');
+    o.value = g.id; o.textContent = g.grade + ' (' + g.condition + ')';
+    sel.appendChild(o);
+  });
+}
+function wireMaterialPair(typeId, gradeId, defaultTypeSlug, defaultGradeId){
+  const typeSel = document.getElementById(typeId), gradeSel = document.getElementById(gradeId);
+  populateTypeSelect(typeSel);
+  if (MATERIALS_OK){
+    typeSel.value = defaultTypeSlug;
+    populateGradeSelect(gradeSel, typeSel.value);
+    gradeSel.value = defaultGradeId;
+  }
+  typeSel.addEventListener('change', ()=>{
+    populateGradeSelect(gradeSel, typeSel.value);
+    updateForceSection();
+  });
+  gradeSel.addEventListener('input', updateForceSection);
+}
+wireMaterialPair('hubMaterialType', 'hubMaterialGrade', 'aluminum', 'al-6061-t6');
+wireMaterialPair('shaftMaterialType', 'shaftMaterialGrade', 'steel-carbon-alloy', 'steel-1045-cd');
+function materialById(id){ return MATERIALS_OK ? window.MDG_MATERIALS.grades.find(g=>g.id===id) : null; }
+
+const MU_PRESETS = [
+  { label:'Lubricated', v:0.07 },
+  { label:'Dry, unlubricated', v:0.12 },
+  { label:'Dry, worst case', v:0.18 },
+  { label:'Custom', v:null }
+];
+const muPillsEl = document.getElementById('muPills');
+const muCustomEl = document.getElementById('muCustom');
+let muMode = 1;
+MU_PRESETS.forEach((m,i)=>{
+  const b = document.createElement('button'); b.type='button'; b.className='pill' + (i===1?' active':'');
+  b.textContent = m.label;
+  b.addEventListener('click', ()=>{
+    muPillsEl.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); muMode = i;
+    if (m.v !== null){ muCustomEl.value = m.v; muCustomEl.disabled = true; } else { muCustomEl.disabled = false; }
+    updateForceSection();
+  });
+  muPillsEl.appendChild(b);
+});
+muCustomEl.disabled = true;
+
+['forceToggle','hubOD','shaftBore','engageLength','muCustom','hubRa','shaftRa']
+  .forEach(id => document.getElementById(id).addEventListener('input', updateForceSection));
+
+function lameCase(deltaUm, D, Do, Di, Eh, nuh, Es, nus){
+  const delta = deltaUm / 1000; // mm
+  if (delta < 0) return null;
+  if (delta === 0) return { delta: 0, p: 0, sigmaHoop: 0, sigmaVM: 0, kh: (Do*Do + D*D) / (Do*Do - D*D) };
+  const kh = (Do*Do + D*D) / (Do*Do - D*D);
+  const ks = Di > 0 ? (D*D + Di*Di) / (D*D - Di*Di) : 1;
+  const Ch = kh + nuh, Cs = ks - nus;
+  // E in GPa -> convert to N/mm^2 (MPa): 1 GPa = 1000 MPa
+  const p = delta / (D * (Ch/(Eh*1000) + Cs/(Es*1000))); // MPa
+  const sigmaHoop = p * kh; // MPa, hub hoop stress at bore
+  const sigmaVM = Math.sqrt(sigmaHoop*sigmaHoop + sigmaHoop*p + p*p); // plane-stress, sigma_r=-p at bore
+  return { delta, p, sigmaHoop, sigmaVM, kh };
+}
+
+function updateForceSection(){
+  const on = document.getElementById('forceToggle').checked;
+  const noInterEl = document.getElementById('noInterferenceMsg');
+  document.getElementById('forcePanel').classList.toggle('hidden', !on);
+  noInterEl.classList.add('hidden');
+  if (!on) return;
+
+  if (!currentFit){
+    document.getElementById('forcePanel').classList.add('hidden');
+    noInterEl.textContent = "This fit isn't fully computed above (see the note in section 2) — nothing to estimate.";
+    noInterEl.classList.remove('hidden');
+    return;
+  }
+
+  const fit = currentFit;
+  const maxInterferenceUm = -fit.minGap * 1000; // worst case, could be <=0 if pure clearance
+  const minInterferenceUm = Math.max(0, -fit.maxGap * 1000); // guaranteed floor (0 if transition allows clearance)
+
+  if (maxInterferenceUm <= 0){
+    document.getElementById('forcePanel').classList.add('hidden');
+    noInterEl.textContent = 'Pure clearance fit — no interference to press, so nothing to estimate. Try a transition or interference fit (k6, n6, p6, s6, u6).';
+    noInterEl.classList.remove('hidden');
+    return;
+  }
+
+  const D = fit.D;
+  const Do = parseFloat(document.getElementById('hubOD').value) || 0;
+  const Di = parseFloat(document.getElementById('shaftBore').value) || 0;
+  const L = parseFloat(document.getElementById('engageLength').value) || 0;
+  const hubRa = parseFloat(document.getElementById('hubRa').value) || 0;
+  const shaftRa = parseFloat(document.getElementById('shaftRa').value) || 0;
+  // Drawings specify Ra, but the flattening formula (ref 6) uses Rz (peak-to-valley); Rz ≈ 4×Ra
+  // is a common planning-level approximation for machined surfaces (ref 8) — not an ISO-sanctioned
+  // conversion, so treat the result as indicative rather than exact.
+  const RA_TO_RZ = 4;
+  const rough = 0.8 * RA_TO_RZ * (hubRa + shaftRa); // diametral roughness-flattening reduction
+  const mu = parseFloat(muCustomEl.value) || 0;
+
+  const warnEl = document.getElementById('forceWarn');
+  warnEl.innerHTML = '';
+
+  if (!MATERIALS_OK){
+    warnEl.innerHTML = '<div class="warn">Material library unavailable — see the note above.</div>';
+    return;
+  }
+
+  const hubMat = materialById(document.getElementById('hubMaterialGrade').value);
+  const shaftMat = materialById(document.getElementById('shaftMaterialGrade').value);
+  if (!hubMat || !shaftMat){ return; } // grade list still populating (e.g. type just changed)
+
+  if (Do <= D){
+    warnEl.innerHTML = '<div class="warn">Hub OD must exceed the fit diameter — the Lamé model needs a real wall thickness.</div>';
+    return;
+  }
+
+  const effMinUm = Math.max(0, minInterferenceUm - rough);
+  const effMaxUm = Math.max(0, maxInterferenceUm - rough);
+
+  const caseMin = lameCase(effMinUm, D, Do, Di, hubMat.E_GPa, hubMat.poisson, shaftMat.E_GPa, shaftMat.poisson);
+  const caseMax = lameCase(effMaxUm, D, Do, Di, hubMat.E_GPa, hubMat.poisson, shaftMat.E_GPa, shaftMat.poisson);
+
+  document.getElementById('fEffMin').textContent = effMinUm.toFixed(1) + ' µm';
+  document.getElementById('fEffMax').textContent = effMaxUm.toFixed(1) + ' µm';
+
+  function fillCase(c, idP, idF, idT, idSig, idSF){
+    if (!c){
+      document.getElementById(idP).textContent = '–';
+      document.getElementById(idF).textContent = '–';
+      document.getElementById(idT).textContent = '–';
+      document.getElementById(idSig).textContent = '–';
+      document.getElementById(idSF).textContent = '–';
+      return;
+    }
+    const F = mu * c.p * Math.PI * D * L; // N
+    const T = mu * c.p * Math.PI * D * D * L / 2; // N·mm
+    document.getElementById(idP).textContent = c.p.toFixed(1) + ' MPa';
+    document.getElementById(idF).textContent = (F/1000).toFixed(2) + ' kN';
+    document.getElementById(idT).textContent = (T/1000).toFixed(1) + ' N·m';
+    document.getElementById(idSig).textContent = c.sigmaHoop.toFixed(1) + ' MPa';
+    if (c.p === 0){
+      // Roughness flattening has erased this case's interference entirely (delta clamped to 0) —
+      // zero contact pressure means no load and no meaningful safety factor, not "not calculated".
+      document.getElementById(idSF).textContent = 'n/a (no interference)';
+    } else if (hubMat.yield_MPa){
+      const sf = hubMat.yield_MPa / c.sigmaVM;
+      document.getElementById(idSF).textContent = 'SF ' + sf.toFixed(2) + (sf < 1.5 ? '  ⚠' : '');
+      if (sf < 1.0 && idSF === 'fSFMax'){
+        warnEl.innerHTML = '<div class="warn">Max-interference hub stress (' + c.sigmaVM.toFixed(0)
+          + ' MPa) exceeds yield (' + hubMat.yield_MPa + ' MPa) — would yield at assembly. Increase hub OD, '
+          + 'reduce interference, or use a stronger hub material.</div>';
+      }
+    } else {
+      document.getElementById(idSF).textContent = 'n/a';
+    }
+  }
+  fillCase(caseMin, 'fPMin','fFMin','fTMin','fSigMin','fSFMin');
+  fillCase(caseMax, 'fPMax','fFMax','fTMax','fSigMax','fSFMax');
+}
+
+document.getElementById('forceToggle').addEventListener('change', updateForceSection);
+
+// init
+recompute();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  function current(){
+    var t = document.documentElement.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  function apply(state){
+    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', state); }
+    try {
+      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
+      else { localStorage.setItem('mdg-theme', state); }
+    } catch (e) {}
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  if (btn) {
+    btn.textContent = LABELS[current()];
+    btn.addEventListener('click', function(){
+      var idx = STATES.indexOf(current());
+      apply(STATES[(idx + 1) % STATES.length]);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  // Legibility floor: never shrink below this, even if that means the page then
+  // spills onto a 2nd (or 3rd) sheet. A handful of very long pages (e.g. the
+  // Material Library table, the O-Ring groove-design page) would otherwise need
+  // to zoom out well below half size to fit a single sheet, which prints too
+  // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
+  var MIN_SCALE = 0.65;
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+</body>
+</html>

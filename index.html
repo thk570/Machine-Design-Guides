@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<title>Machine Design Guides</title>
+<style>
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #3b6ea5;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  header { padding: 1.5rem 1.25rem 1rem; max-width: 1400px; margin: 0 auto; position: relative; }
+  header h1 { margin: 0 0 0.25rem; font-size: 1.4rem; }
+  header p { margin: 0; color: var(--mdg-text-muted); font-size: 0.95rem; }
+  .mdg-theme-toggle { position: absolute; top: 1.5rem; right: 1.25rem;
+    border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  #filter { margin-top: 1rem; width: 100%; max-width: 360px; padding: 0.5rem 0.75rem;
+    border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
+    background: var(--mdg-surface); color: var(--mdg-text); font-size: 0.9rem; }
+  main { max-width: 1400px; margin: 0 auto; padding: 0.5rem 1.25rem 3rem; }
+  .category { margin-top: 1.75rem; }
+  .category h2 { font-size: 1rem; margin: 0 0 0.6rem; display: flex; align-items: center; gap: 0.5rem; }
+  .dot { width: 0.65rem; height: 0.65rem; border-radius: 50%; display: inline-block; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 420px)); gap: 0.75rem; }
+  .card { background: var(--mdg-surface); border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
+    padding: 0.9rem 1rem; text-decoration: none; color: var(--mdg-text); display: block; }
+  .card:hover { border-color: var(--mdg-accent); }
+  .card .title { font-weight: 600; font-size: 0.95rem; }
+  .card .std { color: var(--mdg-text-muted); font-size: 0.78rem; margin-top: 0.15rem; }
+  .card .desc { color: var(--mdg-text-muted); font-size: 0.82rem; margin-top: 0.4rem; line-height: 1.4; }
+  .status { display: inline-block; margin-top: 0.5rem; font-size: 0.7rem; padding: 0.1rem 0.5rem;
+    border-radius: 999px; background: var(--mdg-bg); border: 1px solid var(--mdg-border); color: var(--mdg-text-muted); }
+  .empty { color: var(--mdg-text-muted); font-size: 0.9rem; padding: 2rem 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  <h1>Machine Design Guides</h1>
+  <p>Quick reference tools and calculators for machine design — dimensions, materials and standards, in one place.</p>
+  <input id="filter" type="text" placeholder="Filter by title or tag…">
+</header>
+
+<main id="content">
+  <div class="empty">Loading…</div>
+</main>
+
+<script src="data/manifest.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  function current(){
+    var t = document.documentElement.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  function apply(state){
+    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', state); }
+    try {
+      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
+      else { localStorage.setItem('mdg-theme', state); }
+    } catch (e) {}
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  if (btn) {
+    btn.textContent = LABELS[current()];
+    btn.addEventListener('click', function(){
+      var idx = STATES.indexOf(current());
+      apply(STATES[(idx + 1) % STATES.length]);
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

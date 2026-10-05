@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<title>Screw Torques — Machine Design Guides</title>
+<style>
+  /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #a5623b;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --poor: #b5484d; --good: #4a7a50;
+    --input-bg: #fbeee3; --input-border: #d9a679;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+      --poor: #e0696d; --good: #6bbf72;
+      --input-bg: #3a2a1c; --input-border: #8a5a34;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+    --poor: #e0696d; --good: #6bbf72;
+    --input-bg: #3a2a1c; --input-border: #8a5a34;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); flex-wrap: wrap; }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 900px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  h2 { font-size: 1.05rem; margin: 0 0 0.75rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1.1rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); line-height: 1.5; }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  table.mdg-table tr.current td { font-weight: 600; background: rgba(165,98,59,0.10); }
+  table.mdg-table td.limit-screw { color: var(--poor); font-weight: 600; }
+  .note { font-size: 0.8rem; color: var(--mdg-text-muted); margin-top: 0.5rem; }
+  .field-hint { font-size: 0.78rem; color: var(--mdg-text-muted); margin-top: 0.3rem; }
+  .field-hint strong { color: var(--mdg-text); }
+  label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem; }
+  select, input[type=number] {
+    font-family: var(--mdg-font); font-size: 0.9rem; padding: 0.4rem 0.55rem;
+    border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); color: var(--mdg-text);
+  }
+  .input-row { display: flex; align-items: center; gap: 0.4rem; }
+  .input-row input { flex: 1 1 auto; min-width: 0; }
+  .input-row .unit { font-size: 0.85rem; color: var(--mdg-text-muted); white-space: nowrap; }
+  .row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; margin-bottom: 0.75rem; }
+  .field { display: flex; flex-direction: column; min-width: 170px; }
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.6rem; margin-top: 0.75rem; }
+  .result { background: var(--mdg-bg); border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.55rem 0.7rem; }
+  .result.headline { border-color: var(--mdg-accent); }
+  .result.flag { border-color: var(--poor); }
+  .result.flag .v { color: var(--poor); }
+  .result .k { font-size: 0.72rem; color: var(--mdg-text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+  .result .v { font-family: var(--mdg-font-mono); font-size: 1.05rem; margin-top: 0.15rem; }
+  .result.headline .v { font-size: 1.3rem; color: var(--mdg-accent); }
+  .pill-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .pill { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.35rem 0.85rem;
+    font-size: 0.85rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text); }
+  .pill.active { background: var(--mdg-accent); border-color: var(--mdg-accent); color: #fff; }
+  .pill.big { padding: 0.5rem 1.1rem; font-size: 0.9rem; }
+  .link-btn { font-size: 0.78rem; color: var(--mdg-accent); background: none; border: none; cursor: pointer;
+    padding: 0; text-decoration: underline; }
+  .warn { background: rgba(181,72,77,0.12); border: 1px solid var(--poor); border-radius: 6px;
+    padding: 0.6rem 0.8rem; font-size: 0.85rem; margin-top: 0.75rem; }
+  .ok { background: rgba(74,122,80,0.12); border: 1px solid var(--good); border-radius: 6px;
+    padding: 0.6rem 0.8rem; font-size: 0.85rem; margin-top: 0.75rem; }
+  .lib-note { font-size: 0.78rem; color: var(--mdg-text-muted); font-style: italic; margin: -0.4rem 0 0.75rem; }
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+  .ref-list li:target { color: var(--mdg-text); }
+  @media print { .mdg-header, .mdg-no-print { display: none !important; } }
+  /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). Forces a light,
+     compact one-page A4 layout via a temporary .mdg-pdf-mode class on <html>, applied just
+     before window.print() and removed on afterprint/focus. */
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-collapsible,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+      <strong>Screw Torques</strong>
+      <span class="mdg-tag">Fasteners &amp; Torque</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">Metric &middot; coarse thread only</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Screw Torques<span class="mdg-print-tag">Fasteners &amp; Torque</span></div>
+    <div class="mdg-print-meta">Metric &middot; coarse thread only &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+
+  <div class="mdg-card">
+    <p>Recommended tightening torque for a metric coarse-thread bolt or screw. Two very different joints share this
+      page: a bolt running into a properly rated nut or insert (governed by the <em>bolt's</em> proof/yield
+      strength), and a screw threaded directly into a tapped hole in the parent material (normally governed by
+      <em>thread stripping</em> in that material, with a check that the screw itself isn't the weaker element).
+      Both use the same underlying nut-factor torque relationship
+      T&nbsp;=&nbsp;K&middot;F&middot;d<sup><a href="#ref1">1</a>,<a href="#ref2">2</a></sup>, but the axial load F
+      behind it comes from a different place in each case.</p>
+  </div>
+
+  <!-- ============ 1. JOINT TYPE ============ -->
+  <div class="mdg-card">
+    <h2>1. Joint Type</h2>
+    <div class="pill-row" id="joint-pills"></div>
+  </div>
+
+  <!-- ============ 2a. BOLTED PANEL ============ -->
+  <div class="mdg-card" id="panel-bolted">
+    <h2>2. Bolt &amp; Retention</h2>
+    <div class="row">
+      <div class="field">
+        <label for="b-size">Nominal size</label>
+        <select id="b-size"></select>
+      </div>
+      <div class="field">
+        <label for="pclass">Bolt / screw property class</label>
+        <select id="pclass">
+          <optgroup label="Steel — ISO 898-1">
+            <option value="4.6">4.6</option>
+            <option value="8.8" selected>8.8</option>
+            <option value="9.8">9.8 (M16 max)</option>
+            <option value="10.9">10.9</option>
+            <option value="12.9">12.9</option>
+          </optgroup>
+          <optgroup label="Stainless — ISO 3506-1">
+            <option value="A2-70">A2-70</option>
+            <option value="A4-80">A4-80</option>
+          </optgroup>
+        </select>
+        <div class="field-hint" id="nut-hint"></div>
+      </div>
+      <div class="field">
+        <label for="util">Target preload (% of proof/yield stress)</label>
+        <div class="input-row"><input type="number" id="util" value="75" min="50" max="90" step="1"><span class="unit">%</span></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field" style="min-width:260px;">
+        <label for="retention">Retention type</label>
+        <select id="retention">
+          <option value="standard">Standard nut / captive thread</option>
+          <option value="nyloc">Nyloc (nylon-insert lock nut)</option>
+          <option value="rivnut">Rivnut / threaded insert</option>
+          <option value="selfclinch">Self-clinching nut (PEM-type)</option>
+        </select>
+      </div>
+    </div>
+    <label>Friction condition</label>
+    <div class="pill-row" id="friction-pills"></div>
+    <div id="galling-warning"></div>
+    <div id="retention-note"></div>
+    <p class="note">The property class selected is the <strong>bolt / screw</strong>; preload and torque are based on its
+      proof stress, per ISO 898-1 for steel<sup><a href="#ref3">3</a></sup> (8.8 splits at M16: 580&nbsp;MPa ≤M16,
+      600&nbsp;MPa &gt;M16; 9.8 is only standardised up to M16) and ISO 3506-1 Rp0.2 for
+      stainless<sup><a href="#ref4">4</a>,<a href="#ref5">5</a></sup>. The mating nut is specified one step down in
+      designation — the nut class equal to the bolt's first number (e.g. class&nbsp;8 nut for an 8.8
+      bolt)<sup><a href="#ref10">10</a></sup> — so the bolt, not the nut thread, is the weaker element. 75% of proof
+      load is a common conservative starting point; up to ~90% is used for well-controlled tightening
+      methods<sup><a href="#ref6">6</a></sup>.</p>
+  </div>
+
+  <!-- ============ 2b. TAPPED-HOLE PANEL ============ -->
+  <div class="mdg-card" id="panel-tapped" style="display:none;">
+    <h2>2. Screw &amp; Parent Material</h2>
+    <div class="row">
+      <div class="field">
+        <label for="t-size">Nominal size</label>
+        <select id="t-size"></select>
+      </div>
+      <div class="field">
+        <label for="pclass-t">Screw property class</label>
+        <select id="pclass-t">
+          <optgroup label="Steel — ISO 898-1">
+            <option value="4.6">4.6</option>
+            <option value="8.8" selected>8.8</option>
+            <option value="9.8">9.8 (M16 max)</option>
+            <option value="10.9">10.9</option>
+            <option value="12.9">12.9</option>
+          </optgroup>
+          <optgroup label="Stainless — ISO 3506-1">
+            <option value="A2-70">A2-70</option>
+            <option value="A4-80">A4-80</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="field" style="min-width:280px;">
+        <label for="parent-material">Parent material (tapped hole)</label>
+        <select id="parent-material"></select>
+      </div>
+    </div>
+    <p class="lib-note">Materials pulled from the shared library (data/materials.js) — filtered to steel, stainless
+      and aluminum, the families this method's shear-strength assumption is validated for.</p>
+    <div class="row">
+      <div class="field">
+        <label for="engagement">Thread engagement length, L (mm)</label>
+        <div class="input-row"><input type="number" id="engagement" value="6" min="0.5" step="0.1"><span class="unit">mm</span></div>
+      </div>
+      <div class="field" style="justify-content:flex-end; align-self:flex-end;">
+        <button type="button" class="link-btn" id="use-recommended">Use recommended (1.5&times;d)</button>
+      </div>
+    </div>
+    <label>Friction condition</label>
+    <div class="pill-row" id="friction-pills-t"></div>
+    <div id="engagement-note"></div>
+    <p class="note">Based on NASA/TM&mdash;2017-219475's noncritical-joint method<sup><a href="#ref9">9</a></sup>:
+      pullout load from the parent material's thread-shear area, assembly torque taken as 65% of the
+      torque implied by that pullout load (a built-in safety factor of ~1.54, on top of a factor of 3 already in
+      the pullout formula). The resulting assembly preload is then checked against the screw: if it exceeds 90% of
+      the screw's proof load, the <strong>screw is the limiting element</strong> and the torque is capped to that
+      limit. Thread stripping and screw tension only — no structural or vibrational load, and <strong>not for flight
+      or safety-critical hardware</strong>.</p>
+  </div>
+
+  <!-- ============ 3. EDGE PROXIMITY ============ -->
+  <div class="mdg-card">
+    <h2>3. Edge Proximity</h2>
+    <div class="row">
+      <div class="field" style="min-width:260px;">
+        <label>Apply near-edge knockdown</label>
+        <div class="pill-row" id="edge-pills"></div>
+      </div>
+      <div class="field" id="edge-dist-field" style="display:none;">
+        <label for="edge-dist">Distance, centre to edge, e</label>
+        <div class="input-row"><input type="number" id="edge-dist" value="0" min="0" step="0.5"><span class="unit">mm</span></div>
+      </div>
+    </div>
+    <div class="result-grid" id="edge-result-wrap" style="display:none;">
+      <div class="result">
+        <div class="k">Recommended min. edge distance</div>
+        <div class="v" id="out-emin">–</div>
+      </div>
+      <div class="result headline">
+        <div class="k">Knockdown factor, C<sub>e</sub></div>
+        <div class="v" id="out-ce">–</div>
+      </div>
+    </div>
+    <div id="edge-note"></div>
+    <p class="note">General approximation, not tied to a single standard — verify against manufacturer data or
+      testing for critical joints. Applies to target preload/pullout and torque below. Input is capped at
+      2&times;d, the point beyond which C<sub>e</sub>&nbsp;=&nbsp;1.</p>
+  </div>
+
+  <!-- ============ 4. RESULT ============ -->
+  <div class="mdg-card">
+    <h2>4. Result</h2>
+    <div class="result-grid" id="result-bolted">
+      <div class="result">
+        <div class="k">Stress area, As</div>
+        <div class="v" id="out-as">–</div>
+      </div>
+      <div class="result">
+        <div class="k">Target preload, F</div>
+        <div class="v" id="out-preload">–</div>
+      </div>
+      <div class="result headline">
+        <div class="k">Tightening torque, T</div>
+        <div class="v" id="out-torque">–</div>
+      </div>
+    </div>
+    <div class="result-grid" id="result-tapped" style="display:none;">
+      <div class="result">
+        <div class="k">Pullout load, P</div>
+        <div class="v" id="out-pullout">–</div>
+      </div>
+      <div class="result">
+        <div class="k">Screw proof load, Fp</div>
+        <div class="v" id="out-screwproof">–</div>
+      </div>
+      <div class="result" id="limit-box">
+        <div class="k">Limiting element</div>
+        <div class="v" id="out-limit">–</div>
+      </div>
+      <div class="result">
+        <div class="k">Assembly preload</div>
+        <div class="v" id="out-assypreload">–</div>
+      </div>
+      <div class="result headline">
+        <div class="k">Assembly torque</div>
+        <div class="v" id="out-assemblytorque">–</div>
+      </div>
+    </div>
+    <div id="limit-note"></div>
+    <p class="note" id="result-note-bolted">Stress area uses the standard simplified formula
+      As&nbsp;=&nbsp;(&pi;/4)&middot;(d&nbsp;&minus;&nbsp;0.9382&middot;P)&sup2;<sup><a href="#ref7">7</a></sup>.
+      Torque wrenches are typically accurate to only about &plusmn;10&percnt;, so treat the result as the centre
+      of a band rather than an exact value<sup><a href="#ref6">6</a></sup>.</p>
+    <p class="note" id="result-note-tapped" style="display:none;">Pitch diameter dm&nbsp;=&nbsp;d&nbsp;&minus;&nbsp;0.6495&middot;P.
+      Pullout load P&nbsp;=&nbsp;&pi;&middot;dm&middot;Fsu&middot;L&nbsp;/&nbsp;3, where Fsu is the parent material's
+      assumed ultimate shear strength (0.6&times; ultimate tensile for steel, 0.55&times; for stainless/aluminum) and
+      the /3 is a built-in safety factor<sup><a href="#ref9">9</a></sup>. Assembly preload = 0.65&middot;P, capped at
+      0.9&middot;Fp where Fp&nbsp;=&nbsp;proof stress&nbsp;&times;&nbsp;As for the selected screw class.</p>
+  </div>
+
+  <!-- ============ 5. QUICK REFERENCE TABLE ============ -->
+  <div class="mdg-card">
+    <h2>5. Quick Reference — all sizes</h2>
+    <table class="mdg-table" id="table-bolted">
+      <thead><tr><th>Size</th><th>Pitch (mm)</th><th>As (mm&sup2;)</th><th>Preload, F (kN)</th><th>Torque, T (N&middot;m)</th></tr></thead>
+      <tbody id="table-body-bolted"></tbody>
+    </table>
+    <table class="mdg-table" id="table-tapped" style="display:none;">
+      <thead><tr><th>Size</th><th>Pitch (mm)</th><th>Engagement used, 1.5&times;d (mm)</th><th>Pullout, P (N)</th><th>Screw proof, Fp (N)</th><th>Limit</th><th>Assembly torque (N&middot;m)</th></tr></thead>
+      <tbody id="table-body-tapped"></tbody>
+    </table>
+    <p class="note" id="table-note-bolted">Nut factor K lumps thread and under-head friction into one coefficient: steel dry
+      K&thinsp;=&thinsp;0.20, steel lubricated K&thinsp;=&thinsp;0.15, stainless dry K&thinsp;=&thinsp;0.30 (galling
+      risk — see warning above), stainless lubricated (anti-seize) K&thinsp;=&thinsp;0.20<sup><a href="#ref8">8</a></sup>.
+      Real friction varies with plating, surface finish and reuse, so K can easily be &plusmn;30&percnt; off a
+      generic table for a specific batch of fasteners<sup><a href="#ref2">2</a></sup>. Figures include the edge
+      knockdown above, applied per size using its own 2&times;d limit.</p>
+    <p class="note" id="table-note-tapped" style="display:none;">Shown at each size's own recommended minimum
+      engagement (1.5&times;d) — the depth beyond which thread-stripping capacity stops increasing<sup><a href="#ref9">9</a></sup>.
+      Rows where the screw is the limiting element are flagged and their torque capped. This is a reference chart
+      at full engagement, not necessarily your actual plate thickness; use the calculator above for a specific
+      engagement length. Figures include the edge knockdown above, applied per size using its own 2&times;d limit.</p>
+  </div>
+
+  <div class="mdg-card mdg-footer">
+    <p><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li><a href="https://www.iso.org/standard/60610.html">ISO 898-1:2013</a> — Mechanical properties of fasteners made of carbon steel and alloy steel — Part 1: Bolts, screws and studs with specified property classes.</li>
+      <li><a href="https://www.iso.org/standard/76575.html">ISO 898-2:2022</a> — Mechanical properties of fasteners made of carbon steel and alloy steel — Part 2: Nuts with specified property classes (bolt/nut class pairing).</li>
+      <li><a href="https://www.iso.org/standard/70045.html">ISO 3506-1:2020</a> — Fasteners — Mechanical properties of corrosion-resistant stainless steel fasteners — Part 1: Bolts, screws and studs.</li>
+      <li><a href="https://www.iso.org/standard/70046.html">ISO 3506-2:2020</a> — Fasteners — Mechanical properties of corrosion-resistant stainless steel fasteners — Part 2: Nuts.</li>
+      <li><a href="https://www.vdi.de/en/home/vdi-standards/details/vdi-2230-blatt-1-systematic-calculation-of-highly-stressed-bolted-joints-joints-with-one-cylindrical-bolt">VDI 2230 Blatt 1</a> — Systematic calculation of highly stressed bolted joints — Joints with one cylindrical bolt (the rigorous basis for preload/embedding/torque scatter that this page simplifies).</li>
+      <li><a href="https://www.iso.org/standard/61369.html">ISO 10511:2012</a> — Prevailing torque type hexagon thin nuts (with non-metallic insert) — governs nyloc-type lock nuts; rivnuts/threaded inserts and self-clinching nuts are generally manufacturer-specific parts without a single governing ISO standard.</li>
+    </ul>
+    <p>This page does not reproduce the full ISO 898-1/-2 / ISO 3506-1/-2 property-class tables, VDI 2230's joint-diagram
+      method (elastic interaction, embedding loss, torque scatter), or the NASA report's complete table set. A joint
+      with fatigue loading, a soft-gasketed or non-metallic clamped stack, an insert/clinch-nut whose pull-out rating
+      the manufacturer publishes separately, or any safety-critical or flight duty should be verified against the
+      actual standard/source or a full VDI 2230 calculation, not this simplified estimate. The edge-proximity
+      knockdown in section 3 is a general approximation, not a cited standard method.</p>
+
+    <p><strong>References</strong></p>
+    <ol class="ref-list">
+      <li id="ref1"><a href="https://www.toolgrit.com/guides/bolt-torque-explained">Bolt Torque Fundamentals Guide</a> — toolgrit.com (T&nbsp;=&nbsp;K&middot;D&middot;F relationship and default K values by condition).</li>
+      <li id="ref2"><a href="https://engineeringlibrary.org/reference/fastener-torque-nasa-design-manual">Fastener Torque — NASA Design Manual</a> — engineeringlibrary.org (K derivation from thread/collar friction; scatter in tabulated K vs. measured values).</li>
+      <li id="ref3"><a href="https://crafter.fastenal.com/static-assets/pdfs/Mechanical_Properties_of_Metric_Fasteners.pdf">Mechanical Properties of Metric Fasteners</a> — crafter.fastenal.com (ISO 898-1 proof/yield stress by property class, incl. the 8.8 M16 split).</li>
+      <li id="ref4"><a href="https://www.bigboltnut.com/product/iso-3506-1-gr-a270.html">ISO 3506-1 Grade A2-70</a> — bigboltnut.com (A2-70 0.2% proof stress, 450&nbsp;MPa).</li>
+      <li id="ref5"><a href="https://engdatabase.com/data/bolt-specifications/a480">A4-80 Bolt Specifications</a> — engdatabase.com (A4-80 0.2% proof stress 600&nbsp;MPa, tensile 800&nbsp;MPa).</li>
+      <li id="ref6"><a href="https://vibromera.eu/calculators/bolt-strength-class-iso898/">Bolt Strength Class Calculator (ISO 898-1)</a> — vibromera.eu (75–90% of proof load as a typical preload target; torque-wrench accuracy).</li>
+      <li id="ref7"><a href="https://www.roymech.co.uk/bolt-calculators/thread-stress-area-calculator/">Thread Tensile Stress Area Calculator</a> — roymech.co.uk (simplified ISO metric stress-area formula).</li>
+      <li id="ref8"><a href="https://mechconcepts.tech/bolt-torque-calculation/">Bolt Torque Calculation Formula + Preload Guide</a> — mechconcepts.tech (nut-factor ranges by condition, incl. higher K and galling risk for dry stainless).</li>
+      <li id="ref9"><a href="https://ntrs.nasa.gov/citations/20170003491">Installation Torque Tables for Noncritical Applications (NASA/TM&mdash;2017-219475)</a> — ntrs.nasa.gov (pullout-load and torque formulas, pitch-diameter approximation, shear-strength-to-tensile ratios by material family, safety factors, and the 1.5&times;d minimum-engagement rule; user-supplied document, read in full).</li>
+      <li id="ref10"><a href="https://www.iso.org/standard/76575.html">ISO 898-2:2022</a> — iso.org (nut property classes and their pairing with bolt classes: nut class number = first number of the bolt class, e.g. class 8 nut with 8.8 bolt; stainless nuts per ISO 3506-2 match the bolt grade).</li>
+    </ol>
+
+    <p>Last updated: 2026-10-01 &middot; Rev 2</p>
+  </div>
+
+</main>
+
+<script src="../../data/materials.js"></script>
+<script>
+// ---------- shared thread geometry ----------
+const THREAD = {
+  'M3':  { d: 3,  p: 0.5  },
+  'M4':  { d: 4,  p: 0.7  },
+  'M5':  { d: 5,  p: 0.8  },
+  'M6':  { d: 6,  p: 1.0  },
+  'M8':  { d: 8,  p: 1.25 },
+  'M10': { d: 10, p: 1.5  },
+  'M12': { d: 12, p: 1.75 },
+  'M14': { d: 14, p: 2.0  },
+  'M16': { d: 16, p: 2.0  },
+  'M18': { d: 18, p: 2.5  },
+  'M20': { d: 20, p: 2.5  },
+  'M22': { d: 22, p: 2.5  },
+  'M24': { d: 24, p: 3.0  },
+};
+const SIZE_ORDER = ['M3','M4','M5','M6','M8','M10','M12','M14','M16','M18','M20','M22','M24'];
+
+function stressArea(d, p) { const x = d - 0.9382 * p; return Math.PI / 4 * x * x; }
+function pitchDiameter(d, p) { return d - 0.6495 * p; }
+function fmt(n, dp) { return Number(n).toFixed(dp); }
+function fmtT(T) { return fmt(T, T < 10 ? 2 : 1); }
+function fmtN(F) { return fmt(F, F < 1000 ? 1 : 0); }
+
+// ---------- joint type ----------
+let jointType = 'bolted';
+const JOINT_TYPES = [
+  { id: 'bolted', label: 'Bolted (nut / insert)' },
+  { id: 'tapped', label: 'Threaded into parent material' },
+];
+function renderJointPills() {
+  const wrap = document.getElementById('joint-pills');
+  wrap.innerHTML = '';
+  JOINT_TYPES.forEach(j => {
+    const b = document.createElement('div');
+    b.className = 'pill big' + (j.id === jointType ? ' active' : '');
+    b.textContent = j.label;
+    b.addEventListener('click', () => { jointType = j.id; onJointChange(); });
+    wrap.appendChild(b);
+  });
+}
+
+function onJointChange() {
+  renderJointPills();
+  const isBolted = jointType === 'bolted';
+  document.getElementById('panel-bolted').style.display = isBolted ? '' : 'none';
+  document.getElementById('panel-tapped').style.display = isBolted ? 'none' : '';
+  document.getElementById('result-bolted').style.display = isBolted ? '' : 'none';
+  document.getElementById('result-tapped').style.display = isBolted ? 'none' : '';
+  document.getElementById('result-note-bolted').style.display = isBolted ? '' : 'none';
+  document.getElementById('result-note-tapped').style.display = isBolted ? 'none' : '';
+  document.getElementById('table-bolted').style.display = isBolted ? '' : 'none';
+  document.getElementById('table-tapped').style.display = isBolted ? 'none' : '';
+  document.getElementById('table-note-bolted').style.display = isBolted ? '' : 'none';
+  document.getElementById('table-note-tapped').style.display = isBolted ? 'none' : '';
+  document.getElementById('limit-note').style.display = isBolted ? 'none' : '';
+  clampEdgeDist();
+  updateAll();
+}
+
+// ================= SHARED: property classes =================
+// sp = proof stress (MPa) for steel per ISO 898-1, Rp0.2 for stainless per ISO 3506-1.
+// nut = matching nut class: ISO 898-2 nut class = first number of the bolt class (4.6 → 5, since
+// class 4 nuts are no longer standardised for this pairing); stainless nuts per ISO 3506-2 match.
+const CLASSES = {
+  '4.6':   { group: 'steel',     sp: () => 225,                    nut: '5' },
+  '8.8':   { group: 'steel',     sp: (d) => d <= 16 ? 580 : 600,   nut: '8' },
+  '9.8':   { group: 'steel',     sp: (d) => d <= 16 ? 650 : null,  nut: '9' },
+  '10.9':  { group: 'steel',     sp: () => 830,                    nut: '10' },
+  '12.9':  { group: 'steel',     sp: () => 970,                    nut: '12' },
+  'A2-70': { group: 'stainless', sp: () => 450,                    nut: 'A2-70' },
+  'A4-80': { group: 'stainless', sp: () => 600,                    nut: 'A4-80' },
+};
+const K_FACTOR = {
+  steel:     { dry: 0.20, lube: 0.15 },
+  stainless: { dry: 0.30, lube: 0.20 },
+};
+// Fraction of screw proof load the tapped-hole assembly preload may reach before the screw is
+// flagged as the limiting element (upper end of the typical 75–90% preload band).
+const SCREW_LIMIT_FRACTION = 0.9;
+
+// ================= BOLTED MODE =================
+const RETENTION_NOTES = {
+  standard: '',
+  nyloc: 'A nylon-insert lock nut (ISO 10511-type) adds prevailing torque from the nylon collar on top of the ' +
+    'seating torque above — add the nut manufacturer\'s rated prevailing-on torque to reach the actual ' +
+    'installation torque; it is not computed here.',
+  rivnut: 'A rivnut / threaded insert\'s installation torque is usually capped by its own pull-out or spin-out ' +
+    'rating in the parent sheet, which depends on sheet thickness, material and the specific insert — use the ' +
+    'insert manufacturer\'s stated maximum installation torque, which is often lower than the bolt-based figure ' +
+    'above, especially in thin or soft sheet.',
+  selfclinch: 'A self-clinching (PEM-type) nut\'s torque-out and push-out capacity in the parent sheet depend on ' +
+    'sheet thickness/hardness and the specific part number — check the manufacturer\'s data sheet; thin or soft ' +
+    'sheet can limit installation torque below the bolt-based figure above.',
+};
+let friction = 'dry'; // shared dry/lubricated state between both modes
+const FRICTIONS = [
+  { id: 'dry',  label: 'Dry (as-received)' },
+  { id: 'lube', label: 'Lubricated' },
+];
+function renderFrictionPills() {
+  ['friction-pills', 'friction-pills-t'].forEach(wrapId => {
+    const wrap = document.getElementById(wrapId);
+    wrap.innerHTML = '';
+    FRICTIONS.forEach(f => {
+      const b = document.createElement('div');
+      b.className = 'pill' + (f.id === friction ? ' active' : '');
+      b.textContent = f.label;
+      b.addEventListener('click', () => { friction = f.id; renderFrictionPills(); updateAll(); });
+      wrap.appendChild(b);
+    });
+  });
+}
+
+const bSizeSel = document.getElementById('b-size');
+const tSizeSel = document.getElementById('t-size');
+SIZE_ORDER.forEach(s => {
+  const opt1 = document.createElement('option'); opt1.value = s; opt1.textContent = s;
+  if (s === 'M8') opt1.selected = true;
+  bSizeSel.appendChild(opt1);
+  const opt2 = document.createElement('option'); opt2.value = s; opt2.textContent = s;
+  if (s === 'M6') opt2.selected = true;
+  tSizeSel.appendChild(opt2);
+});
+
+// ================= EDGE PROXIMITY (shared) =================
+// General approximation, not a cited standard: knockdown factor Ce tapers linearly from 1.0 at
+// e = 2×d (the recommended minimum edge distance) down to a floor of 0.5 as e approaches 0.
+let edgeOn = false;
+const EDGE_MODES = [
+  { id: 'off', label: 'Off' },
+  { id: 'on',  label: 'On' },
+];
+function renderEdgePills() {
+  const wrap = document.getElementById('edge-pills');
+  wrap.innerHTML = '';
+  EDGE_MODES.forEach(m => {
+    const b = document.createElement('div');
+    b.className = 'pill' + ((m.id === 'on') === edgeOn ? ' active' : '');
+    b.textContent = m.label;
+    b.addEventListener('click', () => { edgeOn = m.id === 'on'; onEdgeModeChange(); });
+    wrap.appendChild(b);
+  });
+}
+function onEdgeModeChange() {
+  renderEdgePills();
+  document.getElementById('edge-dist-field').style.display = edgeOn ? '' : 'none';
+  document.getElementById('edge-result-wrap').style.display = edgeOn ? '' : 'none';
+  document.getElementById('edge-note').innerHTML = '';
+  clampEdgeDist();
+  updateAll();
+}
+function activeDiameter() {
+  return jointType === 'bolted' ? THREAD[bSizeSel.value].d : THREAD[tSizeSel.value].d;
+}
+// Caps the edge-distance input at 2×d for the currently active thread — beyond that, Ce is
+// already 1 so there's nothing more to enter.
+function clampEdgeDist() {
+  const input = document.getElementById('edge-dist');
+  const eMin = 2 * activeDiameter();
+  input.max = fmt(eMin, 1);
+  if ((parseFloat(input.value) || 0) > eMin) input.value = fmt(eMin, 1);
+}
+// Knockdown factor for a given edge distance e and thread diameter d.
+function edgeFactor(e, d) {
+  if (!edgeOn) return 1;
+  const eMin = 2 * d;
+  const eClamped = Math.max(0, Math.min(e, eMin));
+  return eClamped >= eMin ? 1 : Math.max(0.5, eClamped / eMin);
+}
+function updateEdgeSection() {
+  const d = activeDiameter();
+  const eMin = 2 * d;
+  if (!edgeOn) return;
+  const e = Math.max(0, Math.min(parseFloat(document.getElementById('edge-dist').value) || 0, eMin));
+  const Ce = edgeFactor(e, d);
+  document.getElementById('out-emin').textContent = `${fmt(eMin, 1)} mm`;
+  document.getElementById('out-ce').textContent = fmt(Ce, 2);
+  const noteEl = document.getElementById('edge-note');
+  noteEl.innerHTML = (Ce >= 1)
+    ? '<div class="ok">Meets recommended minimum — no reduction applied.</div>'
+    : '<div class="warn">Below recommended minimum — preload and torque are scaled by C<sub>e</sub>.</div>';
+}
+document.getElementById('edge-dist').addEventListener('input', () => { clampEdgeDist(); updateAll(); });
+
+function updateBolted() {
+  const thread = THREAD[bSizeSel.value];
+  const classKey = document.getElementById('pclass').value;
+  const cls = CLASSES[classKey];
+  const util = Math.min(90, Math.max(50, parseFloat(document.getElementById('util').value) || 75));
+  const K = K_FACTOR[cls.group][friction];
+  const e = Math.max(0, parseFloat(document.getElementById('edge-dist').value) || 0);
+
+  const nutStd = cls.group === 'stainless' ? 'ISO 3506-2' : 'ISO 898-2';
+  document.getElementById('nut-hint').innerHTML =
+    `Mating nut: <strong>class ${cls.nut}</strong> (${nutStd})`;
+
+  const warnEl = document.getElementById('galling-warning');
+  warnEl.innerHTML = (cls.group === 'stainless' && friction === 'dry')
+    ? '<div class="warn">Stainless-on-stainless threads gall (cold-weld) readily when run dry. This is included ' +
+      'for reference, but in practice always lubricate stainless fasteners (anti-seize or an oil suited to ' +
+      'stainless) before assembly.</div>'
+    : '';
+
+  const retention = document.getElementById('retention').value;
+  const noteEl = document.getElementById('retention-note');
+  noteEl.innerHTML = RETENTION_NOTES[retention] ? `<div class="note">${RETENTION_NOTES[retention]}</div>` : '';
+
+  const sp = cls.sp(thread.d);
+  const asOut = document.getElementById('out-as');
+  const preloadOut = document.getElementById('out-preload');
+  const torqueOut = document.getElementById('out-torque');
+
+  if (sp === null) {
+    asOut.textContent = '–'; preloadOut.textContent = '–'; torqueOut.textContent = 'not standardised';
+  } else {
+    const As = stressArea(thread.d, thread.p);
+    const Ce = edgeFactor(e, thread.d);
+    const F = (util / 100) * sp * As * Ce; // N
+    const T = K * F * thread.d / 1000; // N·m
+    asOut.textContent = `${fmt(As, 2)} mm²`;
+    preloadOut.textContent = `${fmt(F / 1000, 2)} kN`;
+    torqueOut.textContent = `${fmtT(T)} N·m`;
+  }
+
+  const body = document.getElementById('table-body-bolted');
+  body.innerHTML = '';
+  SIZE_ORDER.forEach(sizeKey => {
+    const th = THREAD[sizeKey];
+    const spRow = cls.sp(th.d);
+    const tr = document.createElement('tr');
+    if (sizeKey === bSizeSel.value) tr.className = 'current';
+    if (spRow === null) {
+      tr.innerHTML = `<td>${sizeKey}</td><td>${fmt(th.p, 2)}</td><td>–</td><td>–</td><td>n/a</td>`;
+    } else {
+      const As = stressArea(th.d, th.p);
+      const CeRow = edgeFactor(e, th.d);
+      const F = (util / 100) * spRow * As * CeRow;
+      const T = K * F * th.d / 1000;
+      tr.innerHTML = `<td>${sizeKey}</td><td>${fmt(th.p, 2)}</td><td>${fmt(As, 2)}</td>` +
+        `<td>${fmt(F / 1000, 2)}</td><td>${fmtT(T)}</td>`;
+    }
+    body.appendChild(tr);
+  });
+}
+
+// ================= TAPPED-HOLE MODE =================
+const SHEAR_RATIO = { 'steel-carbon-alloy': 0.6, 'stainless-steel': 0.55, 'aluminum': 0.55 };
+const K_FACTOR_TAPPED = { dry: 0.20, lube: 0.15 };
+
+function materialsReady() { return typeof window.MDG_MATERIALS !== 'undefined'; }
+
+function buildMaterialOptions() {
+  const sel = document.getElementById('parent-material');
+  sel.innerHTML = '';
+  if (!materialsReady()) {
+    const opt = document.createElement('option');
+    opt.textContent = 'data/materials.js not loaded';
+    sel.appendChild(opt);
+    return;
+  }
+  window.MDG_MATERIALS.types
+    .filter(t => SHEAR_RATIO.hasOwnProperty(t.slug))
+    .forEach(t => {
+      const grp = document.createElement('optgroup');
+      grp.label = t.title;
+      window.MDG_MATERIALS.grades
+        .filter(g => g.type === t.slug)
+        .forEach(g => {
+          const opt = document.createElement('option');
+          opt.value = g.id;
+          opt.textContent = `${g.grade} (${g.condition})`;
+          if (g.id === 'al-6061-t6') opt.selected = true;
+          grp.appendChild(opt);
+        });
+      sel.appendChild(grp);
+    });
+}
+
+function currentParentMaterial() {
+  if (!materialsReady()) return null;
+  const id = document.getElementById('parent-material').value;
+  return window.MDG_MATERIALS.grades.find(g => g.id === id) || null;
+}
+function fsuFor(material) {
+  if (!material) return null;
+  const ratio = SHEAR_RATIO[material.type];
+  if (!ratio) return null;
+  return ratio * material.ultimate_MPa;
+}
+
+document.getElementById('use-recommended').addEventListener('click', () => {
+  const thread = THREAD[tSizeSel.value];
+  document.getElementById('engagement').value = fmt(1.5 * thread.d, 1);
+  updateAll();
+});
+
+// Tapped-hole torque with a screw-strength check. Returns pullout P, screw proof load Fp (null if
+// the class/size has no standardised proof stress), the assembly preload actually used, which
+// element limits it ('parent' | 'screw' | 'unchecked'), and the resulting assembly torque.
+function tappedCalc(th, fsu, L, Ce, cls, K) {
+  const dm = pitchDiameter(th.d, th.p);
+  const P = Math.PI * dm * fsu * L / 3 * Ce;    // N — parent-thread pullout, edge knockdown applied
+  const Fparent = 0.65 * P;                     // N — NASA 65% assembly preload
+  const sp = cls.sp(th.d);
+  const Fp = sp === null ? null : sp * stressArea(th.d, th.p); // N — screw proof load
+  let F = Fparent, limit = 'parent';
+  if (Fp === null) {
+    limit = 'unchecked';
+  } else if (Fparent > SCREW_LIMIT_FRACTION * Fp) {
+    F = SCREW_LIMIT_FRACTION * Fp;
+    limit = 'screw';
+  }
+  const T = K * F * th.d / 1000;                // N·m
+  return { dm, P, Fp, Fparent, F, limit, T };
+}
+
+function updateTapped() {
+  const thread = THREAD[tSizeSel.value];
+  const cls = CLASSES[document.getElementById('pclass-t').value];
+  const material = currentParentMaterial();
+  const fsu = fsuFor(material);
+  const K = K_FACTOR_TAPPED[friction];
+  const L = Math.max(0.1, parseFloat(document.getElementById('engagement').value) || 0);
+  const recommendedL = 1.5 * thread.d;
+  const e = Math.max(0, parseFloat(document.getElementById('edge-dist').value) || 0);
+
+  const engNoteEl = document.getElementById('engagement-note');
+  engNoteEl.innerHTML = (L < recommendedL)
+    ? `<p class="note">This engagement is below the recommended minimum of 1.5&times;d (${fmt(recommendedL, 1)}&nbsp;mm) ` +
+      `for this size — the figures below already reflect the shorter, lower-capacity engagement.<sup><a href="#ref9">9</a></sup></p>`
+    : '';
+
+  const limitBox = document.getElementById('limit-box');
+  const limitNote = document.getElementById('limit-note');
+
+  if (fsu === null) {
+    ['out-pullout','out-screwproof','out-limit','out-assypreload','out-assemblytorque']
+      .forEach(id => document.getElementById(id).textContent = '–');
+    limitBox.classList.remove('flag');
+    limitNote.innerHTML = '';
+  } else {
+    const r = tappedCalc(thread, fsu, L, edgeFactor(e, thread.d), cls, K);
+    document.getElementById('out-pullout').textContent = `${fmtN(r.P)} N`;
+    document.getElementById('out-screwproof').textContent = r.Fp === null ? 'n/a' : `${fmtN(r.Fp)} N`;
+    document.getElementById('out-assypreload').textContent = `${fmt(r.F / 1000, 2)} kN`;
+    document.getElementById('out-assemblytorque').textContent = `${fmtT(r.T)} N·m`;
+    const limitText = { parent: 'Parent thread', screw: 'Screw', unchecked: 'Not checked' }[r.limit];
+    document.getElementById('out-limit').textContent = limitText;
+    limitBox.classList.toggle('flag', r.limit !== 'parent');
+
+    if (r.limit === 'screw') {
+      const Tparent = K * r.Fparent * thread.d / 1000;
+      limitNote.innerHTML = `<div class="warn"><strong>The screw is the limiting element.</strong> The parent ` +
+        `thread would support ${fmt(r.Fparent / 1000, 2)}&nbsp;kN (${fmtT(Tparent)}&nbsp;N&middot;m), which is ` +
+        `${fmt(r.Fparent / r.Fp * 100, 0)}% of the class ${document.getElementById('pclass-t').value} screw's proof ` +
+        `load. Torque has been capped at ${fmt(SCREW_LIMIT_FRACTION * 100, 0)}% of proof. Consider a higher ` +
+        `property class, or accept the screw-limited torque.</div>`;
+    } else if (r.limit === 'unchecked') {
+      limitNote.innerHTML = '<div class="warn">This property class has no standardised proof stress at this size ' +
+        '(9.8 is M16 max), so the screw has not been checked — torque shown is parent-thread limited only.</div>';
+    } else {
+      limitNote.innerHTML = `<div class="ok">Parent thread governs — assembly preload is ` +
+        `${fmt(r.F / r.Fp * 100, 0)}% of screw proof load, so the screw is not the limiting element.</div>`;
+    }
+  }
+
+  const body = document.getElementById('table-body-tapped');
+  body.innerHTML = '';
+  SIZE_ORDER.forEach(sizeKey => {
+    const th = THREAD[sizeKey];
+    const Lrow = 1.5 * th.d;
+    const tr = document.createElement('tr');
+    if (sizeKey === tSizeSel.value) tr.className = 'current';
+    if (fsu === null) {
+      tr.innerHTML = `<td>${sizeKey}</td><td>${fmt(th.p, 2)}</td><td>${fmt(Lrow, 1)}</td><td>–</td><td>–</td><td>–</td><td>–</td>`;
+    } else {
+      const r = tappedCalc(th, fsu, Lrow, edgeFactor(e, th.d), cls, K);
+      const limitCell = r.limit === 'screw'
+        ? '<td class="limit-screw">Screw</td>'
+        : `<td>${r.limit === 'parent' ? 'Parent' : 'n/a'}</td>`;
+      tr.innerHTML = `<td>${sizeKey}</td><td>${fmt(th.p, 2)}</td><td>${fmt(Lrow, 1)}</td>` +
+        `<td>${fmtN(r.P)}</td><td>${r.Fp === null ? 'n/a' : fmtN(r.Fp)}</td>${limitCell}<td>${fmtT(r.T)}</td>`;
+    }
+    body.appendChild(tr);
+  });
+}
+
+// ---------- shared update ----------
+function updateAll() {
+  updateEdgeSection();
+  if (jointType === 'bolted') updateBolted(); else updateTapped();
+}
+
+bSizeSel.addEventListener('change', () => { clampEdgeDist(); updateAll(); });
+tSizeSel.addEventListener('change', () => { clampEdgeDist(); updateAll(); });
+document.getElementById('pclass').addEventListener('change', updateAll);
+document.getElementById('pclass-t').addEventListener('change', updateAll);
+document.getElementById('util').addEventListener('input', updateAll);
+document.getElementById('retention').addEventListener('change', updateAll);
+document.getElementById('parent-material').addEventListener('change', updateAll);
+document.getElementById('engagement').addEventListener('input', updateAll);
+
+// init
+renderJointPills();
+renderFrictionPills();
+renderEdgePills();
+buildMaterialOptions();
+clampEdgeDist();
+document.getElementById('limit-note').style.display = 'none';
+updateAll();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  function current(){
+    var t = document.documentElement.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  function apply(state){
+    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', state); }
+    try {
+      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
+      else { localStorage.setItem('mdg-theme', state); }
+    } catch (e) {}
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  if (btn) {
+    btn.textContent = LABELS[current()];
+    btn.addEventListener('click', function(){
+      var idx = STATES.indexOf(current());
+      apply(STATES[(idx + 1) % STATES.length]);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  // Legibility floor: never shrink below this, even if that means the page then
+  // spills onto a 2nd (or 3rd) sheet. A handful of very long pages (e.g. the
+  // Material Library table, the O-Ring groove-design page) would otherwise need
+  // to zoom out well below half size to fit a single sheet, which prints too
+  // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
+  var MIN_SCALE = 0.65;
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,871 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<title>GD&amp;T Tightness Guide — Machine Design Guides</title>
+<style>
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #3b6ea5;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --poor: #b5484d; --good: #3b8a52;
+    --input-bg: #eef3f8; --input-border: #b9cde0;
+    --band-0: #4f9a5c; --band-1: #93aa3f; --band-2: #d3a23f; --band-3: #d17a34; --band-4: #bf4e4e;
+    background: var(--mdg-bg);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+      --poor: #e0696d; --good: #5cbb78;
+      --input-bg: #1c2833; --input-border: #3a5878;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+    --poor: #e0696d; --good: #5cbb78;
+    --input-bg: #1c2833; --input-border: #3a5878;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); flex-wrap: wrap; }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 940px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  h2 { font-size: 1.05rem; margin: 0 0 0.75rem; display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1.1rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); line-height: 1.5; }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  table.mdg-table tr.current td { font-weight: 600; background: rgba(59,110,165,0.14); }
+  .table-scroll { overflow-x: auto; }
+  .note { font-size: 0.8rem; color: var(--mdg-text-muted); margin-top: 0.5rem; }
+  label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem; }
+  select, input[type=number], input[type=text], textarea {
+    font-family: var(--mdg-font); font-size: 0.9rem; padding: 0.4rem 0.55rem;
+    border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); color: var(--mdg-text);
+  }
+  textarea { width: 100%; resize: vertical; font-size: 0.8rem; }
+  .row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 0.75rem; }
+  .field { display: flex; flex-direction: column; min-width: 170px; }
+  .unit-input { display: flex; align-items: center; gap: 0.4rem; }
+  .unit-input input { flex: 1; min-width: 0; }
+  .unit-input .unit { font-size: 0.85rem; color: var(--mdg-text-muted); white-space: nowrap; }
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.6rem; margin-top: 0.75rem; }
+  .result { background: var(--mdg-bg); border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.55rem 0.7rem; }
+  .result.headline { border-color: var(--mdg-accent); }
+  .result .k { font-size: 0.72rem; color: var(--mdg-text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+  .result .v { font-family: var(--mdg-font-mono); font-size: 1.05rem; margin-top: 0.15rem; }
+  .result.headline .v { font-size: 1.3rem; color: var(--mdg-accent); }
+  .warn { background: rgba(181,72,77,0.12); border: 1px solid var(--poor); border-radius: 6px;
+    padding: 0.6rem 0.8rem; font-size: 0.85rem; margin-top: 0.75rem; }
+  .toolbar-btn { border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.35rem 0.7rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .toolbar-btn:hover { border-color: var(--mdg-accent); color: var(--mdg-accent); }
+  .toolbar-btn.primary { background: var(--mdg-accent); border-color: var(--mdg-accent); color: #fff; }
+  .toolbar-btn.primary:hover { opacity: 0.9; color: #fff; }
+  .toolbar-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .toolbar-row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+  .save-status { font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .save-status.dirty { color: var(--poor); }
+  .save-status.saved { color: var(--good); }
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+  .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
+    background: var(--mdg-surface); margin: 0 0 0.75rem; }
+  .mdg-collapsible > summary { cursor: pointer; list-style: none; display: flex; align-items: center;
+    gap: 0.5rem; padding: 0.65rem 0.9rem; font-size: 0.92rem; font-weight: 600; user-select: none; }
+  .mdg-collapsible > summary::-webkit-details-marker { display: none; }
+  .mdg-collapsible > summary::before { content: ''; flex: none; width: 0; height: 0;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+    border-left: 6px solid var(--mdg-text-muted); transition: transform 0.18s ease; }
+  .mdg-collapsible[open] > summary::before { transform: rotate(90deg); }
+  .mdg-collapsible > summary .hint { font-weight: 400; font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .mdg-collapsible-body { padding: 0 0.9rem 0.9rem; }
+
+  /* ---- tightness scale ---- */
+  .scale-wrap { margin: 1rem 0 0.35rem; }
+  .scale-track { position: relative; height: 34px; border-radius: 999px; overflow: hidden;
+    border: 1px solid var(--mdg-border); display: flex; }
+  .scale-seg { height: 100%; position: relative; }
+  .scale-seg .seg-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 0.66rem; font-weight: 700; color: rgba(255,255,255,0.92); text-shadow: 0 1px 1px rgba(0,0,0,0.25);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 0.2rem; }
+  .scale-marker { position: absolute; top: -9px; width: 0; height: 0; transform: translateX(-50%);
+    border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 10px solid var(--mdg-text);
+    transition: left 0.15s ease; }
+  .scale-ticks { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--mdg-text-muted);
+    margin-top: 0.3rem; font-family: var(--mdg-font-mono); }
+  .verdict-band { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 1.05rem; }
+  .verdict-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+  .cost-dots { display: inline-flex; gap: 2px; vertical-align: middle; }
+  .cost-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mdg-border); }
+  .cost-dot.on { background: var(--mdg-accent); }
+
+  .band-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.6rem; margin-top: 0.85rem; }
+  .band-card { border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.6rem 0.7rem; background: var(--mdg-bg); }
+  .band-card.current { border-color: var(--mdg-accent); box-shadow: inset 0 0 0 1px var(--mdg-accent); }
+  .band-card .bc-name { font-size: 0.78rem; font-weight: 700; display: flex; align-items: center; gap: 0.35rem; }
+  .band-card .bc-range { font-family: var(--mdg-font-mono); font-size: 0.92rem; margin: 0.2rem 0 0.35rem; }
+  .band-card .bc-proc { font-size: 0.76rem; color: var(--mdg-text-muted); line-height: 1.4; }
+  .band-card .bc-edit-row { display: flex; gap: 0.35rem; align-items: center; margin: 0.3rem 0; }
+  .band-card .bc-edit-row input[type=number] { width: 5.2em; padding: 0.2rem 0.35rem; font-size: 0.8rem; }
+  .band-card .bc-edit-row span { font-size: 0.72rem; color: var(--mdg-text-muted); }
+  .band-card textarea { margin-top: 0.2rem; }
+  .type-intro { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin: 0.85rem 0 0.15rem; }
+  .type-intro .type-symbol { display: inline-flex; align-items: center; justify-content: center;
+    width: 2.1rem; height: 2.1rem; color: var(--mdg-accent); flex: none;
+    border: 1px solid var(--mdg-border); border-radius: 6px; background: var(--mdg-bg); }
+  .type-intro .type-symbol svg { width: 1.5rem; height: 1.5rem; display: block; }
+  .gdt-icon-cell { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .gdt-icon-cell svg { width: 1rem; height: 1rem; flex: none; color: var(--mdg-text-muted); }
+  .type-intro .type-name { font-size: 1.1rem; font-weight: 700; }
+
+  @media print { .mdg-header, .mdg-no-print { display: none !important; } }
+
+  /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). Forces a light,
+     compact one-page A4 layout via a temporary .mdg-pdf-mode class on <html>, applied just
+     before window.print() and removed on afterprint/focus. */
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-collapsible,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+      <strong>GD&amp;T Tightness Guide</strong>
+      <span class="mdg-tag">Fits</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">ASME Y14.5-2018 &middot; ISO 1101:2017</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">GD&amp;T Tightness Guide<span class="mdg-print-tag">Fits</span></div>
+    <div class="mdg-print-meta">ASME Y14.5-2018 &middot; ISO 1101:2017 &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+  <div class="mdg-card">
+    <p>How tight is tight? Pick a geometric characteristic, then enter a tolerance value to see where it sits
+      on the scale from ordinary shop capability to metrology-grade — with the processes typically needed to
+      hold it and a rough sense of the cost step-up. All 14 ASME Y14.5 characteristics are here now. Band
+      boundaries have been checked against real process-capability figures where they exist<sup><a href="#ref1">1</a>,<a href="#ref2">2</a>,<a href="#ref3">3</a></sup> —
+      see "Where these numbers came from" at the bottom for exactly which ones, and which are still engineering-judgement
+      placeholders. This is a first-pass guide for sizing tolerances on an initial drawing draft, not a detailed
+      costing tool — get a real quote once a design is close to final.</p>
+  </div>
+
+  <!-- ============ 1. CHARACTERISTIC ============ -->
+  <div class="mdg-card">
+    <h2>1. Geometric characteristic</h2>
+    <div class="row">
+      <div class="field" style="min-width:280px;">
+        <label for="type-select">Characteristic</label>
+        <select id="type-select"></select>
+      </div>
+    </div>
+    <div class="type-intro">
+      <span class="type-symbol" id="type-symbol"></span>
+      <span class="type-name" id="type-name"></span>
+    </div>
+    <p class="note" id="type-def"></p>
+  </div>
+
+  <!-- ============ 2. HOW TIGHT IS MY TOLERANCE ============ -->
+  <div class="mdg-card">
+    <h2>2. How tight is my tolerance?</h2>
+    <div class="row">
+      <div class="field">
+        <label for="tol-value" id="tol-label">Tolerance value</label>
+        <div class="unit-input">
+          <input type="number" id="tol-value" value="0.2" min="0.0001" step="0.001">
+          <span class="unit" id="tol-unit">mm</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="scale-wrap">
+      <div class="scale-track" id="scale-track"></div>
+      <div class="scale-ticks" id="scale-ticks"></div>
+    </div>
+
+    <div class="result-grid">
+      <div class="result headline">
+        <div class="k">Band</div>
+        <div class="v" id="out-band"></div>
+      </div>
+      <div class="result">
+        <div class="k">Typical range for this band</div>
+        <div class="v" id="out-range"></div>
+      </div>
+      <div class="result">
+        <div class="k">Relative cost vs. commercial</div>
+        <div class="v" id="out-cost"></div>
+      </div>
+    </div>
+
+    <p class="note" id="out-processes"></p>
+    <p class="note" id="out-applications"></p>
+    <div id="out-warning"></div>
+  </div>
+
+  <!-- ============ 3. FULL BAND REFERENCE + EDIT ============ -->
+  <div class="mdg-card">
+    <h2>3. All bands for this characteristic
+      <span class="toolbar-row">
+        <button type="button" class="toolbar-btn" id="edit-toggle">Edit bands</button>
+        <button type="button" class="toolbar-btn" id="reset-btn" title="Reset this characteristic to the researched defaults">Reset to default</button>
+        <button type="button" class="toolbar-btn primary" id="save-btn" style="display:none;">Save changes</button>
+        <span class="save-status" id="save-status"></span>
+      </span>
+    </h2>
+    <div class="band-cards" id="band-cards"></div>
+    <p class="note" id="edit-hint" style="display:none;">Editing saves to this browser only (via local storage) —
+      it won't sync to another computer or update this page for anyone else viewing it. Use "Reset to default"
+      to return to the researched values for this characteristic.</p>
+    <details class="mdg-collapsible mdg-no-print" style="margin-top:0.85rem;">
+      <summary>Compare across all characteristics <span class="hint">same tier names, every GD&amp;T type at once</span></summary>
+      <div class="mdg-collapsible-body table-scroll">
+        <table class="mdg-table">
+          <thead><tr><th>Characteristic</th><th>Commercial</th><th>General</th><th>Precision</th><th>High precision</th><th>Ultra / metrology</th></tr></thead>
+          <tbody id="compare-body"></tbody>
+        </table>
+      </div>
+    </details>
+  </div>
+
+  <div class="mdg-card mdg-footer">
+    <p><strong>Where these numbers came from</strong></p>
+    <p>Directly grounded in the sources below: the Position bands' four boundaries (0.25&nbsp;mm, 0.1&nbsp;mm, 0.0127&nbsp;mm)
+      come straight from published "reasonable vs. too tight" hole-location figures<sup><a href="#ref2">2</a></sup>; the
+      General-tier default used across most form/orientation characteristics (≈0.13–0.4&nbsp;mm for a
+      sub-300&nbsp;mm feature) and the Angularity bands come from a CNC shop's own published standard-tolerance
+      table<sup><a href="#ref1">1</a></sup>; the High-precision/Ultra boundary for Position, Circularity, Cylindricity,
+      Perpendicularity and Straightness (roughly 5&nbsp;µm down to 1–2&nbsp;µm) comes from a jig-boring
+      shop's stated capability<sup><a href="#ref3">3</a></sup>. Concentricity and Symmetry are set equal to Total Runout
+      and Parallelism respectively, per the common practitioner view that they're rarely toleranced or measured on
+      their own<sup><a href="#ref4">4</a></sup>. Everything else — Flatness, Straightness, Profile of a Line/Surface,
+      Cylindricity and Circular Runout's exact numbers, and every Commercial-tier floor — is this page's own
+      engineering-judgement estimate scaled from the cited anchors, not yet independently sourced per number. Treat the
+      whole scale as indicative until it's checked against your own shop's capability data.</p>
+
+    <p><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li><a href="https://www.asme.org/codes-standards/find-codes-standards/y14-5-dimensioning-tolerancing">ASME Y14.5-2018</a> — Dimensioning and Tolerancing.</li>
+      <li><a href="https://www.iso.org/standard/66787.html">ISO 1101:2017</a> — Geometrical product specifications (GPS) — Geometrical tolerancing.</li>
+      <li><a href="https://www.iso.org/standard/25060.html">ISO 2768-1:1989</a> / <a href="https://www.iso.org/standard/25061.html">ISO 2768-2:1989</a> — General tolerances for linear/angular and geometric dimensions without individual tolerance indications.</li>
+    </ul>
+    <p>This page doesn't reproduce those standards' own tolerance grades or verification rules — it's a rough,
+      process-capability-based "how tight is tight" guide, not a substitute for calling out an actual tolerance class.</p>
+
+    <p><strong>References</strong></p>
+    <ol class="ref-list">
+      <li id="ref1"><a href="https://www.xometry.com/manufacturing-standards/">Manufacturing Standards</a> — xometry.com (standard-shop geometric tolerance of ±0.005″/≈0.13&nbsp;mm for parallelism, perpendicularity, cylindricity, concentricity, flatness, circularity and straightness on parts up to 12″, scaling with part length; angularity ±0.5°/±1°).</li>
+      <li id="ref2"><a href="https://www.eng-tips.com/threads/lets-have-a-discussion-on-position-tolerance-of-dowel-pins.331679/">Let's have a discussion on position tolerance of dowel pins</a> — eng-tips.com (Ø0.010″ called a reasonable machining tolerance for hole location; Ø0.001″ reasonable for standard machining; Ø0.0005″ "way too tight" for conventional/CNC milling; Ø0.00025″ impractical).</li>
+      <li id="ref3"><a href="https://www.criterionprecision.com/feeds/blog/tight-tolerance-jig-bore-machining">Tight-Tolerance Jig Bore Machining</a> — criterionprecision.com (jig-boring hole location within 1–5&nbsp;µm of datum, ultra-precision work to 1–2&nbsp;µm; bore diameter ±0.0002″; roundness/perpendicularity/straightness under 5&nbsp;µm for mold-base work).</li>
+      <li id="ref4"><a href="https://fractory.com/concentricity-gdt-explained/">Concentricity (GD&amp;T) Explained</a> — fractory.com (concentricity described as difficult to achieve and measure; runout ≈ circularity + concentricity when a part is round; recommends runout, position or profile as the practical substitute).</li>
+    </ol>
+    <p>Last updated: 2026-09-29 &middot; Rev 2</p>
+  </div>
+
+</main>
+
+<script>
+// ---------------------------------------------------------------------------
+// Default (researched) GD&T achievability data. Bands are contiguous, ordered
+// loose -> tight, each { max, min } in the type's stated unit. See the page's
+// "Where these numbers came from" footer for what's cited vs. estimated.
+// This DEFAULT_TYPES object never changes at runtime — it's what "Reset to
+// default" restores. The live, possibly user-edited copy lives in TYPES,
+// optionally seeded from this browser's local storage (see LS_KEY below).
+// ---------------------------------------------------------------------------
+const BAND_META = [
+  { name: 'Commercial',      cost: 1, color: 'var(--band-0)' },
+  { name: 'General',         cost: 2, color: 'var(--band-1)' },
+  { name: 'Precision',       cost: 3, color: 'var(--band-2)' },
+  { name: 'High precision',  cost: 4, color: 'var(--band-3)' },
+  { name: 'Ultra / metrology', cost: 5, color: 'var(--band-4)' },
+];
+
+// ---------------------------------------------------------------------------
+// Hand-drawn approximations of the ASME Y14.5 feature-control-frame symbols,
+// as inline SVG paths (viewBox 0 0 24 24, stroke=currentColor unless noted).
+// Several official glyphs (cylindricity, symmetry, runout arrows) don't exist
+// as real Unicode characters, so these are simplified line drawings of the
+// actual symbol shapes rather than character substitutes.
+// ---------------------------------------------------------------------------
+const GDT_ICONS = {
+  'straightness': '<line x1="3" y1="12" x2="21" y2="12"/>',
+  'flatness': '<path d="M4 18 L10 18 L20 6 L14 6 Z" fill="currentColor" stroke="none"/>',
+  'circularity': '<circle cx="12" cy="12" r="8"/>',
+  'cylindricity': '<circle cx="12" cy="12" r="6.5"/><line x1="2.5" y1="7.5" x2="7" y2="3"/><line x1="17" y1="21" x2="21.5" y2="16.5"/>',
+  'profile-line': '<path d="M4 17 A8 8 0 0 1 20 17"/>',
+  'profile-surface': '<path d="M4 17 A8 8 0 0 1 20 17 M4 17 L20 17"/>',
+  'angularity': '<path d="M3 19 L21 19 M3 19 L17 5"/>',
+  'perpendicularity': '<path d="M12 2 L12 19 M4 19 L20 19"/>',
+  'parallelism': '<line x1="7" y1="20" x2="12" y2="4"/><line x1="15" y1="20" x2="20" y2="4"/>',
+  'position': '<circle cx="12" cy="12" r="7.5"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/>',
+  'concentricity': '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/>',
+  'symmetry': '<path d="M3 12 L12 5 L12 19 Z M21 12 L12 5 L12 19 Z" fill="currentColor" stroke="none"/>',
+  'runout-circular': '<line x1="4" y1="20" x2="14" y2="10"/><polygon points="15,9 13.6,13.2 10.8,10.4" fill="currentColor" stroke="none"/>',
+  'runout-total': '<line x1="4" y1="20" x2="11" y2="20"/><line x1="4" y1="20" x2="14" y2="10"/><polygon points="15,9 13.6,13.2 10.8,10.4" fill="currentColor" stroke="none"/><line x1="11" y1="20" x2="21" y2="10"/><polygon points="22,9 20.6,13.2 17.8,10.4" fill="currentColor" stroke="none"/>',
+};
+
+function iconSVG(id) {
+  const inner = GDT_ICONS[id] || '';
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+}
+
+const DEFAULT_TYPES = [
+  {
+    id: 'straightness', group: 'Form', label: 'Straightness', abbr: 'STR', unit: 'mm',
+    def: 'How far a line element (an edge, an axis, a surface generator) deviates from a perfect straight line.',
+    unitNote: 'mm, over the toleranced length', default: 0.08,
+    bands: [
+      { max: 1.0,  min: 0.3,   processes: 'As-milled/as-drawn stock, standard turning or milling.', applications: 'Non-critical shafts, structural sections.' },
+      { max: 0.3,  min: 0.1,   processes: 'Fine turning or milling, standard cylindrical/surface grinding.', applications: 'General shafts and guide rails.' },
+      { max: 0.1,  min: 0.03,  processes: 'Precision grinding.', applications: 'Linear guideways, precision shafting.' },
+      { max: 0.03, min: 0.01,  processes: 'Fine grinding, lapping.', applications: 'Precision spindles, gauge bars.' },
+      { max: 0.01, min: 0.001, processes: 'Precision lapping, metrology-grade grinding with thermal control.', applications: 'Master gauges, interferometer reference edges.' },
+    ],
+  },
+  {
+    id: 'flatness', group: 'Form', label: 'Flatness', abbr: 'FLT', unit: 'mm',
+    def: 'How far a single surface deviates from a perfect plane, independent of any datum.',
+    unitNote: 'mm, total tolerance zone', default: 0.1,
+    bands: [
+      { max: 1.0,  min: 0.4,   processes: 'As-milled or as-cast, standard face milling, rough surface grinding.', applications: 'Non-mating faces, weld preps, cosmetic surfaces.' },
+      { max: 0.4,  min: 0.15,  processes: 'Fine face milling, single-pass surface grinding.', applications: 'General mating faces, cover plates.' },
+      { max: 0.15, min: 0.05,  processes: 'Precision surface grinding.', applications: 'Gasketed joints, moderate-pressure seal faces.' },
+      { max: 0.05, min: 0.015, processes: 'Fine surface grinding, light lapping.', applications: 'Static seal faces, precision spacer stacks.' },
+      { max: 0.015,min: 0.005, processes: 'Lapping, optical flats, temperature-controlled metrology room.', applications: 'Hydraulic sealing faces, gauge blocks, optical mounts.' },
+    ],
+  },
+  {
+    id: 'circularity', group: 'Form', label: 'Circularity', abbr: 'CIRC', unit: 'mm',
+    def: 'How close a circular cross-section is to a true circle, measured radially at that section.',
+    unitNote: 'mm, radial zone', default: 0.02,
+    bands: [
+      { max: 0.08,   min: 0.03,   processes: 'Standard turning.', applications: 'Non-mating cylindrical features.' },
+      { max: 0.03,   min: 0.012,  processes: 'Fine turning, standard cylindrical grinding.', applications: 'Shaft journals, general bearing seats.' },
+      { max: 0.012,  min: 0.004,  processes: 'Precision cylindrical grinding.', applications: 'Precision bearing journals.' },
+      { max: 0.004,  min: 0.0015, processes: 'Fine grinding, honing.', applications: 'Rotating seal running surfaces, mold-base bores.' },
+      { max: 0.0015, min: 0.0002, processes: 'Super-finishing, lapping.', applications: 'High-speed bearing journals, gauge-grade cylinders.' },
+    ],
+  },
+  {
+    id: 'cylindricity', group: 'Form', label: 'Cylindricity', abbr: 'CYL', unit: 'mm',
+    def: 'Combined control of circularity and straightness over an entire cylindrical surface — a single 3D tolerance zone.',
+    unitNote: 'mm, radial zone over the full length', default: 0.03,
+    bands: [
+      { max: 0.1,    min: 0.04,   processes: 'Standard turning over the full length.', applications: 'Non-mating shafts and pins.' },
+      { max: 0.04,   min: 0.015,  processes: 'Fine turning, standard cylindrical grinding.', applications: 'General bearing/bushing fits.' },
+      { max: 0.015,  min: 0.005,  processes: 'Precision cylindrical grinding.', applications: 'Precision bearing bores and journals.' },
+      { max: 0.005,  min: 0.002,  processes: 'Fine grinding, honing with in-process gauging.', applications: 'Hydraulic cylinder bores, mold-base guide pins.' },
+      { max: 0.002,  min: 0.0003, processes: 'Super-finishing, lapping, metrology-grade grinding.', applications: 'Precision spindle bores, gauge cylinders.' },
+    ],
+  },
+  {
+    id: 'profile-line', group: 'Profile', label: 'Profile of a Line', abbr: 'PRL', unit: 'mm',
+    def: 'How far a 2D cross-section of a surface (an airfoil section, a cam profile) deviates from its true, defined shape.',
+    unitNote: 'mm, zone normal to the theoretical profile', default: 0.2,
+    bands: [
+      { max: 1.2,  min: 0.5,   processes: 'As-cast/as-formed, standard 3-axis milling.', applications: 'Non-critical formed or cast profiles.' },
+      { max: 0.5,  min: 0.2,   processes: 'CNC contour milling, standard fixturing.', applications: 'Sheet-metal formed profiles, general cams.' },
+      { max: 0.2,  min: 0.08,  processes: '5-axis CNC milling, precision fixturing.', applications: 'Cam profiles, moderately loaded aero surfaces.' },
+      { max: 0.08, min: 0.03,  processes: 'Precision profile grinding, wire EDM.', applications: 'Gear-form cutters, precision cam followers.' },
+      { max: 0.03, min: 0.01,  processes: 'Precision grinding + CMM-verified iterative correction.', applications: 'Airfoil sections, master cam profiles.' },
+    ],
+  },
+  {
+    id: 'profile-surface', group: 'Profile', label: 'Profile of a Surface', abbr: 'PRS', unit: 'mm',
+    def: 'The 3D counterpart of profile of a line — how far an entire complex surface deviates from its true, defined shape.',
+    unitNote: 'mm, zone normal to the theoretical surface', default: 0.25,
+    bands: [
+      { max: 1.5,  min: 0.6,   processes: 'As-cast/as-molded, standard 3-axis milling.', applications: 'Non-critical castings, cosmetic panels.' },
+      { max: 0.6,  min: 0.25,  processes: '3/5-axis CNC milling, standard fixturing.', applications: 'General sheet-metal and molded surfaces.' },
+      { max: 0.25, min: 0.1,   processes: '5-axis CNC milling, precision fixturing.', applications: 'Injection-mold core/cavity surfaces, Class-A adjacent panels.' },
+      { max: 0.1,  min: 0.04,  processes: 'Precision surface grinding, hand-blending against a master.', applications: 'Aerodynamic and Class-A surfaces.' },
+      { max: 0.04, min: 0.015, processes: 'Precision grinding/polishing + CMM/optical scan correction.', applications: 'Optical tooling surfaces, master forms.' },
+    ],
+  },
+  {
+    id: 'angularity', group: 'Orientation', label: 'Angularity', abbr: 'ANG', unit: '°',
+    def: 'How far a surface or axis deviates from a specified angle (other than 0&deg; or 90&deg;) to a datum.',
+    unitNote: 'degrees (°)', default: 0.3,
+    bands: [
+      { max: 2.0,   min: 1.0,   processes: 'Standard milling/turning to a set angle.', applications: 'General chamfers and angled brackets.', cite: 1 },
+      { max: 1.0,   min: 0.5,   processes: 'CNC milling with a sine plate or indexed fixture.', applications: 'Standard-shop angled faces up to ~600 mm long.', cite: 1 },
+      { max: 0.5,   min: 0.1,   processes: 'Precision CNC milling, wire EDM.', applications: 'Angled locating faces, dovetail slides.' },
+      { max: 0.1,   min: 0.02,  processes: 'Precision grinding on a sine table.', applications: 'Precision wedges, angle gauges.' },
+      { max: 0.02,  min: 0.002, processes: 'Optically-verified grinding/lapping against an angle gauge block.', applications: 'Metrology-grade angle standards.' },
+    ],
+  },
+  {
+    id: 'perpendicularity', group: 'Orientation', label: 'Perpendicularity', abbr: 'PERP', unit: 'mm',
+    def: 'How far a surface, axis or plane deviates from exactly 90&deg; to a datum.',
+    unitNote: 'mm, over the feature length', default: 0.03,
+    bands: [
+      { max: 0.4,   min: 0.15,  processes: 'Standard milling/turning of a square shoulder.', applications: 'General brackets, non-critical shoulders.' },
+      { max: 0.15,  min: 0.05,  processes: 'CNC milling with good work-holding.', applications: 'Bolted joint faces, housing shoulders.' },
+      { max: 0.05,  min: 0.02,  processes: 'Precision boring, cylindrical grinding of a shoulder face.', applications: 'Bearing shoulder faces, seal register shoulders.' },
+      { max: 0.02,  min: 0.005, processes: 'Jig grinding, precision honing.', applications: 'Precision spindle assemblies.' },
+      { max: 0.005, min: 0.001, processes: 'Precision grinding with full CMM verification.', applications: 'Bearing register faces on high-speed rotating equipment, mold-base work.' },
+    ],
+  },
+  {
+    id: 'parallelism', group: 'Orientation', label: 'Parallelism', abbr: 'PAR', unit: 'mm',
+    def: 'How far a surface or axis deviates from being exactly parallel to a datum.',
+    unitNote: 'mm, over the feature length', default: 0.03,
+    bands: [
+      { max: 0.4,   min: 0.15,  processes: 'Standard milling, as-cast/as-machined faces.', applications: 'Non-critical panel faces.' },
+      { max: 0.15,  min: 0.05,  processes: 'Fine milling, single-pass grinding.', applications: 'General mating faces, spacer plates.' },
+      { max: 0.05,  min: 0.015, processes: 'Precision surface grinding.', applications: 'Guideway faces, precision spacer stacks.' },
+      { max: 0.015, min: 0.005, processes: 'Fine grinding, surface-plate lapping.', applications: 'Precision fixture and gauge faces.' },
+      { max: 0.005, min: 0.0005,processes: 'Precision grinding + lapping, metrology-room checks.', applications: 'Precision stack-ups, master gauge faces.' },
+    ],
+  },
+  {
+    id: 'position', group: 'Location', label: 'Position', abbr: 'POS', unit: 'mm',
+    def: 'Location of a feature (commonly a hole) relative to datums, as a diametral tolerance zone — the classic "how tight is my hole" question.',
+    unitNote: 'mm, diametral zone', default: 0.2,
+    bands: [
+      { max: 1.0,   min: 0.4,    processes: 'Punching, as-cast holes, standard drilling on a manual/pillar drill.', applications: 'Clearance holes, non-critical bracket mounting.' },
+      { max: 0.4,   min: 0.25,   processes: 'CNC drilling, standard milling with a fixed fixture.', applications: 'Bolted structural joints, general fastener holes.', cite: 2 },
+      { max: 0.25,  min: 0.1,    processes: 'Reaming after drilling, precision CNC boring/milling with jig fixturing.', applications: 'Threaded holes needing good alignment — this page\'s &Oslash;0.2&nbsp;mm example.' },
+      { max: 0.1,   min: 0.0127, processes: 'Jig boring, precision reaming, CMM-checked fixturing.', applications: 'Bearing housings, dowel/locating diameters — the &Oslash;0.05&nbsp;mm example.', cite: 2 },
+      { max: 0.0127,min: 0.002,  processes: 'Jig grinding, wire EDM finishing, temperature-controlled setup, 100% CMM inspection.', applications: 'Gauge tooling, mold-base locating diameters.', cite: 3 },
+    ],
+  },
+  {
+    id: 'concentricity', group: 'Location', label: 'Concentricity', abbr: 'CONC', unit: 'mm',
+    def: 'How far the median points of a feature\'s surface deviate from being centred on a datum axis — rarely called out directly because it\'s hard to both achieve and measure.',
+    unitNote: 'mm, diametral zone (mirrors Total Runout — see note)', default: 0.03,
+    bands: [
+      { max: 0.3,   min: 0.1,    processes: 'Standard turning between centres.', applications: 'General shafts, non-critical pulleys.', cite: 4 },
+      { max: 0.1,   min: 0.04,   processes: 'Precision turning, good chucking/collet setup.', applications: 'Coupling and pulley register diameters.' },
+      { max: 0.04,  min: 0.015,  processes: 'Cylindrical or centreless grinding.', applications: 'Bearing journals, seal running diameters.' },
+      { max: 0.015, min: 0.005,  processes: 'Precision grinding with tight collet/mandrel setup.', applications: 'High-speed rotor journals.' },
+      { max: 0.005, min: 0.0008, processes: 'Precision grinding + dynamic balancing, metrology-grade setup.', applications: 'Precision rotating assemblies where true axis centring matters, not just surface runout.' },
+    ],
+  },
+  {
+    id: 'symmetry', group: 'Location', label: 'Symmetry', abbr: 'SYM', unit: 'mm',
+    def: 'How far the median points of two (or more) features deviate from lying on a common central plane — the planar equivalent of concentricity.',
+    unitNote: 'mm, tolerance zone about the median plane', default: 0.02,
+    bands: [
+      { max: 0.4,   min: 0.15,  processes: 'Standard milling, as-cast/as-machined faces.', applications: 'Non-critical symmetric brackets.', cite: 4 },
+      { max: 0.15,  min: 0.05,  processes: 'Fine milling, single-pass grinding from a shared datum.', applications: 'General symmetric slots and keyed features.' },
+      { max: 0.05,  min: 0.015, processes: 'Precision surface grinding, simultaneous double-sided machining.', applications: 'Symmetric locating slots and tongues.' },
+      { max: 0.015, min: 0.005, processes: 'Fine grinding, surface-plate lapping.', applications: 'Precision symmetric fixture features.' },
+      { max: 0.005, min: 0.0005,processes: 'Precision grinding + lapping, metrology-room checks.', applications: 'Master symmetric gauge features.' },
+    ],
+  },
+  {
+    id: 'runout-circular', group: 'Runout', label: 'Circular Runout', abbr: 'CRO', unit: 'mm',
+    def: 'Combined form and location error of a rotating surface at a single cross-section, measured as full indicator movement (FIM) through one rotation.',
+    unitNote: 'mm, FIM at a single cross-section', default: 0.02,
+    bands: [
+      { max: 0.2,   min: 0.07,   processes: 'Standard turning between centres.', applications: 'General shafts, non-critical pulleys.' },
+      { max: 0.07,  min: 0.03,   processes: 'Precision turning, good chucking/collet setup.', applications: 'Coupling and pulley register diameters.' },
+      { max: 0.03,  min: 0.01,   processes: 'Cylindrical or centreless grinding.', applications: 'Bearing journals, single-plane seal diameters.' },
+      { max: 0.01,  min: 0.003,  processes: 'Precision grinding with tight collet/mandrel setup.', applications: 'Precision rotor cross-sections.' },
+      { max: 0.003, min: 0.0005, processes: 'Precision grinding + dynamic balancing, metrology-grade setup.', applications: 'High-speed seal diameters, encoder disc registers.' },
+    ],
+  },
+  {
+    id: 'runout-total', group: 'Runout', label: 'Total Runout', abbr: 'TRO', unit: 'mm',
+    def: 'Combined form, location and orientation error of a rotating surface, measured as full indicator movement through one full rotation and along its length.',
+    unitNote: 'mm, FIM over the full surface', default: 0.03,
+    bands: [
+      { max: 0.3,   min: 0.1,    processes: 'Standard turning between centres.', applications: 'General shafts, non-critical pulleys.' },
+      { max: 0.1,   min: 0.04,   processes: 'Precision turning, good chucking/collet setup.', applications: 'Coupling and pulley register diameters.' },
+      { max: 0.04,  min: 0.015,  processes: 'Cylindrical or centreless grinding.', applications: 'Bearing journals, seal running diameters.' },
+      { max: 0.015, min: 0.005,  processes: 'Precision grinding with tight collet/mandrel setup.', applications: 'High-speed rotor journals.' },
+      { max: 0.005, min: 0.0008, processes: 'Precision grinding + dynamic balancing, metrology-grade setup.', applications: 'High-speed turbine/motor rotor journals, precision seal diameters.', cite: 4 },
+    ],
+  },
+];
+
+// Local, per-browser persistence for the "Edit bands" feature. There is no
+// server behind this static page, so edits can't be published for every
+// visitor — they're saved to this browser's local storage only. See the
+// edit-hint note in section 3 and the save-status messages below.
+const LS_KEY = 'mdg-gdt-bands-v1';
+
+let TYPES = JSON.parse(JSON.stringify(DEFAULT_TYPES));
+(function loadSavedTypes() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length) TYPES = parsed;
+    }
+  } catch (e) { /* local storage unavailable (private browsing, etc.) — keep defaults */ }
+})();
+let currentType = TYPES.find(t => t.id === 'position') || TYPES[0];
+let editMode = false;
+let dirty = false;
+
+function fmtVal(v) {
+  if (v >= 0.01) return (+v.toFixed(v >= 0.1 ? 2 : 3)).toString();
+  return v.toString();
+}
+
+function groupsInOrder() {
+  const order = ['Form', 'Profile', 'Orientation', 'Location', 'Runout'];
+  return order.filter(g => TYPES.some(t => t.group === g));
+}
+
+function renderTypeSelect() {
+  const sel = document.getElementById('type-select');
+  sel.innerHTML = '';
+  groupsInOrder().forEach(g => {
+    const grp = document.createElement('optgroup');
+    grp.label = g;
+    TYPES.filter(t => t.group === g).forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.id;
+      opt.textContent = t.label;
+      grp.appendChild(opt);
+    });
+    sel.appendChild(grp);
+  });
+  sel.value = TYPES.some(t => t.id === currentType.id) ? currentType.id : TYPES[0].id;
+  if (!sel._wired) {
+    sel.addEventListener('change', () => {
+      currentType = TYPES.find(t => t.id === sel.value) || TYPES[0];
+      document.getElementById('tol-value').value = currentType.default;
+      updateAll();
+    });
+    sel._wired = true;
+  }
+}
+
+function scaleBounds(type) {
+  const allMax = type.bands[0].max;
+  const allMin = type.bands[type.bands.length - 1].min;
+  return { allMin, allMax };
+}
+
+function logT(v, min, max) {
+  const t = (Math.log(v) - Math.log(min)) / (Math.log(max) - Math.log(min));
+  return Math.min(1, Math.max(0, t));
+}
+
+function renderScaleTrack(type) {
+  const { allMin, allMax } = scaleBounds(type);
+  const track = document.getElementById('scale-track');
+  track.innerHTML = '';
+  const segWidth = 100 / type.bands.length;
+  type.bands.forEach((b, i) => {
+    const seg = document.createElement('div');
+    seg.className = 'scale-seg';
+    seg.style.width = segWidth + '%';
+    seg.style.background = BAND_META[i].color;
+    seg.innerHTML = `<span class="seg-label">${BAND_META[i].name}</span>`;
+    track.appendChild(seg);
+  });
+  const marker = document.createElement('div');
+  marker.className = 'scale-marker';
+  marker.id = 'scale-marker';
+  track.appendChild(marker);
+
+  const ticks = document.getElementById('scale-ticks');
+  ticks.innerHTML = `<span>&larr; looser / cheaper (${fmtVal(allMax)} ${type.unit})</span><span>tighter / costlier (${fmtVal(allMin)} ${type.unit}) &rarr;</span>`;
+}
+
+function markerLeftPct(type, idx, value) {
+  const segWidth = 100 / type.bands.length;
+  const band = type.bands[idx];
+  const localT = 1 - logT(value, band.min, band.max);
+  return (idx + localT) * segWidth;
+}
+
+function renderBandCards(type, currentIdx) {
+  const wrap = document.getElementById('band-cards');
+  wrap.innerHTML = '';
+  type.bands.forEach((b, i) => {
+    const card = document.createElement('div');
+    card.className = 'band-card' + (i === currentIdx ? ' current' : '');
+    if (!editMode) {
+      card.innerHTML = `
+        <div class="bc-name"><span class="verdict-dot" style="background:${BAND_META[i].color}"></span>${BAND_META[i].name}</div>
+        <div class="bc-range">${fmtVal(b.max)}&ndash;${fmtVal(b.min)} ${type.unit}</div>
+        <div class="bc-proc">${b.processes}</div>`;
+    } else {
+      card.innerHTML = `
+        <div class="bc-name"><span class="verdict-dot" style="background:${BAND_META[i].color}"></span>${BAND_META[i].name}</div>
+        <div class="bc-edit-row">
+          <input type="number" step="any" value="${b.max}" data-field="max" data-idx="${i}">
+          <span>&ndash;</span>
+          <input type="number" step="any" value="${b.min}" data-field="min" data-idx="${i}">
+          <span>${type.unit}</span>
+        </div>
+        <textarea rows="2" data-field="processes" data-idx="${i}" placeholder="Processes">${b.processes}</textarea>
+        <textarea rows="2" data-field="applications" data-idx="${i}" placeholder="Typically seen on">${b.applications}</textarea>`;
+    }
+    wrap.appendChild(card);
+  });
+
+  if (editMode) {
+    wrap.querySelectorAll('input, textarea').forEach(el => {
+      el.addEventListener('change', onBandFieldChange);
+    });
+  }
+}
+
+function onBandFieldChange(e) {
+  const idx = +e.target.dataset.idx;
+  const field = e.target.dataset.field;
+  const band = currentType.bands[idx];
+  if (field === 'min' || field === 'max') {
+    const v = parseFloat(e.target.value);
+    if (!isNaN(v) && v > 0) band[field] = v;
+    else e.target.value = band[field];
+  } else {
+    band[field] = e.target.value;
+  }
+  markDirty();
+  updateAll();
+}
+
+function markDirty() {
+  dirty = true;
+  updateSaveStatus();
+}
+
+function updateSaveStatus() {
+  const status = document.getElementById('save-status');
+  const saveBtn = document.getElementById('save-btn');
+  saveBtn.style.display = editMode ? '' : 'none';
+  if (dirty) {
+    status.textContent = 'Unsaved changes';
+    status.className = 'save-status dirty';
+  } else {
+    status.textContent = editMode ? 'Saved to this browser' : '';
+    status.className = editMode ? 'save-status saved' : 'save-status';
+  }
+}
+
+function renderCompareTable() {
+  const body = document.getElementById('compare-body');
+  body.innerHTML = '';
+  TYPES.forEach(t => {
+    const tr = document.createElement('tr');
+    const cells = t.bands.map(b => `${fmtVal(b.max)}&ndash;${fmtVal(b.min)}`).join('</td><td>');
+    tr.innerHTML = `<td><span class="gdt-icon-cell">${iconSVG(t.id)} ${t.label}</span></td><td>${cells}</td>`;
+    body.appendChild(tr);
+  });
+}
+
+function findBandIndex(type, value) {
+  for (let i = 0; i < type.bands.length; i++) {
+    if (value >= type.bands[i].min) return i;
+  }
+  return type.bands.length - 1;
+}
+
+function updateAll() {
+  const val = Math.max(0.00001, parseFloat(document.getElementById('tol-value').value) || 0);
+  renderTypeSelect();
+  document.getElementById('type-symbol').innerHTML = iconSVG(currentType.id);
+  document.getElementById('type-name').textContent = currentType.label + ` (${currentType.abbr})`;
+  document.getElementById('type-def').innerHTML = currentType.def + ` Values here are for a mid-size feature (&asymp;10&ndash;150&nbsp;mm); ${currentType.unitNote}. Well outside that range the achievable numbers shift — a large fabrication or casting loosens every band since form error accumulates over more length/area, while a small or thin feature can often be held tighter but gets harder to fixture and measure, so treat this scale as a starting point rather than a direct read-across for oversized or miniature parts.`;
+  document.getElementById('tol-unit').textContent = currentType.unit;
+
+  renderScaleTrack(currentType);
+
+  let idx = findBandIndex(currentType, val);
+  let clampedNote = '';
+  if (val > currentType.bands[0].max) {
+    idx = 0;
+    clampedNote = `Looser than typical "commercial" figures shown here — well within ordinary shop capability, no special process control needed.`;
+  } else if (val < currentType.bands[currentType.bands.length - 1].min) {
+    idx = currentType.bands.length - 1;
+    clampedNote = `Tighter than the "ultra / metrology" band shown here — approaching process/measurement capability limits. Confirm feasibility with the supplier before committing this to a drawing.`;
+  }
+
+  const band = currentType.bands[idx];
+  const meta = BAND_META[idx];
+
+  document.getElementById('out-band').innerHTML = `<span class="verdict-band"><span class="verdict-dot" style="background:${meta.color}"></span>${meta.name}</span>`;
+  document.getElementById('out-range').textContent = `${fmtVal(band.min)}–${fmtVal(band.max)} ${currentType.unit}`;
+  const dots = Array.from({length: 5}, (_, i) => `<span class="cost-dot${i < meta.cost ? ' on' : ''}"></span>`).join('');
+  document.getElementById('out-cost').innerHTML = `<span class="cost-dots">${dots}</span>`;
+  document.getElementById('out-processes').innerHTML = `<strong>Typical processes:</strong> ${band.processes}`;
+  document.getElementById('out-applications').innerHTML = `<strong>Typically seen on:</strong> ${band.applications}`;
+  document.getElementById('out-warning').innerHTML = clampedNote ? `<div class="warn">${clampedNote}</div>` : '';
+
+  const safeVal = Math.min(Math.max(val, band.min), band.max);
+  const leftPct = markerLeftPct(currentType, idx, safeVal);
+  const marker = document.getElementById('scale-marker');
+  if (marker) marker.style.left = leftPct + '%';
+
+  renderBandCards(currentType, idx);
+  document.getElementById('edit-hint').style.display = editMode ? '' : 'none';
+  updateSaveStatus();
+}
+
+document.getElementById('tol-value').addEventListener('input', updateAll);
+
+document.getElementById('edit-toggle').addEventListener('click', () => {
+  editMode = !editMode;
+  document.getElementById('edit-toggle').textContent = editMode ? 'Done editing' : 'Edit bands';
+  updateAll();
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  const idx = TYPES.findIndex(t => t.id === currentType.id);
+  const fresh = JSON.parse(JSON.stringify(DEFAULT_TYPES.find(t => t.id === currentType.id)));
+  TYPES[idx] = fresh;
+  currentType = fresh;
+  markDirty();
+  updateAll();
+});
+
+document.getElementById('save-btn').addEventListener('click', () => {
+  const status = document.getElementById('save-status');
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(TYPES));
+    dirty = false;
+    updateSaveStatus();
+  } catch (e) {
+    status.textContent = 'Could not save — this browser is blocking local storage.';
+    status.className = 'save-status dirty';
+  }
+});
+
+document.getElementById('tol-value').value = currentType.default;
+renderCompareTable();
+updateAll();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  function current(){
+    var t = document.documentElement.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  function apply(state){
+    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', state); }
+    try {
+      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
+      else { localStorage.setItem('mdg-theme', state); }
+    } catch (e) {}
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  if (btn) {
+    btn.textContent = LABELS[current()];
+    btn.addEventListener('click', function(){
+      var idx = STATES.indexOf(current());
+      apply(STATES[(idx + 1) % STATES.length]);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var MIN_SCALE = 0.65;
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+</body>
+</html>

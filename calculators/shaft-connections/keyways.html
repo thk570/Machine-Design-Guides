@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<title>Keyways & Keys — Machine Design Guides</title>
+<style>
+  /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #3b6ea5;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --poor: #b5484d;
+    --input-bg: #eef3f8; --input-border: #b9cde0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+      --poor: #e0696d;
+      --input-bg: #1c2833; --input-border: #3a5878;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+    --poor: #e0696d;
+    --input-bg: #1c2833; --input-border: #3a5878;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); flex-wrap: wrap; }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 900px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  h2 { font-size: 1.05rem; margin: 0 0 0.75rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1.1rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); line-height: 1.5; }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  table.mdg-table tr.current td { font-weight: 600; background: rgba(59,110,165,0.14); }
+  .note { font-size: 0.8rem; color: var(--mdg-text-muted); margin-top: 0.5rem; }
+  label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem; }
+  select, input[type=number] {
+    font-family: var(--mdg-font); font-size: 0.9rem; padding: 0.4rem 0.55rem;
+    border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); color: var(--mdg-text);
+  }
+  .row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 0.75rem; }
+  .field { display: flex; flex-direction: column; min-width: 170px; }
+  .unit-input { display: flex; align-items: center; gap: 0.4rem; }
+  .unit-input input { flex: 1; min-width: 0; }
+  .unit-input .unit { font-size: 0.85rem; color: var(--mdg-text-muted); white-space: nowrap; }
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.6rem; margin-top: 0.75rem; }
+  .result { background: var(--mdg-bg); border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.55rem 0.7rem; }
+  .result.headline { border-color: var(--mdg-accent); }
+  .result .k { font-size: 0.72rem; color: var(--mdg-text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+  .result .v { font-family: var(--mdg-font-mono); font-size: 1.05rem; margin-top: 0.15rem; }
+  .result.headline .v { font-size: 1.3rem; color: var(--mdg-accent); }
+  .pill-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .pill { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.35rem 0.85rem;
+    font-size: 0.85rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text); }
+  .pill.active { background: var(--mdg-accent); border-color: var(--mdg-accent); color: #fff; }
+  .warn { background: rgba(181,72,77,0.12); border: 1px solid var(--poor); border-radius: 6px;
+    padding: 0.6rem 0.8rem; font-size: 0.85rem; margin-top: 0.75rem; }
+  .ok-badge { color: var(--mdg-accent); font-weight: 600; }
+  .poor-badge { color: var(--poor); font-weight: 600; }
+  .lib-note { font-size: 0.78rem; color: var(--mdg-text-muted); font-style: italic; margin: -0.4rem 0 0.75rem; }
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+  .ref-list li:target { color: var(--mdg-text); }
+  /* Keyway diagram — generic labelled parameter figure, not scaled to the inputs above. */
+  .key-section-layout { display: flex; gap: 1.25rem; flex-wrap: wrap; align-items: flex-start; margin-bottom: 0.75rem; }
+  .key-inputs { flex: 1 1 260px; min-width: 240px; }
+  .kw-diagram { margin: 0; flex: none; background: var(--mdg-surface); border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.5rem; width: 220px; }
+  .kw-diagram svg.mdg-svg-diagram { display: block; max-width: 100%; height: auto; }
+  .kw-diagram figcaption { font-size: 0.72rem; color: var(--mdg-text-muted); text-align: center; margin-top: 0.5rem; }
+  /* Collapsible reference tables — see docs/00-structure-and-conventions.md ("Collapsible reference
+     tables"). Native <details>/<summary>, default closed, for cluttered lookup/reference tables that
+     aren't the primary result. */
+  .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
+    background: var(--mdg-surface); margin: 0 0 0.75rem; }
+  .mdg-collapsible > summary { cursor: pointer; list-style: none; display: flex; align-items: center;
+    gap: 0.5rem; padding: 0.65rem 0.9rem; font-size: 0.92rem; font-weight: 600; user-select: none; }
+  .mdg-collapsible > summary::-webkit-details-marker { display: none; }
+  .mdg-collapsible > summary::before { content: ''; flex: none; width: 0; height: 0;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+    border-left: 6px solid var(--mdg-text-muted); transition: transform 0.18s ease; }
+  .mdg-collapsible[open] > summary::before { transform: rotate(90deg); }
+  .mdg-collapsible > summary .hint { font-weight: 400; font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .mdg-collapsible-body { padding: 0 0.9rem 0.9rem; }
+  @media print {
+    .mdg-header, .mdg-no-print { display: none !important; }
+    .mdg-collapsible:not([open]) { display: block; }
+    .mdg-collapsible > summary::before { display: none; }
+    .mdg-collapsible-body { display: block !important; }
+  }
+
+
+  /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). Forces a light,
+     compact one-page A4 layout via a temporary .mdg-pdf-mode class on <html>, applied just
+     before window.print() and removed on afterprint/focus. */
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-collapsible,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+      <strong>Keyways &amp; Keys</strong>
+      <span class="mdg-tag">Fits</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">DIN 6885-1 &middot; parallel (feather) keys</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Keyways &amp; Keys<span class="mdg-print-tag">Fits</span></div>
+    <div class="mdg-print-meta">DIN 6885-1 &middot; parallel (feather) keys &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+
+  <div class="mdg-card">
+    <p>Parallel (feather) key and keyway sizing per DIN 6885-1 — key size, keyway depths, and fit-tolerance
+      class by shaft diameter. Below that, a torque-capacity check: minimum key length for shear and bearing
+      failure at a chosen safety factor, using the shared material library<sup><a href="#ref5">5</a></sup>.</p>
+  </div>
+
+  <!-- ============ 1. KEY & KEYWAY SIZE ============ -->
+  <div class="mdg-card">
+    <h2>1. Key &amp; Keyway Size</h2>
+    <div class="key-section-layout">
+<figure class="kw-diagram mdg-no-print">
+<svg viewBox="0 0 330 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="kwTitle kwDesc" class="mdg-svg-diagram">
+  <title id="kwTitle">Keyway parameter diagram</title>
+  <desc id="kwDesc">End-on view of a shaft and hub bore with a keyway cut at 12 o'clock, showing D, W, H, R, T2 and T1.</desc>
+  <defs>
+  <marker id="kwDimArrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,1 L9,5 L0,9 Z" fill="var(--mdg-text-muted)"/>
+  </marker>
+  <marker id="kwLeaderArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M0,1 L9,5 L0,9 Z" fill="var(--mdg-text-muted)"/>
+  </marker>
+</defs>
+  <style>
+    .kw2-line { fill: none; stroke: var(--mdg-text); stroke-width: 1.6; }
+    .kw2-dim { stroke: var(--mdg-text-muted); stroke-width: 1; marker-start: url(#kwDimArrow); marker-end: url(#kwDimArrow); }
+    .kw2-ext { stroke: var(--mdg-text-muted); stroke-width: 0.75; stroke-dasharray: 2,2; }
+    .kw2-leader { stroke: var(--mdg-text-muted); stroke-width: 1; fill: none; marker-end: url(#kwLeaderArrow); }
+    .kw2-label { font: 13px var(--mdg-font, sans-serif); fill: var(--mdg-text); }
+    .kw2-label-sm { font: 11px var(--mdg-font, sans-serif); fill: var(--mdg-text-muted); }
+  </style>
+
+  <!-- hub OD (outer circle) and shaft OD (inner circle), concentric -->
+  <circle cx="165" cy="180" r="130" class="kw2-line" fill="none"/>
+  <circle cx="165" cy="180" r="90" class="kw2-line" fill="none"/>
+
+  <!-- key: straddles the shaft-OD tangent at 12 o'clock, flush with the notch cut into both circles -->
+  <rect x="147" y="74" width="36" height="32" fill="var(--mdg-accent)" fill-opacity="0.55" stroke="var(--mdg-accent)" stroke-opacity="0.55" stroke-width="1.5"/>
+
+  <!-- R: leader to the keyway fillet -->
+  <path d="M 95,138 L 147,101" class="kw2-leader"/>
+  <text x="88" y="136" class="kw2-label" text-anchor="end">R</text>
+
+  <!-- D: diagonal dimension across the shaft OD -->
+  <line x1="101.4" y1="243.6" x2="228.6" y2="116.4" class="kw2-dim"/>
+  <text x="178" y="205" class="kw2-label" text-anchor="middle">D</text>
+
+  <!-- W: key width, above the key -->
+  <line x1="147" y1="74" x2="147" y2="34" class="kw2-ext"/>
+  <line x1="183" y1="74" x2="183" y2="34" class="kw2-ext"/>
+  <line x1="147" y1="40" x2="183" y2="40" class="kw2-dim"/>
+  <text x="165" y="30" class="kw2-label" text-anchor="middle">W</text>
+
+  <!-- H: key height, left of the key -->
+  <line x1="147" y1="74" x2="112" y2="74" class="kw2-ext"/>
+  <line x1="147" y1="106" x2="112" y2="106" class="kw2-ext"/>
+  <line x1="118" y1="74" x2="118" y2="106" class="kw2-dim"/>
+  <text x="106" y="94" class="kw2-label" text-anchor="end">H</text>
+
+  <!-- T2: hub keyway depth — key top down to the shaft-OD tangent line -->
+  <line x1="183" y1="74" x2="222" y2="74" class="kw2-ext"/>
+  <line x1="165" y1="90" x2="222" y2="90" class="kw2-ext"/>
+  <line x1="216" y1="74" x2="216" y2="90" class="kw2-dim"/>
+  <text x="230" y="86" class="kw2-label">T2</text>
+
+  <!-- T1: shaft-side reference — key top down to the bottom of the shaft OD -->
+  <line x1="183" y1="74" x2="272" y2="74" class="kw2-ext"/>
+  <line x1="165" y1="270" x2="272" y2="270" class="kw2-ext"/>
+  <line x1="266" y1="74" x2="266" y2="270" class="kw2-dim"/>
+  <text x="280" y="176" class="kw2-label">T1</text>
+
+  <text x="165" y="312" class="kw2-label-sm" text-anchor="middle">D=shaft dia., W=key width, H=key height, R=corner radius,</text>
+  <text x="165" y="325" class="kw2-label-sm" text-anchor="middle">T2=hub keyway depth, T1=shaft-side reference (see caption)</text>
+</svg>
+        <figcaption>D=shaft diameter, W=key width, H=key height, R=corner radius,
+          T2=hub keyway depth, T1=shaft keyway depth.</figcaption>
+      </figure>
+      <div class="key-inputs">
+        <div class="row">
+          <div class="field">
+            <label for="shaft-d">Shaft diameter, D</label>
+            <div class="unit-input">
+              <input type="number" id="shaft-d" value="25" min="6" max="500" step="0.5">
+              <span class="unit">mm</span>
+            </div>
+          </div>
+        </div>
+        <label>Fit type</label>
+        <div class="pill-row" id="fit-pills"></div>
+        <div id="range-warning"></div>
+      </div>
+    </div>
+
+    <div class="result-grid">
+      <div class="result headline">
+        <div class="k">Key size, W &times; H</div>
+        <div class="v" id="out-key-size">–</div>
+      </div>
+      <div class="result">
+        <div class="k">Shaft keyway depth, T1</div>
+        <div class="v" id="out-t1">–</div>
+      </div>
+      <div class="result">
+        <div class="k">Hub keyway depth, T2</div>
+        <div class="v" id="out-t2">–</div>
+      </div>
+      <div class="result">
+        <div class="k">Key width tolerance</div>
+        <div class="v">h9</div>
+      </div>
+      <div class="result">
+        <div class="k">Shaft keyway width tol.</div>
+        <div class="v" id="out-shaft-tol">–</div>
+      </div>
+      <div class="result">
+        <div class="k">Hub keyway width tol.</div>
+        <div class="v" id="out-hub-tol">–</div>
+      </div>
+    </div>
+    <p class="note" id="fit-note"></p>
+    <p class="note">DIN 6885-1 Deep Pattern values, matched to the nearest standard band<sup><a href="#ref1">1</a></sup>.
+      Key width is always h9; the fit comes from the keyway width tolerances<sup><a href="#ref2">2</a></sup>.
+      Radii, chamfers and taper/Woodruff variants aren't shown.</p>
+  </div>
+
+  <!-- ============ 2. TORQUE CAPACITY ============ -->
+  <div class="mdg-card">
+    <h2>2. Torque Capacity &amp; Key Length</h2>
+    <div class="pill-row" id="mode-pills"></div>
+
+    <div class="row">
+      <div class="field">
+        <label for="torque">Design torque, T</label>
+        <div class="unit-input">
+          <input type="number" id="torque" value="150" min="0" step="1">
+          <span class="unit">N&middot;m</span>
+        </div>
+      </div>
+      <div class="field" id="length-field" style="display:none;">
+        <label for="key-length">Key length, L</label>
+        <div class="unit-input">
+          <input type="number" id="key-length" value="40" min="1" step="1">
+          <span class="unit">mm</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="fs">Factor of safety</label>
+        <input type="number" id="fs" value="2" min="1" step="0.1">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field" style="min-width:280px;">
+        <label for="key-material">Key material</label>
+        <select id="key-material"></select>
+      </div>
+    </div>
+    <p class="lib-note">Materials from the shared library (data/materials.js) — default is a common key-stock
+      grade<sup><a href="#ref5">5</a></sup>.</p>
+
+    <div class="result-grid">
+      <div class="result">
+        <div class="k">Tangential force, F</div>
+        <div class="v" id="out-force">–</div>
+      </div>
+      <div class="result">
+        <div class="k">Allowable shear stress</div>
+        <div class="v" id="out-allow-shear">–</div>
+      </div>
+      <div class="result">
+        <div class="k">Allowable bearing stress</div>
+        <div class="v" id="out-allow-bearing">–</div>
+      </div>
+      <div class="result" id="result-lshear">
+        <div class="k">Min. length — shear</div>
+        <div class="v" id="out-lshear">–</div>
+      </div>
+      <div class="result" id="result-lbearing">
+        <div class="k">Min. length — bearing</div>
+        <div class="v" id="out-lbearing">–</div>
+      </div>
+      <div class="result headline" id="result-headline">
+        <div class="k" id="out-headline-label">Required key length, L</div>
+        <div class="v" id="out-headline">–</div>
+      </div>
+    </div>
+    <div id="check-detail" style="display:none;">
+      <div class="result-grid">
+        <div class="result">
+          <div class="k">Actual shear stress</div>
+          <div class="v" id="out-actual-shear">–</div>
+        </div>
+        <div class="result">
+          <div class="k">Actual bearing stress</div>
+          <div class="v" id="out-actual-bearing">–</div>
+        </div>
+      </div>
+    </div>
+    <div id="length-warning"></div>
+    <p class="note">F&nbsp;=&nbsp;2T/D. Shear &tau;&nbsp;=&nbsp;F/(W&middot;L); bearing
+      &sigma;<sub>b</sub>&nbsp;=&nbsp;F/((H/2)&middot;L)<sup><a href="#ref3">3</a></sup>. Allowable shear
+      =&nbsp;0.577&times;S<sub>y</sub>/FS; allowable bearing&nbsp;=&nbsp;S<sub>y</sub>/FS<sup><a href="#ref3">3</a>,<a href="#ref4">4</a></sup>
+      — bearing usually governs. A simplified static check: ignores stress concentration, fatigue and shock;
+      keep L within the hub length and treat L&nbsp;&gt;&nbsp;~2&times;d with caution<sup><a href="#ref4">4</a></sup>.</p>
+  </div>
+
+  <!-- ============ 3. QUICK REFERENCE TABLE ============ -->
+  <div class="mdg-card">
+    <h2>3. Quick Reference — all sizes</h2>
+    <details class="mdg-collapsible" id="table-details">
+      <summary>All DIN 6885-1 shaft-diameter bands <span class="hint">current selection highlighted — click to expand</span></summary>
+      <div class="mdg-collapsible-body">
+        <table class="mdg-table">
+          <thead><tr><th>Shaft dia., D (mm)</th><th>Key W&times;H (mm)</th><th>Shaft keyway depth, T1 (mm)</th><th>Hub keyway depth, T2 (mm)</th></tr></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </details>
+  </div>
+
+  <div class="mdg-card mdg-footer">
+    <p><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li><a href="https://www.beuth.de/en/standard/din-6885-1/346315269">DIN 6885-1:2021</a> — Drive type fastenings without taper action, parallel keys, keyways — Deep pattern — Part 1: Dimensions, tolerances, mass.</li>
+      <li><a href="https://www.iso.org/standard/5056.html">ISO/R 773:1969</a> — Rectangular or square parallel keys and their corresponding keyways (dimensions in millimetres).</li>
+      <li><a href="https://webstore.ansi.org/standards/din/din68852021-2487706">DIN 6885-3:2021</a> — Low pattern parallel keys/keyways (shallower t1/t2 for lighter-duty shafts) — not reproduced on this page, which covers deep pattern ("Type A") only.</li>
+    </ul>
+    <p>Doesn't reproduce the standards' full tolerance tables, fillet radii/chamfers, taper/gib-head/Woodruff
+      keys, or splines. Verify safety-critical, high-torque, fatigue or shock-loaded joints against the actual
+      standard.</p>
+
+    <p><strong>References</strong></p>
+    <ol class="ref-list">
+      <li id="ref1"><a href="https://engineeringhardware.com/guide/standard/din-6885-parallel-keys/">DIN 6885 Parallel Keys Dimensions &amp; ISO Equivalent</a> — engineeringhardware.com (full DIN 6885-1 shaft-diameter/b/h/t1/t2 table).</li>
+      <li id="ref2"><a href="https://www.jwwinco.com/fileadmin/user_upload/6885_1.pdf">Keys and Keyways WN 6885</a> — jwwinco.com (key width h9 tolerance; shaft/hub keyway width tolerance combinations for tight, normal and sliding fits).</li>
+      <li id="ref3"><a href="https://calcimator.com/calculators/engineering/keyway-design">Keyway Design Calculator — Shear, Bearing &amp; Key Length</a> — calcimator.com (F&thinsp;=&thinsp;2T/d, shear and bearing stress formulas, 0.577&times;Sy distortion-energy allowable shear).</li>
+      <li id="ref4"><a href="https://www.roymech.co.uk/Useful_Tables/Keyways/key_strength.html">Key and Spline Strength Calculations</a> — roymech.co.uk (allowable-stress/factor-of-safety approach to key design; long-key load-distribution caveat).</li>
+      <li id="ref5"><a href="https://www.theworldmaterial.com/astm-sae-aisi-1045-carbon-steel-material/">AISI 1045 Carbon Steel</a> — theworldmaterial.com (1045 as a common key-stock grade; backs the shared material library entry used as this page's default).</li>
+    </ol>
+
+    <p>Last updated: 2026-09-29 &middot; Rev 3</p>
+  </div>
+
+</main>
+
+<script src="../../data/materials.js"></script>
+<script>
+// ---------- DIN 6885-1 dimension table (Deep Pattern / "Type A") ----------
+// { dMin, dMax, b, h, t1, t2 } — dMin/dMax bound the shaft-diameter band "over dMin up to and
+// including dMax" (first row includes its own dMin). Source: see ref1.
+const DIN_TABLE = [
+  { dMin: 6,   dMax: 8,   b: 2,   h: 2,  t1: 1.2,  t2: 1.0 },
+  { dMin: 8,   dMax: 10,  b: 3,   h: 3,  t1: 1.8,  t2: 1.4 },
+  { dMin: 10,  dMax: 12,  b: 4,   h: 4,  t1: 2.5,  t2: 1.8 },
+  { dMin: 12,  dMax: 17,  b: 5,   h: 5,  t1: 3.0,  t2: 2.3 },
+  { dMin: 17,  dMax: 22,  b: 6,   h: 6,  t1: 3.5,  t2: 2.8 },
+  { dMin: 22,  dMax: 30,  b: 8,   h: 7,  t1: 4.0,  t2: 3.3 },
+  { dMin: 30,  dMax: 38,  b: 10,  h: 8,  t1: 5.0,  t2: 3.3 },
+  { dMin: 38,  dMax: 44,  b: 12,  h: 8,  t1: 5.0,  t2: 3.3 },
+  { dMin: 44,  dMax: 50,  b: 14,  h: 9,  t1: 5.5,  t2: 3.8 },
+  { dMin: 50,  dMax: 58,  b: 16,  h: 10, t1: 6.0,  t2: 4.3 },
+  { dMin: 58,  dMax: 65,  b: 18,  h: 11, t1: 7.0,  t2: 4.4 },
+  { dMin: 65,  dMax: 75,  b: 20,  h: 12, t1: 7.5,  t2: 4.9 },
+  { dMin: 75,  dMax: 85,  b: 22,  h: 14, t1: 9.0,  t2: 5.4 },
+  { dMin: 85,  dMax: 95,  b: 25,  h: 14, t1: 9.0,  t2: 5.4 },
+  { dMin: 95,  dMax: 110, b: 28,  h: 16, t1: 10.0, t2: 6.4 },
+  { dMin: 110, dMax: 130, b: 32,  h: 18, t1: 11.0, t2: 7.4 },
+  { dMin: 130, dMax: 150, b: 36,  h: 20, t1: 12.0, t2: 8.4 },
+  { dMin: 150, dMax: 170, b: 40,  h: 22, t1: 13.0, t2: 9.4 },
+  { dMin: 170, dMax: 200, b: 45,  h: 25, t1: 15.0, t2: 10.4 },
+  { dMin: 200, dMax: 230, b: 50,  h: 28, t1: 17.0, t2: 11.4 },
+  { dMin: 230, dMax: 260, b: 56,  h: 32, t1: 20.0, t2: 12.4 },
+  { dMin: 260, dMax: 290, b: 63,  h: 32, t1: 20.0, t2: 12.4 },
+  { dMin: 290, dMax: 330, b: 70,  h: 36, t1: 22.0, t2: 14.4 },
+  { dMin: 330, dMax: 380, b: 80,  h: 40, t1: 25.0, t2: 15.4 },
+  { dMin: 380, dMax: 440, b: 90,  h: 45, t1: 28.0, t2: 17.4 },
+  { dMin: 440, dMax: 500, b: 100, h: 50, t1: 31.0, t2: 19.5 },
+];
+
+function findRow(d) {
+  for (const row of DIN_TABLE) {
+    if (d <= row.dMax) return row;
+  }
+  return DIN_TABLE[DIN_TABLE.length - 1];
+}
+function fmt(n, dp) { return Number(n).toFixed(dp); }
+
+// ---------- fit types ----------
+const FIT_TYPES = {
+  sliding: { label: 'Sliding', shaftTol: 'H9', hubTol: 'D10',
+    note: 'Sliding — loosest fit, for a hub that slides axially under load (e.g. a sliding gear).' },
+  normal:  { label: 'Normal', shaftTol: 'N9', hubTol: 'JS9',
+    note: 'Normal — the standard choice for a hub fixed axially and rotationally, with no sliding.' },
+  tight:   { label: 'Tight', shaftTol: 'P9', hubTol: 'P9',
+    note: 'Tight — light interference both sides, for a permanent assembly with no relative movement.' },
+};
+let fitType = 'normal';
+function renderFitPills() {
+  const wrap = document.getElementById('fit-pills');
+  wrap.innerHTML = '';
+  Object.entries(FIT_TYPES).forEach(([id, f]) => {
+    const b = document.createElement('div');
+    b.className = 'pill' + (id === fitType ? ' active' : '');
+    b.textContent = f.label;
+    b.addEventListener('click', () => { fitType = id; renderFitPills(); updateAll(); });
+    wrap.appendChild(b);
+  });
+}
+
+// ---------- mode (find length vs check length) ----------
+const MODES = [
+  { id: 'find',  label: 'Find required length' },
+  { id: 'check', label: 'Check a given length' },
+];
+let mode = 'find';
+function renderModePills() {
+  const wrap = document.getElementById('mode-pills');
+  wrap.innerHTML = '';
+  MODES.forEach(m => {
+    const b = document.createElement('div');
+    b.className = 'pill' + (m.id === mode ? ' active' : '');
+    b.textContent = m.label;
+    b.addEventListener('click', () => { mode = m.id; onModeChange(); });
+    wrap.appendChild(b);
+  });
+}
+function onModeChange() {
+  renderModePills();
+  const isCheck = mode === 'check';
+  document.getElementById('length-field').style.display = isCheck ? '' : 'none';
+  document.getElementById('check-detail').style.display = isCheck ? '' : 'none';
+  document.getElementById('out-headline-label').textContent = isCheck ? 'Governing utilisation' : 'Required key length, L';
+  updateAll();
+}
+
+// ---------- material select ----------
+function materialsReady() { return typeof window.MDG_MATERIALS !== 'undefined'; }
+function buildMaterialOptions() {
+  const sel = document.getElementById('key-material');
+  sel.innerHTML = '';
+  if (!materialsReady()) {
+    const opt = document.createElement('option');
+    opt.textContent = 'data/materials.js not loaded';
+    sel.appendChild(opt);
+    return;
+  }
+  window.MDG_MATERIALS.types.forEach(t => {
+    const grades = window.MDG_MATERIALS.grades.filter(g => g.type === t.slug);
+    if (!grades.length) return;
+    const grp = document.createElement('optgroup');
+    grp.label = t.title;
+    grades.forEach(g => {
+      const opt = document.createElement('option');
+      opt.value = g.id;
+      opt.textContent = `${g.grade} (${g.condition})`;
+      if (g.id === 'steel-1045-cd') opt.selected = true;
+      grp.appendChild(opt);
+    });
+    sel.appendChild(grp);
+  });
+}
+function currentMaterial() {
+  if (!materialsReady()) return null;
+  const id = document.getElementById('key-material').value;
+  return window.MDG_MATERIALS.grades.find(g => g.id === id) || null;
+}
+
+// ---------- main update ----------
+const shaftDInput = document.getElementById('shaft-d');
+const torqueInput = document.getElementById('torque');
+const lengthInput = document.getElementById('key-length');
+const fsInput = document.getElementById('fs');
+
+function updateAll() {
+  const d = Math.max(1, parseFloat(shaftDInput.value) || 0);
+  const row = findRow(d);
+
+  const rangeWarnEl = document.getElementById('range-warning');
+  if (d < DIN_TABLE[0].dMin) {
+    rangeWarnEl.innerHTML = `<div class="warn">Below the standard's smallest band (${DIN_TABLE[0].dMin}&nbsp;mm) — showing the smallest standard size instead.</div>`;
+  } else if (d > DIN_TABLE[DIN_TABLE.length - 1].dMax) {
+    rangeWarnEl.innerHTML = `<div class="warn">Above the standard's largest band (${DIN_TABLE[DIN_TABLE.length - 1].dMax}&nbsp;mm) — showing the largest standard size instead.</div>`;
+  } else {
+    rangeWarnEl.innerHTML = '';
+  }
+
+  document.getElementById('out-key-size').textContent = `${row.b} × ${row.h} mm`;
+  document.getElementById('out-t1').textContent = `${fmt(row.t1, 1)} mm`;
+  document.getElementById('out-t2').textContent = `${fmt(row.t2, 1)} mm`;
+
+  const fit = FIT_TYPES[fitType];
+  document.getElementById('out-shaft-tol').textContent = fit.shaftTol;
+  document.getElementById('out-hub-tol').textContent = fit.hubTol;
+  document.getElementById('fit-note').textContent = fit.note;
+
+  // ---- torque capacity ----
+  const T = Math.max(0, parseFloat(torqueInput.value) || 0) * 1000; // N·mm
+  const FS = Math.max(1, parseFloat(fsInput.value) || 1);
+  const material = currentMaterial();
+  const Sy = material ? material.yield_MPa : null;
+
+  const F = 2 * T / d; // N
+  document.getElementById('out-force').textContent = material ? `${fmt(F / 1000, 2)} kN` : '–';
+
+  let allowShear = null, allowBearing = null;
+  if (Sy !== null) {
+    allowShear = 0.577 * Sy / FS;
+    allowBearing = Sy / FS;
+  }
+  document.getElementById('out-allow-shear').textContent = allowShear !== null ? `${fmt(allowShear, 1)} MPa` : '–';
+  document.getElementById('out-allow-bearing').textContent = allowBearing !== null ? `${fmt(allowBearing, 1)} MPa` : '–';
+
+  const isCheck = mode === 'check';
+  document.getElementById('result-lshear').style.display = isCheck ? 'none' : '';
+  document.getElementById('result-lbearing').style.display = isCheck ? 'none' : '';
+  const warnEl = document.getElementById('length-warning');
+
+  if (allowShear === null) {
+    document.getElementById('out-lshear').textContent = '–';
+    document.getElementById('out-lbearing').textContent = '–';
+    document.getElementById('out-headline').textContent = '–';
+    document.getElementById('out-actual-shear').textContent = '–';
+    document.getElementById('out-actual-bearing').textContent = '–';
+    warnEl.innerHTML = '<div class="warn">Select a key material to compute torque capacity.</div>';
+    return;
+  }
+
+  const Lshear = F / (row.b * allowShear);
+  const Lbearing = F / ((row.h / 2) * allowBearing);
+  document.getElementById('out-lshear').textContent = `${fmt(Lshear, 1)} mm`;
+  document.getElementById('out-lbearing').textContent = `${fmt(Lbearing, 1)} mm`;
+
+  const hubMax = 2 * d; // caution threshold, not a hard limit
+
+  if (!isCheck) {
+    const Lreq = Math.max(Lshear, Lbearing);
+    const governedBy = Lbearing >= Lshear ? 'bearing' : 'shear';
+    document.getElementById('out-headline').textContent = `${fmt(Lreq, 1)} mm`;
+    warnEl.innerHTML = `<p class="note">Governed by ${governedBy}.` +
+      (Lreq > hubMax ? ` <span class="poor-badge">Exceeds ~2&times;d (${fmt(hubMax, 0)} mm)</span> — consider a bigger shaft/key size, a spline, or two keys instead.` : '') +
+      ` Round up to a length that fits within the hub.</p>`;
+    document.getElementById('out-actual-shear').textContent = '–';
+    document.getElementById('out-actual-bearing').textContent = '–';
+  } else {
+    const L = Math.max(0.1, parseFloat(lengthInput.value) || 0);
+    const actualShear = F / (row.b * L);
+    const actualBearing = F / ((row.h / 2) * L);
+    document.getElementById('out-actual-shear').textContent = `${fmt(actualShear, 1)} MPa`;
+    document.getElementById('out-actual-bearing').textContent = `${fmt(actualBearing, 1)} MPa`;
+    const utilShear = (actualShear / allowShear) * 100;
+    const utilBearing = (actualBearing / allowBearing) * 100;
+    const util = Math.max(utilShear, utilBearing);
+    const governedBy = utilBearing >= utilShear ? 'bearing' : 'shear';
+    document.getElementById('out-headline').innerHTML = util <= 100
+      ? `<span class="ok-badge">${fmt(util, 0)}%</span>`
+      : `<span class="poor-badge">${fmt(util, 0)}%</span>`;
+    warnEl.innerHTML = (util > 100
+      ? `<div class="warn">Undersized — ${governedBy} utilisation is ${fmt(util, 0)}% of allowable at FS&nbsp;${fmt(FS, 1)}. Lengthen the key, raise FS, or use a stronger material.</div>`
+      : `<p class="note">Governed by ${governedBy}, at ${fmt(util, 0)}% of allowable.` +
+        (L > hubMax ? ` <span class="poor-badge">Exceeds ~2&times;d (${fmt(hubMax, 0)} mm)</span>.` : '') +
+        `</p>`);
+  }
+
+  // ---- reference table highlight ----
+  const body = document.getElementById('table-body');
+  body.innerHTML = '';
+  DIN_TABLE.forEach(r => {
+    const tr = document.createElement('tr');
+    if (r === row) tr.className = 'current';
+    tr.innerHTML = `<td>over ${r.dMin} up to ${r.dMax}</td><td>${r.b} × ${r.h}</td><td>${fmt(r.t1, 1)}</td><td>${fmt(r.t2, 1)}</td>`;
+    body.appendChild(tr);
+  });
+}
+
+shaftDInput.addEventListener('input', updateAll);
+torqueInput.addEventListener('input', updateAll);
+lengthInput.addEventListener('input', updateAll);
+fsInput.addEventListener('input', updateAll);
+document.getElementById('key-material').addEventListener('change', updateAll);
+
+// init
+renderFitPills();
+renderModePills();
+buildMaterialOptions();
+updateAll();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  function current(){
+    var t = document.documentElement.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  function apply(state){
+    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', state); }
+    try {
+      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
+      else { localStorage.setItem('mdg-theme', state); }
+    } catch (e) {}
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  if (btn) {
+    btn.textContent = LABELS[current()];
+    btn.addEventListener('click', function(){
+      var idx = STATES.indexOf(current());
+      apply(STATES[(idx + 1) % STATES.length]);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  // Legibility floor: never shrink below this, even if that means the page then
+  // spills onto a 2nd (or 3rd) sheet. A handful of very long pages (e.g. the
+  // Material Library table, the O-Ring groove-design page) would otherwise need
+  // to zoom out well below half size to fit a single sheet, which prints too
+  // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
+  var MIN_SCALE = 0.65;
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+/* Machine Design Guides — shared design tokens & components.
+   Copy the :root / dark blocks + the component classes you use into each
+   standalone calculator page's own <style> block (pages must stay
+   self-contained — see docs/00-structure-and-conventions.md). */
+
+:root {
+  --mdg-bg: #f7f7f5;
+  --mdg-surface: #ffffff;
+  --mdg-border: #dcdcd6;
+  --mdg-text: #1c1c1a;
+  --mdg-text-muted: #6b6b64;
+  --mdg-accent: #3b6ea5;
+  --mdg-accent-text: #ffffff;
+  --mdg-radius: 8px;
+  --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+
+  /* category accents — keep in sync with data/manifest.js */
+  --cat-fits: #3b6ea5;
+  --cat-fasteners: #a5623b;
+  --cat-seals: #3ba573;
+  --cat-electrical: #a53b8f;
+  --cat-materials: #5b5b5b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --mdg-bg: #17181a;
+    --mdg-surface: #201f22;
+    --mdg-border: #35353a;
+    --mdg-text: #e9e9e6;
+    --mdg-text-muted: #9c9c96;
+  }
+}
+:root[data-theme="dark"] {
+  --mdg-bg: #17181a;
+  --mdg-surface: #201f22;
+  --mdg-border: #35353a;
+  --mdg-text: #e9e9e6;
+  --mdg-text-muted: #9c9c96;
+}
+
+body {
+  background: var(--mdg-bg);
+  color: var(--mdg-text);
+  font-family: var(--mdg-font);
+}
+
+.mdg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--mdg-border);
+}
+.mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+.mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+
+.mdg-tag {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--mdg-accent);
+}
+
+/* Dark-mode toggle — see docs/00-structure-and-conventions.md ("Dark mode toggle").
+   A 3-state control (Auto / Light / Dark) that sets/removes data-theme on <html> and persists
+   the choice in localStorage under "mdg-theme", shared site-wide across every page origin-wide.
+   Each page also inlines a tiny synchronous script at the very top of <head> (right after the
+   viewport meta tag) that reads that key and applies data-theme before the page's own <style>
+   block is parsed, so there's no flash of the wrong theme on load. */
+.mdg-theme-toggle {
+  border: 1px solid var(--mdg-border);
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  background: var(--mdg-surface);
+  color: var(--mdg-text-muted);
+  font-family: var(--mdg-font);
+}
+.mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+
+.mdg-card {
+  background: var(--mdg-surface);
+  border: 1px solid var(--mdg-border);
+  border-radius: var(--mdg-radius);
+  padding: 1rem 1.25rem;
+}
+
+.mdg-footer {
+  margin-top: 2rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--mdg-border);
+  font-size: 0.8rem;
+  color: var(--mdg-text-muted);
+}
+
+table.mdg-table { border-collapse: collapse; width: 100%; }
+table.mdg-table th, table.mdg-table td {
+  border: 1px solid var(--mdg-border);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  font-size: 0.9rem;
+}
+table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+
+/* Unit-on-input rows — see docs/00-structure-and-conventions.md ("Unit placement on inputs").
+   The unit always sits to the right of its input box, never wrapped below it. Wrap the <input>
+   and its unit span in .input-row inside the .field; don't leave a bare unit as trailing text
+   after the <input> — a flex-column .field wraps that text onto its own line underneath. */
+.input-row { display: flex; align-items: center; gap: 0.4rem; }
+.input-row input { flex: 1 1 auto; min-width: 0; }
+.input-row .unit { font-size: 0.85rem; color: var(--mdg-text-muted); white-space: nowrap; }
+
+/* Collapsible reference tables — see docs/00-structure-and-conventions.md ("Collapsible reference
+   tables"). Native <details>/<summary>, default closed, for cluttered lookup/reference tables that
+   aren't the primary result. Standard icon: a single right-pointing triangle before the summary
+   text, rotating 90° open. Only the triangle animates (0.18s ease) — the content itself shows/hides
+   instantly via the native <details> toggle, so this needs no JS. */
+.mdg-collapsible {
+  border: 1px solid var(--mdg-border);
+  border-radius: var(--mdg-radius);
+  background: var(--mdg-surface);
+  margin: 1rem 0;
+}
+.mdg-collapsible > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  user-select: none;
+}
+.mdg-collapsible > summary::-webkit-details-marker { display: none; }
+.mdg-collapsible > summary::before {
+  content: '';
+  flex: none;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 6px solid var(--mdg-text-muted);
+  transition: transform 0.18s ease;
+}
+.mdg-collapsible[open] > summary::before { transform: rotate(90deg); }
+.mdg-collapsible > summary .hint { font-weight: 400; font-size: 0.78rem; color: var(--mdg-text-muted); }
+.mdg-collapsible-body { padding: 0 0.9rem 0.9rem; }
+
+/* Citations & references — see docs/00-structure-and-conventions.md.
+   sup a = in-body superscript marker linking down to its reference entry;
+   .ref-list = the "Applicable design standards" and "References" lists
+   at the bottom of the page. */
+sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+sup a:hover, .ref-list a:hover { text-decoration: underline; }
+.ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+.ref-list li { margin-bottom: 0.35rem; }
+
+@media print {
+  .mdg-header, .mdg-no-print { display: none !important; }
+  /* Collapsed reference tables should still print in full. */
+  .mdg-collapsible:not([open]) { display: block; }
+  .mdg-collapsible > summary::before { display: none; }
+  .mdg-collapsible-body { display: block !important; }
+}
+
+/* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). Forces a light,
+   compact one-page-where-possible A4 layout via a temporary .mdg-pdf-mode class on <html>,
+   applied just before window.print() and removed on afterprint/focus. Collapsible reference
+   tables are hidden entirely (not just forced open, as normal print does) to keep the export
+   compact, since they hold lookup detail rather than the primary result. */
+@page { size: A4; margin: 12mm; }
+.mdg-print-header { display: none; }
+:root.mdg-pdf-mode {
+  --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+  --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+}
+html.mdg-pdf-mode body { background: #ffffff; }
+html.mdg-pdf-mode .mdg-header,
+html.mdg-pdf-mode .mdg-collapsible,
+html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+html.mdg-pdf-mode .mdg-print-header {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+  padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+}
+html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }

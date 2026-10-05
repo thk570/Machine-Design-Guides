@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<title>Material Library — Machine Design Guides</title>
+<style>
+  /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #5b5b5b;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .mdg-card h2 { margin: 0 0 0.75rem; font-size: 1rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+  .note { font-size: 0.82rem; color: var(--mdg-text-muted); margin: 0.5rem 0 0; }
+  select { padding: 0.4rem 0.55rem; border: 1px solid var(--mdg-border); border-radius: 6px;
+    background: var(--mdg-bg); color: var(--mdg-text); font-size: 0.9rem; font-family: var(--mdg-font); }
+  .filters { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: end; margin-bottom: 0.9rem; }
+  .filters label { display: block; font-size: 0.78rem; color: var(--mdg-text-muted); margin-bottom: 0.25rem; }
+  .type-group { margin-bottom: 1.5rem; }
+  .type-group h3 { font-size: 0.92rem; margin: 0 0 0.5rem; }
+  .grade-note { font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .typical { font-style: italic; }
+  .cti-badge { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.78rem; font-weight: 600; color: #fff; background: var(--mdg-accent); margin-left: 0.5rem; }
+  @media print { .mdg-header, .mdg-no-print { display: none !important; } }
+  /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). Forces a light,
+     compact one-page A4 layout via a temporary .mdg-pdf-mode class on <html>, applied just
+     before window.print() and removed on afterprint/focus. */
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-collapsible,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem;">
+      <strong>Material Library</strong>
+      <span class="mdg-tag">Materials</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">MMPDS-style reference (not MMPDS data)</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Material Library<span class="mdg-print-tag">Materials</span></div>
+    <div class="mdg-print-meta">MMPDS-style reference (not MMPDS data) &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+
+  <div class="mdg-card">
+    <p>A shared material property reference, arranged the way MMPDS (Metallic Materials Properties
+      Development and Standardization) lays out its allowables — by material <strong>type</strong>, then
+      <strong>grade/condition</strong> — so other calculators on this site can pull consistent material
+      data instead of each hard-coding its own. Density, elastic constants (E, G, ν), yield/ultimate
+      strength, thermal expansion, thermal conductivity and melting range, per metallic grade; Comparative
+      Tracking Index (CTI) and IEC 60664-1 material group for insulating materials.</p>
+    <div class="filters mdg-no-print">
+      <div>
+        <label for="typeFilter">Material type</label>
+        <select id="typeFilter"><option value="">All types</option></select>
+      </div>
+      <div>
+        <label for="search">Search grade/designation</label>
+        <select id="search"><option value="">—</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div id="library"></div>
+
+  <div class="mdg-card mdg-footer">
+    <p><strong>This is not MMPDS.</strong> MMPDS (formerly MIL-HDBK-5) is the statistically-derived,
+      paywalled allowables handbook used for aerospace structural substantiation<sup><a href="#ref1">1</a></sup>
+      — its A/B-basis values come from pooled, controlled test programmes and are not reproduced here.
+      This page instead collects typical room-temperature properties from manufacturer/aggregator
+      datasheets, organised the same way (type → grade → condition), as a quick reference — not a
+      substitute for MMPDS or a material spec when substantiating a design.</p>
+    <p>Where a value wasn't given for the specific grade/condition (most often Poisson's ratio or shear
+      modulus), a typical value for that material family is used instead and marked <span class="typical">italic</span>
+      in the detail view, with its own source. Every other value traces to a grade-specific datasheet —
+      see each grade's references below.</p>
+    <p>The Comparative Tracking Index (CTI) values under "Insulating Materials" are typical figures for
+      the base polymer/material family from manufacturer and aggregator datasheets, per IEC 60112<sup><a href="#ref2">2</a></sup>.
+      Actual CTI depends on the specific formulation, fillers and grade, and can vary within the ranges
+      shown — always verify against the manufacturer's datasheet for the grade actually used before
+      relying on the material group for an insulation-coordination calculation.</p>
+
+    <p style="margin-top:0.75rem;"><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li id="ref1"><a href="https://www.mmpds.org/">MMPDS</a> — Metallic Materials Properties Development
+        and Standardization, the FAA-sponsored handbook of statistically-based design allowables for
+        metallic aerospace structures (successor to MIL-HDBK-5).</li>
+      <li id="ref2"><a href="https://webstore.iec.ch/publication/1191">IEC 60112</a> — Method for the
+        determination of the proof and the comparative tracking indices of solid insulating materials.</li>
+    </ul>
+    <p>For safety-critical or certified structure, allowables should come from MMPDS (or the applicable
+      material spec / test programme), not from this page.</p>
+
+    <p><strong>References</strong> — per-grade sources are listed under each grade below; this page's
+      own text cites only the MMPDS and IEC 60112 standards, above.</p>
+
+    <p>Last updated: 2026-09-21 &middot; Rev 1</p>
+  </div>
+
+</main>
+
+<script src="../../data/materials.js"></script>
+<script>
+  var DATA = window.MDG_MATERIALS;
+  var CTI_GROUP_LABEL = {
+    'I':   'Group I — CTI ≥ 600',
+    'II':  'Group II — 400 ≤ CTI < 600',
+    'IIIa':'Group IIIa — 175 ≤ CTI < 400',
+    'IIIb':'Group IIIb — 100 ≤ CTI < 175'
+  };
+
+  function fmt(v, dp) {
+    if (v === null || v === undefined) return '–';
+    return (typeof v === 'number') ? v.toFixed(dp) : v;
+  }
+
+
+
+  function renderRefs(refs) {
+    return '<ul class="ref-list">' + refs.map(function (r) {
+      var typ = r.typical ? ' <span class="typical">(typical value)</span>' : '';
+      return '<li><a href="' + r.url + '" target="_blank" rel="noopener">' + r.label + '</a>' + typ + '</li>';
+    }).join('') + '</ul>';
+  }
+
+  function ctiCard(g) {
+    var title = g.grade + (g.condition ? ' — ' + g.condition : '');
+    var badge = CTI_GROUP_LABEL[g.cti_group] ? '<span class="cti-badge">' + CTI_GROUP_LABEL[g.cti_group] + '</span>' : '';
+    var rows = [
+      ['Designation', g.designation],
+      ['Comparative Tracking Index (CTI)', fmt(g.cti_V, 0) + ' V (typical)'],
+      ['CTI range for group', g.cti_range || '–'],
+      ['IEC 60664-1 material group', g.cti_group || '–']
+    ];
+    var tbl = '<table class="mdg-table"><tbody>' + rows.map(function (r) {
+      return '<tr><th style="width:40%;">' + r[0] + '</th><td>' + r[1] + '</td></tr>';
+    }).join('') + '</tbody></table>';
+    var note = g.notes ? '<p class="note">' + g.notes + '</p>' : '';
+    return '<div class="mdg-card" data-type="' + g.type + '" data-search="' +
+      (g.grade + ' ' + g.designation).toLowerCase() + '">' +
+      '<h2>' + title + badge + '</h2>' + tbl + note +
+      '<p class="grade-note" style="margin-top:0.6rem;"><strong>Sources</strong></p>' + renderRefs(g.refs) +
+      '</div>';
+  }
+
+  function gradeCard(g) {
+    if (g.cti_group) return ctiCard(g);
+    var title = g.grade + ' — ' + g.condition;
+    var rows = [
+      ['Designation', g.designation],
+      ['Density', fmt(g.density_kg_m3, 0) + ' kg/m³'],
+      ['Elastic modulus, E', fmt(g.E_GPa, 1) + ' GPa'],
+      ['Shear modulus, G', fmt(g.G_GPa, 1) + ' GPa'],
+      ["Poisson's ratio, ν", fmt(g.poisson, 3)],
+      ['Yield strength', fmt(g.yield_MPa, 0) + ' MPa'],
+      ['Ultimate tensile strength', fmt(g.ultimate_MPa, 0) + ' MPa'],
+      ['CTE', fmt(g.cte_um_per_mK, 1) + ' µm/m·K'],
+      ['Thermal conductivity', fmt(g.k_W_per_mK, 1) + ' W/m·K'],
+      ['Melting range', g.melting_C ? (g.melting_C[0] + '–' + g.melting_C[1] + ' °C') : '–']
+    ];
+    if (g.conductivity_pct_IACS) rows.push(['Electrical conductivity', g.conductivity_pct_IACS + '% IACS']);
+    var tbl = '<table class="mdg-table"><tbody>' + rows.map(function (r) {
+      return '<tr><th style="width:40%;">' + r[0] + '</th><td>' + r[1] + '</td></tr>';
+    }).join('') + '</tbody></table>';
+    var note = g.notes ? '<p class="note">' + g.notes + '</p>' : '';
+    return '<div class="mdg-card" data-type="' + g.type + '" data-search="' +
+      (g.grade + ' ' + g.designation).toLowerCase() + '">' +
+      '<h2>' + title + '</h2>' + tbl + note +
+      '<p class="grade-note" style="margin-top:0.6rem;"><strong>Sources</strong></p>' + renderRefs(g.refs) +
+      '</div>';
+  }
+
+  function render() {
+    var typeFilter = document.getElementById('typeFilter').value;
+    var lib = document.getElementById('library');
+    lib.innerHTML = '';
+    DATA.types.forEach(function (t) {
+      if (typeFilter && typeFilter !== t.slug) return;
+      var grades = DATA.grades.filter(function (g) { return g.type === t.slug; });
+      if (grades.length === 0) return;
+      var section = document.createElement('div');
+      section.className = 'type-group';
+      section.innerHTML = '<h3>' + t.title + '</h3>' + grades.map(gradeCard).join('');
+      lib.appendChild(section);
+    });
+  }
+
+  function populateFilters() {
+    var typeSel = document.getElementById('typeFilter');
+    DATA.types.forEach(function (t) {
+      var opt = document.createElement('option');
+      opt.value = t.slug; opt.textContent = t.title;
+      typeSel.appendChild(opt);
+    });
+    var searchSel = document.getElementById('search');
+    DATA.grades.forEach(function (g) {
+      var opt = document.createElement('option');
+      opt.value = g.id; opt.textContent = g.grade + ' — ' + g.condition;
+      searchSel.appendChild(opt);
+    });
+    searchSel.addEventListener('change', function () {
+      if (!this.value) return;
+      var g = DATA.grades.find(function (gr) { return gr.id === searchSel.value; });
+      if (!g) return;
+      document.getElementById('typeFilter').value = '';
+      render();
+      var target = document.querySelector('[data-search="' + (g.grade + ' ' + g.designation).toLowerCase().replace(/"/g, '') + '"]');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  document.getElementById('typeFilter').addEventListener('change', render);
+  populateFilters();
+  render();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  function current(){
+    var t = document.documentElement.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  function apply(state){
+    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', state); }
+    try {
+      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
+      else { localStorage.setItem('mdg-theme', state); }
+    } catch (e) {}
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  if (btn) {
+    btn.textContent = LABELS[current()];
+    btn.addEventListener('click', function(){
+      var idx = STATES.indexOf(current());
+      apply(STATES[(idx + 1) % STATES.length]);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  // Legibility floor: never shrink below this, even if that means the page then
+  // spills onto a 2nd (or 3rd) sheet. A handful of very long pages (e.g. the
+  // Material Library table, the O-Ring groove-design page) would otherwise need
+  // to zoom out well below half size to fit a single sheet, which prints too
+  // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
+  var MIN_SCALE = 0.65;
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+</body>
+</html>

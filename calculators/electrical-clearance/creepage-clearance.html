@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<title>Creepage & Clearance — Machine Design Guides</title>
+<style>
+  /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #a53b8f;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --input-bg: #fbeef8; --input-border: #d9a0cc;
+    --warn: #b5484d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+      --input-bg: #352432; --input-border: #7a4a70;
+      --warn: #e0696d;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+    --input-bg: #352432; --input-border: #7a4a70;
+    --warn: #e0696d;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); flex-wrap: wrap; }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 900px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  h2 { font-size: 1.05rem; margin: 0 0 0.75rem; }
+  h3 { font-size: 0.92rem; margin: 1rem 0 0.4rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1.1rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); line-height: 1.5; }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
+    background: var(--mdg-surface); margin: 1rem 0; }
+  .mdg-collapsible > summary { cursor: pointer; list-style: none; display: flex; align-items: center;
+    gap: 0.5rem; padding: 0.65rem 0.9rem; font-size: 0.92rem; font-weight: 600; user-select: none; }
+  .mdg-collapsible > summary::-webkit-details-marker { display: none; }
+  .mdg-collapsible > summary::before { content: ''; flex: none; width: 0; height: 0;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+    border-left: 6px solid var(--mdg-text-muted); transition: transform 0.18s ease; }
+  .mdg-collapsible[open] > summary::before { transform: rotate(90deg); }
+  .mdg-collapsible > summary .hint { font-weight: 400; font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .mdg-collapsible-body { padding: 0 0.9rem 0.9rem; }
+  .note { font-size: 0.8rem; color: var(--mdg-text-muted); margin-top: 0.5rem; }
+  label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem; }
+  select, input[type=number] {
+    font-family: var(--mdg-font); font-size: 0.9rem; padding: 0.4rem 0.55rem;
+    border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); color: var(--mdg-text);
+  }
+  .input-row { display: flex; align-items: center; gap: 0.4rem; }
+  .input-row input { flex: 1 1 auto; min-width: 0; }
+  .input-row .unit { font-size: 0.85rem; color: var(--mdg-text-muted); white-space: nowrap; }
+  .row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 0.75rem; }
+  .row:last-child { margin-bottom: 0; }
+  .field { display: flex; flex-direction: column; min-width: 170px; }
+  .pill-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .pill { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.35rem 0.85rem;
+    font-size: 0.85rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text); }
+  .pill.active { background: var(--mdg-accent); border-color: var(--mdg-accent); color: #fff; }
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.6rem; margin-top: 0.75rem; }
+  .result { background: var(--mdg-bg); border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.6rem 0.75rem; }
+  .result.headline { border-color: var(--mdg-accent); border-width: 2px; }
+  .result .k { font-size: 0.72rem; color: var(--mdg-text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+  .result .v { font-family: var(--mdg-font-mono); font-size: 1.25rem; margin-top: 0.15rem; }
+  .result.headline .v { font-size: 1.5rem; color: var(--mdg-accent); }
+  .warn { background: rgba(181,72,77,0.12); border: 1px solid var(--warn); border-radius: 6px;
+    padding: 0.6rem 0.8rem; font-size: 0.85rem; margin-top: 0.75rem; color: var(--mdg-text); }
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+  .ref-list li:target { color: var(--mdg-text); }
+  @media print {
+    .mdg-header, .mdg-no-print { display: none !important; }
+    .mdg-collapsible:not([open]) { display: block; }
+    .mdg-collapsible > summary::before { display: none; }
+    .mdg-collapsible-body { display: block !important; }
+  }
+
+
+  /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). Forces a light,
+     compact one-page A4 layout via a temporary .mdg-pdf-mode class on <html>, applied just
+     before window.print() and removed on afterprint/focus. */
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-collapsible,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+      <strong>Creepage &amp; Clearance</strong>
+      <span class="mdg-tag">Electrical</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">IEC 60664-1</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Creepage &amp; Clearance<span class="mdg-print-tag">Electrical</span></div>
+    <div class="mdg-print-meta">IEC 60664-1 &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+
+  <!-- ============ 1. INPUTS ============ -->
+  <div class="mdg-card">
+    <h2>1. System &amp; Insulation Conditions</h2>
+
+    <h3 style="margin-top:0;">Rated impulse withstand voltage</h3>
+    <div class="row">
+      <div class="field">
+        <label for="mainsVoltage">Nominal supply voltage (AC rms or DC)</label>
+        <div class="input-row"><input type="number" id="mainsVoltage" value="400" step="1" min="1"><span class="unit">V</span></div>
+      </div>
+      <div class="field" style="min-width:280px;">
+        <label for="ovCategory">Overvoltage category</label>
+        <select id="ovCategory">
+          <option value="I">I — equipment protected against overvoltage (e.g. electronic circuits fed downstream of an OVC II device)</option>
+          <option value="II">II — energy-consuming equipment fed from a fixed installation (appliances, portable tools)</option>
+          <option value="III" selected>III — fixed installation equipment, distribution boards, switchgear</option>
+          <option value="IV">IV — origin of the installation (service entrance, meters, primary overcurrent protection)</option>
+        </select>
+      </div>
+    </div>
+    <p class="note" style="margin-top:0;">Sets the rated impulse withstand voltage (U<sub>imp</sub>) from the
+      supply's nominal voltage and how far downstream the insulation sits<sup><a href="#ref1">1</a></sup>.
+      For a DC bus (e.g. a battery pack) enter the DC voltage directly against the same table — the standard
+      applies the bands identically to a.c. and d.c. supplies<sup><a href="#ref1">1</a></sup>.</p>
+
+    <h3>Altitude</h3>
+    <div class="row">
+      <div class="field">
+        <label for="altitude">Operating altitude</label>
+        <div class="input-row"><input type="number" id="altitude" value="2000" step="100" min="0"><span class="unit">m</span></div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:0;">Clearances are defined for altitudes up to 2000&nbsp;m; above that,
+      lower air density reduces the breakdown voltage of a given gap, so the required clearance is scaled up by
+      an altitude correction factor<sup><a href="#ref2">2</a></sup>. Creepage distances are not altitude-corrected.</p>
+
+    <h3>Working voltage, pollution degree &amp; material group</h3>
+    <div class="row">
+      <div class="field">
+        <label for="workingVoltage">Working voltage across the insulation</label>
+        <div class="input-row"><input type="number" id="workingVoltage" value="400" step="1" min="1"><span class="unit">V</span></div>
+      </div>
+      <div class="field">
+        <label for="pollutionDegree">Pollution degree</label>
+        <select id="pollutionDegree">
+          <option value="1">1 — no pollution, or only dry non-conductive pollution</option>
+          <option value="2" selected>2 — normal indoor/enclosure environment, occasional condensation</option>
+          <option value="3">3 — conductive pollution or dry pollution that becomes conductive from condensation</option>
+        </select>
+      </div>
+    </div>
+    <p class="note" style="margin-top:0;">The working voltage across a specific insulation gap can differ from
+      the mains nominal voltage above (e.g. an isolated HV DC bus fed from a lower-voltage a.c. supply) — enter
+      the actual rms or DC voltage across the gap being sized. It sets the creepage distance directly, and — via
+      pollution degree — the minimum clearance floor alongside the impulse-voltage clearance above.</p>
+
+    <label>Material group (creepage only) — how do you want to set it?</label>
+    <div class="pill-row" id="material-mode-pills"></div>
+
+    <div class="row" id="material-known-row">
+      <div class="field" style="min-width:320px;">
+        <label for="materialGroup">Material group (by CTI<sup><a href="#ref1">1</a></sup>)</label>
+        <select id="materialGroup">
+          <option value="I">Group I — CTI &ge; 600</option>
+          <option value="II">Group II — 400 &le; CTI &lt; 600</option>
+          <option value="IIIa" selected>Group IIIa — 175 &le; CTI &lt; 400</option>
+          <option value="IIIb">Group IIIb — 100 &le; CTI &lt; 175</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row" id="material-lookup-row" style="display:none;">
+      <div class="field" style="min-width:320px;">
+        <label for="substrateMaterial">Substrate material</label>
+        <select id="substrateMaterial"></select>
+      </div>
+    </div>
+    <p class="note" id="substrate-note" style="margin-top:0; display:none;">Substrate materials and their typical
+      CTI are pulled from the shared <a href="../materials/material-library.html" target="_blank" rel="noopener">Material Library</a><sup><a href="#ref3">3</a></sup>
+      (data/materials.js) — fillers, glass reinforcement and flame retardants can pull a specific grade's CTI well
+      below the typical figure shown, so confirm against that grade's own datasheet before relying on it.</p>
+    <div id="material-warning"></div>
+
+    <h3>Insulation level</h3>
+    <label>&nbsp;</label>
+    <div class="pill-row" id="insulation-pills"></div>
+    <p class="note" style="margin-top:0;">Functional and basic/supplementary insulation use the table values as
+      looked up. Reinforced insulation (a single insulation system giving the same protection as basic +
+      supplementary) steps the clearance up to the next value in the standard's impulse-voltage series, and
+      doubles the creepage distance<sup><a href="#ref4">4</a></sup>.</p>
+  </div>
+
+  <!-- ============ 2. RESULTS ============ -->
+  <div class="mdg-card">
+    <h2>2. Result</h2>
+    <div class="result-grid">
+      <div class="result"><div class="k">Rated impulse voltage, U<sub>imp</sub></div><div class="v" id="out-uimp">–</div></div>
+      <div class="result headline"><div class="k">Minimum clearance</div><div class="v" id="out-clearance">–</div></div>
+      <div class="result headline"><div class="k">Minimum creepage distance</div><div class="v" id="out-creepage">–</div></div>
+    </div>
+    <div id="out-warning"></div>
+    <p class="note" id="clearance-breakdown"></p>
+    <p class="note" id="creepage-breakdown"></p>
+    <p class="note">This tool covers the core impulse-withstand clearance and pollution/material-based creepage
+      lookups only<sup><a href="#ref1">1</a></sup>. It does not check the separate steady-state/temporary-overvoltage
+      clearance criterion, PCB internal (through-insulation) requirements, or partial-discharge/routine test
+      voltages — a full insulation coordination design still needs to work through those against the standard.</p>
+  </div>
+
+  <!-- ============ REFERENCE TABLES ============ -->
+  <details class="mdg-collapsible">
+    <summary>Table F.1 — Rated impulse withstand voltage <span class="hint">by nominal supply voltage and overvoltage category</span></summary>
+    <div class="mdg-collapsible-body">
+      <table class="mdg-table">
+        <thead><tr><th>Nominal a.c./d.c. supply voltage, up to and including</th><th>OVC I</th><th>OVC II</th><th>OVC III</th><th>OVC IV</th></tr></thead>
+        <tbody>
+          <tr><td>50 V</td><td>330 V</td><td>500 V</td><td>800 V</td><td>1500 V</td></tr>
+          <tr><td>100 V</td><td>500 V</td><td>800 V</td><td>1500 V</td><td>2500 V</td></tr>
+          <tr><td>150 V</td><td>800 V</td><td>1500 V</td><td>2500 V</td><td>4000 V</td></tr>
+          <tr><td>300 V</td><td>1500 V</td><td>2500 V</td><td>4000 V</td><td>6000 V</td></tr>
+          <tr><td>600 V</td><td>2500 V</td><td>4000 V</td><td>6000 V</td><td>8000 V</td></tr>
+          <tr><td>1000 V</td><td>4000 V</td><td>6000 V</td><td>8000 V</td><td>12000 V</td></tr>
+          <tr><td>1500 V</td><td>6000 V</td><td>8000 V</td><td>10000 V</td><td>15000 V</td></tr>
+        </tbody>
+      </table>
+      <p class="note">Reproduced from IEC 60664-1 Table F.1<sup><a href="#ref1">1</a></sup>. Above 1500&nbsp;V this
+        tool does not extrapolate — check the standard directly.</p>
+    </div>
+  </details>
+
+  <details class="mdg-collapsible">
+    <summary>Table F.2 — Minimum clearance vs. rated impulse voltage <span class="hint">plus pollution-degree floor values</span></summary>
+    <div class="mdg-collapsible-body">
+      <table class="mdg-table">
+        <thead><tr><th>U<sub>imp</sub></th><th>Min. clearance</th></tr></thead>
+        <tbody>
+          <tr><td>0.33 kV</td><td>0.01 mm</td></tr>
+          <tr><td>0.5 kV</td><td>0.04 mm</td></tr>
+          <tr><td>0.8 kV</td><td>0.10 mm</td></tr>
+          <tr><td>1.5 kV</td><td>0.5 mm</td></tr>
+          <tr><td>2.5 kV</td><td>1.5 mm</td></tr>
+          <tr><td>4.0 kV</td><td>3.0 mm</td></tr>
+          <tr><td>6.0 kV</td><td>5.5 mm</td></tr>
+          <tr><td>8.0 kV</td><td>8.0 mm</td></tr>
+          <tr><td>10 kV</td><td>11 mm</td></tr>
+          <tr><td>12 kV</td><td>14 mm</td></tr>
+          <tr><td>15 kV</td><td>18 mm</td></tr>
+        </tbody>
+      </table>
+      <p class="note">Values for altitude &le; 2000&nbsp;m, non-uniform (case B) field, basic/functional
+        insulation<sup><a href="#ref1">1</a>,<a href="#ref5">5</a></sup>. Regardless of U<sub>imp</sub>, the
+        clearance is never allowed below a pollution-degree floor: PD1 0.01&nbsp;mm, PD2 0.2&nbsp;mm,
+        PD3 0.8&nbsp;mm<sup><a href="#ref5">5</a>,<a href="#ref6">6</a></sup>.</p>
+    </div>
+  </details>
+
+  <details class="mdg-collapsible">
+    <summary>Table A.2 — Altitude correction factor <span class="hint">multiplies the clearance above 2000 m</span></summary>
+    <div class="mdg-collapsible-body">
+      <table class="mdg-table">
+        <thead><tr><th>Altitude</th><th>Multiplication factor</th></tr></thead>
+        <tbody>
+          <tr><td>2000 m</td><td>1.00</td></tr>
+          <tr><td>3000 m</td><td>1.14</td></tr>
+          <tr><td>4000 m</td><td>1.29</td></tr>
+          <tr><td>5000 m</td><td>1.48</td></tr>
+          <tr><td>6000 m</td><td>1.70</td></tr>
+          <tr><td>7000 m</td><td>1.95</td></tr>
+          <tr><td>8000 m</td><td>2.25</td></tr>
+        </tbody>
+      </table>
+      <p class="note">This tool linearly interpolates between the tabulated points<sup><a href="#ref2">2</a>,<a href="#ref4">4</a></sup>.
+        Above 8000&nbsp;m, check IEC 60664-1 Annex A directly rather than extrapolating.</p>
+    </div>
+  </details>
+
+  <details class="mdg-collapsible">
+    <summary>Table F.4 — Minimum creepage distance <span class="hint">by working voltage, pollution degree and material group</span></summary>
+    <div class="mdg-collapsible-body">
+      <table class="mdg-table">
+        <thead><tr><th>Working voltage (rms or DC), up to</th><th>PD1<br>(all groups)</th><th>PD2<br>Group I</th><th>PD2<br>Group II</th><th>PD2<br>Group IIIa/b</th><th>PD3<br>Group I</th><th>PD3<br>Group II</th><th>PD3<br>Group IIIa/b</th></tr></thead>
+        <tbody>
+          <tr><td>10 V</td><td>0.08</td><td>0.40</td><td>0.40</td><td>0.40</td><td>1.00</td><td>1.00</td><td>1.00</td></tr>
+          <tr><td>12.5 V</td><td>0.09</td><td>0.42</td><td>0.42</td><td>0.42</td><td>1.05</td><td>1.05</td><td>1.05</td></tr>
+          <tr><td>16 V</td><td>0.10</td><td>0.45</td><td>0.45</td><td>0.45</td><td>1.10</td><td>1.10</td><td>1.10</td></tr>
+          <tr><td>20 V</td><td>0.11</td><td>0.48</td><td>0.48</td><td>0.48</td><td>1.20</td><td>1.20</td><td>1.20</td></tr>
+          <tr><td>25 V</td><td>0.125</td><td>0.50</td><td>0.50</td><td>0.50</td><td>1.25</td><td>1.25</td><td>1.25</td></tr>
+          <tr><td>32 V</td><td>0.14</td><td>0.53</td><td>0.53</td><td>0.53</td><td>1.30</td><td>1.30</td><td>1.30</td></tr>
+          <tr><td>40 V</td><td>0.16</td><td>0.56</td><td>0.80</td><td>1.10</td><td>1.40</td><td>1.60</td><td>1.80</td></tr>
+          <tr><td>50 V</td><td>0.18</td><td>0.60</td><td>0.85</td><td>1.20</td><td>1.50</td><td>1.70</td><td>1.90</td></tr>
+          <tr><td>63 V</td><td>0.20</td><td>0.63</td><td>0.90</td><td>1.25</td><td>1.60</td><td>1.80</td><td>2.00</td></tr>
+          <tr><td>80 V</td><td>0.22</td><td>0.67</td><td>0.95</td><td>1.30</td><td>1.70</td><td>1.90</td><td>2.10</td></tr>
+          <tr><td>100 V</td><td>0.25</td><td>0.71</td><td>1.00</td><td>1.40</td><td>1.80</td><td>2.00</td><td>2.20</td></tr>
+          <tr><td>125 V</td><td>0.28</td><td>0.75</td><td>1.05</td><td>1.50</td><td>1.90</td><td>2.10</td><td>2.40</td></tr>
+          <tr><td>160 V</td><td>0.32</td><td>0.80</td><td>1.10</td><td>1.60</td><td>2.00</td><td>2.20</td><td>2.50</td></tr>
+          <tr><td>200 V</td><td>0.42</td><td>1.00</td><td>1.40</td><td>2.00</td><td>2.50</td><td>2.80</td><td>3.20</td></tr>
+          <tr><td>250 V</td><td>0.56</td><td>1.25</td><td>1.80</td><td>2.50</td><td>3.20</td><td>3.60</td><td>4.00</td></tr>
+          <tr><td>320 V</td><td>0.75</td><td>1.60</td><td>2.20</td><td>3.20</td><td>4.00</td><td>4.50</td><td>5.00</td></tr>
+          <tr><td>400 V</td><td>1.00</td><td>2.00</td><td>2.80</td><td>4.00</td><td>5.00</td><td>5.60</td><td>6.30</td></tr>
+          <tr><td>500 V</td><td>1.30</td><td>2.50</td><td>3.60</td><td>5.00</td><td>6.30</td><td>7.10</td><td>8.00</td></tr>
+          <tr><td>630 V</td><td>1.80</td><td>3.20</td><td>4.50</td><td>6.30</td><td>8.00</td><td>9.00</td><td>10.00</td></tr>
+          <tr><td>800 V</td><td>2.40</td><td>4.00</td><td>5.60</td><td>8.00</td><td>10.00</td><td>11.00</td><td>12.50</td></tr>
+          <tr><td>1000 V</td><td>3.20</td><td>5.00</td><td>7.10</td><td>10.00</td><td>12.50</td><td>14.00</td><td>16.00</td></tr>
+        </tbody>
+      </table>
+      <p class="note">All values in mm, reproduced from IEC 60664-1 Table F.4<sup><a href="#ref1">1</a>,<a href="#ref6">6</a></sup>.
+        Material group IIIb is not permitted for pollution degree 3 above 630&nbsp;V<sup><a href="#ref1">1</a></sup>.
+        Above 1000&nbsp;V this tool does not extrapolate — the standard's higher-voltage creepage tables aren't
+        reproduced here.</p>
+    </div>
+  </details>
+
+  <div class="mdg-card mdg-footer" style="margin-bottom:0;">
+    <h3 style="margin-top:0;">Applicable design standards</h3>
+    <ul class="ref-list">
+      <li><a href="https://www.iso.org/standard/79088.html" target="_blank" rel="noopener">IEC 60664-1</a> — Insulation coordination for equipment within low-voltage systems — Part 1: Principles, requirements and tests</li>
+      <li><a href="https://www.iso.org/standard/64992.html" target="_blank" rel="noopener">IEC 60112</a> — Method for the determination of the proof and the comparative tracking indices of solid insulating materials (defines the CTI values behind the material groups above)</li>
+    </ul>
+    <p class="note" style="margin-top:0.5rem;">This page reproduces a subset of Annex F's tables (impulse
+      voltage, clearance, altitude correction, creepage) for the single most common design path — it does not
+      cover the standard's full scope (uncoated/coated PCBs, functional insulation exceptions, partial-discharge
+      testing, or voltages above 1500&nbsp;V/1000&nbsp;V rms). Conformance-critical work should check the actual
+      standard.</p>
+
+    <h3>References</h3>
+    <ol class="ref-list">
+      <li id="ref1"><a href="https://www.ieee802.org/3/ad_hoc/isolation/public/IEC%2060664-1%20ED3%20Insulation%20coordination.pdf" target="_blank" rel="noopener">IEC 60664-1 Edition 3: Insulation coordination for equipment within low-voltage systems</a> — ieee802.org (Table F.1 rated impulse voltage series and part of Table F.2's clearance values, reproduced from a public IEC 60664-1 Ed.3 technical summary)</li>
+      <li id="ref2"><a href="https://www.ti.com/lit/pdf/sluaar5" target="_blank" rel="noopener">Circuit Board Insulation Design According to IEC60664</a> — ti.com (altitude correction worked example, 4000&nbsp;m factor 1.29; reinforced-insulation clearance/creepage rules)</li>
+      <li id="ref3"><a href="../materials/material-library.html">Material Library</a> — this site's shared material property reference (data/materials.js); backs the substrate-material CTI lookup above, each grade traceable to its own datasheet source there.</li>
+      <li id="ref4"><a href="https://www.ti.com/lit/pdf/slup419" target="_blank" rel="noopener">Demystifying Clearance and Creepage Distance for High-Voltage End Equipment</a> — ti.com (cross-check of pollution-degree clearance floors and the reinforced-insulation step-up/doubling rules)</li>
+      <li id="ref5"><a href="https://community.infineon.com/t5/Knowledge-Base-Articles/Insulation-Coordination-in-Automotive-Power-Module-IEC60664-1-2020/ta-p/865520" target="_blank" rel="noopener">Insulation Coordination in Automotive Power Module (IEC60664-1:2020)</a> — community.infineon.com (Table F.2 pollution-degree floor values; cross-checked Table F.4 creepage rows at 63/400/800/1000&nbsp;V)</li>
+      <li id="ref6"><a href="https://flexpcb.org/clearance-and-creepage-distances-rules-and-calculation/" target="_blank" rel="noopener">Clearance and Creepage Distances: Rules and Calculation</a> — flexpcb.org (secondary cross-check of clearance and creepage values at intermediate pollution-degree-2 voltage points)</li>
+    </ol>
+    <p class="note" style="margin-top:0.75rem;">IEC 60664-1 itself is paywalled; the table values above are
+      reconstructed from technical summaries and cross-checked across multiple independent industry sources
+      rather than read directly from the standard's text — verify against a purchased copy before using these
+      numbers on a certification-critical design.<br>
+      Last updated: 2026-09-21 &middot; Rev 1.</p>
+  </div>
+
+</main>
+
+<script src="../../data/materials.js"></script>
+<script>
+function fmt(n, d) { return n.toFixed(d); }
+
+// ---------- Table F.1: rated impulse withstand voltage ----------
+const IMPULSE_TABLE = [
+  { v: 50,   I: 330,  II: 500,  III: 800,   IV: 1500  },
+  { v: 100,  I: 500,  II: 800,  III: 1500,  IV: 2500  },
+  { v: 150,  I: 800,  II: 1500, III: 2500,  IV: 4000  },
+  { v: 300,  I: 1500, II: 2500, III: 4000,  IV: 6000  },
+  { v: 600,  I: 2500, II: 4000, III: 6000,  IV: 8000  },
+  { v: 1000, I: 4000, II: 6000, III: 8000,  IV: 12000 },
+  { v: 1500, I: 6000, II: 8000, III: 10000, IV: 15000 },
+];
+// The full preferred series impulse voltages appear as columns in the table above; "one step
+// higher" for reinforced insulation means the next value up in this flat series (IEC 60664-1,
+// see ref 4).
+const IMPULSE_SERIES = [330, 500, 800, 1500, 2500, 4000, 6000, 8000, 10000, 12000, 15000];
+
+function lookupUimp(nominalV, ovc) {
+  for (const row of IMPULSE_TABLE) {
+    if (nominalV <= row.v) return { value: row[ovc], row };
+  }
+  return null; // above 1500 V — out of table
+}
+
+// ---------- Table F.2: clearance vs impulse voltage ----------
+const CLEARANCE_TABLE = [
+  { kv: 0.33, mm: 0.01 }, { kv: 0.5, mm: 0.04 }, { kv: 0.8, mm: 0.10 },
+  { kv: 1.5, mm: 0.5 }, { kv: 2.5, mm: 1.5 }, { kv: 4.0, mm: 3.0 },
+  { kv: 6.0, mm: 5.5 }, { kv: 8.0, mm: 8.0 }, { kv: 10, mm: 11 },
+  { kv: 12, mm: 14 }, { kv: 15, mm: 18 },
+];
+const PD_CLEARANCE_FLOOR = { '1': 0.01, '2': 0.2, '3': 0.8 };
+
+function lookupClearance(uimpVolts) {
+  const kv = uimpVolts / 1000;
+  for (const row of CLEARANCE_TABLE) {
+    if (kv <= row.kv + 1e-9) return row.mm;
+  }
+  return null; // above 15 kV — out of table
+}
+
+// ---------- Table A.2: altitude correction (linear interpolation between points) ----------
+const ALTITUDE_TABLE = [
+  { m: 2000, f: 1.00 }, { m: 3000, f: 1.14 }, { m: 4000, f: 1.29 },
+  { m: 5000, f: 1.48 }, { m: 6000, f: 1.70 }, { m: 7000, f: 1.95 }, { m: 8000, f: 2.25 },
+];
+function altitudeFactor(m) {
+  if (m <= 2000) return { factor: 1.00, outOfRange: false };
+  if (m > 8000) return { factor: null, outOfRange: true };
+  for (let i = 0; i < ALTITUDE_TABLE.length - 1; i++) {
+    const a = ALTITUDE_TABLE[i], b = ALTITUDE_TABLE[i + 1];
+    if (m >= a.m && m <= b.m) {
+      const f = a.f + (m - a.m) / (b.m - a.m) * (b.f - a.f);
+      return { factor: f, outOfRange: false };
+    }
+  }
+  return { factor: 1.00, outOfRange: false };
+}
+
+// ---------- Table F.4: creepage distance ----------
+const CREEPAGE_TABLE = [
+  { v: 10,   pd1: 0.08,  pd2: [0.40, 0.40, 0.40],  pd3: [1.00, 1.00, 1.00] },
+  { v: 12.5, pd1: 0.09,  pd2: [0.42, 0.42, 0.42],  pd3: [1.05, 1.05, 1.05] },
+  { v: 16,   pd1: 0.10,  pd2: [0.45, 0.45, 0.45],  pd3: [1.10, 1.10, 1.10] },
+  { v: 20,   pd1: 0.11,  pd2: [0.48, 0.48, 0.48],  pd3: [1.20, 1.20, 1.20] },
+  { v: 25,   pd1: 0.125, pd2: [0.50, 0.50, 0.50],  pd3: [1.25, 1.25, 1.25] },
+  { v: 32,   pd1: 0.14,  pd2: [0.53, 0.53, 0.53],  pd3: [1.30, 1.30, 1.30] },
+  { v: 40,   pd1: 0.16,  pd2: [0.56, 0.80, 1.10],  pd3: [1.40, 1.60, 1.80] },
+  { v: 50,   pd1: 0.18,  pd2: [0.60, 0.85, 1.20],  pd3: [1.50, 1.70, 1.90] },
+  { v: 63,   pd1: 0.20,  pd2: [0.63, 0.90, 1.25],  pd3: [1.60, 1.80, 2.00] },
+  { v: 80,   pd1: 0.22,  pd2: [0.67, 0.95, 1.30],  pd3: [1.70, 1.90, 2.10] },
+  { v: 100,  pd1: 0.25,  pd2: [0.71, 1.00, 1.40],  pd3: [1.80, 2.00, 2.20] },
+  { v: 125,  pd1: 0.28,  pd2: [0.75, 1.05, 1.50],  pd3: [1.90, 2.10, 2.40] },
+  { v: 160,  pd1: 0.32,  pd2: [0.80, 1.10, 1.60],  pd3: [2.00, 2.20, 2.50] },
+  { v: 200,  pd1: 0.42,  pd2: [1.00, 1.40, 2.00],  pd3: [2.50, 2.80, 3.20] },
+  { v: 250,  pd1: 0.56,  pd2: [1.25, 1.80, 2.50],  pd3: [3.20, 3.60, 4.00] },
+  { v: 320,  pd1: 0.75,  pd2: [1.60, 2.20, 3.20],  pd3: [4.00, 4.50, 5.00] },
+  { v: 400,  pd1: 1.00,  pd2: [2.00, 2.80, 4.00],  pd3: [5.00, 5.60, 6.30] },
+  { v: 500,  pd1: 1.30,  pd2: [2.50, 3.60, 5.00],  pd3: [6.30, 7.10, 8.00] },
+  { v: 630,  pd1: 1.80,  pd2: [3.20, 4.50, 6.30],  pd3: [8.00, 9.00, 10.00] },
+  { v: 800,  pd1: 2.40,  pd2: [4.00, 5.60, 8.00],  pd3: [10.00, 11.00, 12.50] },
+  { v: 1000, pd1: 3.20,  pd2: [5.00, 7.10, 10.00], pd3: [12.50, 14.00, 16.00] },
+];
+const GROUP_INDEX = { 'I': 0, 'II': 1, 'IIIa': 2, 'IIIb': 2 };
+
+function lookupCreepage(workingV, pd, group) {
+  const gi = GROUP_INDEX[group];
+  for (const row of CREEPAGE_TABLE) {
+    if (workingV <= row.v + 1e-9) {
+      if (pd === '1') return row.pd1;
+      if (pd === '2') return row.pd2[gi];
+      return row.pd3[gi];
+    }
+  }
+  return null; // above 1000 V — out of table
+}
+
+// ---------- Substrate material → CTI material group lookup ----------
+// Sourced from the shared Material Library (data/materials.js, see ref 3): grades with a
+// cti_group carry a typical CTI per IEC 60664-1 / IEC 60112 material group. GROUP_LABEL/GROUP_ORDER
+// are calculator-specific display text, not stored in the shared library.
+const GROUP_LABEL = {
+  I: 'Group I — CTI ≥ 600',
+  II: 'Group II — 400 ≤ CTI < 600',
+  IIIa: 'Group IIIa — 175 ≤ CTI < 400',
+  IIIb: 'Group IIIb — 100 ≤ CTI < 175',
+};
+const GROUP_ORDER = ['I', 'II', 'IIIa', 'IIIb'];
+
+// Fallback list, used only if data/materials.js fails to load (e.g. page opened outside the
+// site's folder structure) so the lookup mode still functions.
+const FALLBACK_SUBSTRATE_MATERIALS = [
+  { group: 'I',    name: 'PTFE (Teflon)' },
+  { group: 'I',    name: 'PFA / FEP (fluoropolymer)' },
+  { group: 'I',    name: 'Polyethylene (PE)' },
+  { group: 'I',    name: 'Unfilled polyamide / nylon (PA6, PA66)' },
+  { group: 'I',    name: 'Silicone rubber' },
+  { group: 'I',    name: 'Glass' },
+  { group: 'I',    name: 'Ceramic (alumina, steatite)' },
+  { group: 'II',   name: 'Polyester (PET)' },
+  { group: 'II',   name: 'Unfilled PBT' },
+  { group: 'II',   name: 'High-CTI FR-4 laminate' },
+  { group: 'IIIa', name: 'Standard FR-4 glass-epoxy laminate' },
+  { group: 'IIIa', name: 'Polycarbonate (PC)' },
+  { group: 'IIIa', name: 'PPS (polyphenylene sulfide)' },
+  { group: 'IIIa', name: 'PEN (polyethylene naphthalate)' },
+  { group: 'IIIb', name: 'Phenolic resin (paper-phenolic)' },
+  { group: 'IIIb', name: 'Polyimide film (Kapton)' },
+  { group: 'IIIb', name: 'PEEK' },
+  { group: 'IIIb', name: 'PEI (polyetherimide, e.g. Ultem)' },
+  { group: 'IIIb', name: 'PSU (polysulfone)' },
+];
+
+function populateSubstrateSelect() {
+  const sel = document.getElementById('substrateMaterial');
+  sel.innerHTML = '';
+  const lib = window.MDG_MATERIALS;
+  const libGrades = lib && lib.grades ? lib.grades.filter(g => g.cti_group) : [];
+
+  for (const g of GROUP_ORDER) {
+    const og = document.createElement('optgroup');
+    og.label = GROUP_LABEL[g];
+    if (libGrades.length) {
+      for (const m of libGrades.filter(x => x.cti_group === g)) {
+        const opt = document.createElement('option');
+        opt.value = g;
+        opt.textContent = m.grade;
+        og.appendChild(opt);
+      }
+    } else {
+      for (const m of FALLBACK_SUBSTRATE_MATERIALS.filter(x => x.group === g)) {
+        const opt = document.createElement('option');
+        opt.value = g;
+        opt.textContent = m.name;
+        og.appendChild(opt);
+      }
+    }
+    if (og.children.length) sel.appendChild(og);
+  }
+  const other = document.createElement('option');
+  other.value = '';
+  other.textContent = 'Other / not listed — switch to "Material group known"';
+  sel.appendChild(other);
+}
+
+// ---------- Material-group input mode pills ----------
+const MATERIAL_MODES = [
+  { id: 'known', label: 'Material group known' },
+  { id: 'lookup', label: 'Look up by substrate material' },
+];
+let materialMode = 'known';
+const materialModePillRow = document.getElementById('material-mode-pills');
+function renderMaterialModePills() {
+  materialModePillRow.innerHTML = '';
+  for (const m of MATERIAL_MODES) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'pill' + (materialMode === m.id ? ' active' : '');
+    b.textContent = m.label;
+    b.addEventListener('click', () => { materialMode = m.id; renderMaterialModePills(); applyMaterialMode(); update(); });
+    materialModePillRow.appendChild(b);
+  }
+}
+function applyMaterialMode() {
+  const knownRow = document.getElementById('material-known-row');
+  const lookupRow = document.getElementById('material-lookup-row');
+  const substrateNote = document.getElementById('substrate-note');
+  const lookup = materialMode === 'lookup';
+  knownRow.style.display = lookup ? 'none' : '';
+  lookupRow.style.display = lookup ? '' : 'none';
+  substrateNote.style.display = lookup ? '' : 'none';
+}
+function getEffectiveMaterialGroup() {
+  if (materialMode === 'known') return document.getElementById('materialGroup').value;
+  return document.getElementById('substrateMaterial').value || null;
+}
+
+// ---------- Insulation level pills ----------
+const INSULATION_LEVELS = [
+  { id: 'functional', label: 'Functional' },
+  { id: 'basic', label: 'Basic / Supplementary' },
+  { id: 'reinforced', label: 'Reinforced' },
+];
+let insulationLevel = 'basic';
+const pillRow = document.getElementById('insulation-pills');
+function renderInsulationPills() {
+  pillRow.innerHTML = '';
+  for (const lvl of INSULATION_LEVELS) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'pill' + (insulationLevel === lvl.id ? ' active' : '');
+    b.textContent = lvl.label;
+    b.addEventListener('click', () => { insulationLevel = lvl.id; renderInsulationPills(); update(); });
+    pillRow.appendChild(b);
+  }
+}
+
+// ---------- Main calculation ----------
+function update() {
+  const mainsV = parseFloat(document.getElementById('mainsVoltage').value) || 0;
+  const ovc = document.getElementById('ovCategory').value;
+  const altitude = parseFloat(document.getElementById('altitude').value) || 0;
+  const workingV = parseFloat(document.getElementById('workingVoltage').value) || 0;
+  const pd = document.getElementById('pollutionDegree').value;
+  const group = getEffectiveMaterialGroup();
+
+  const warnEl = document.getElementById('out-warning');
+  const materialWarnEl = document.getElementById('material-warning');
+  warnEl.innerHTML = '';
+  materialWarnEl.innerHTML = '';
+
+  if (!group) {
+    materialWarnEl.innerHTML = '<div class="warn">Pick a substrate material (or switch to "Material group ' +
+      'known" and select the group directly) before a creepage result can be shown.</div>';
+  } else if (group === 'IIIb' && pd === '3' && workingV > 630) {
+    materialWarnEl.innerHTML = '<div class="warn">Material Group IIIb is not permitted per IEC 60664-1 for ' +
+      'pollution degree 3 above 630&nbsp;V — select Group IIIa or a lower pollution degree.</div>';
+  }
+
+  // --- Rated impulse voltage ---
+  const uimpBasic = lookupUimp(mainsV, ovc);
+  if (!uimpBasic) {
+    document.getElementById('out-uimp').textContent = '–';
+    document.getElementById('out-clearance').textContent = '–';
+    document.getElementById('out-creepage').textContent = '–';
+    document.getElementById('clearance-breakdown').textContent = '';
+    document.getElementById('creepage-breakdown').textContent = '';
+    warnEl.innerHTML = '<div class="warn">Nominal supply voltage is above this tool\'s table (1500&nbsp;V) — consult IEC 60664-1 directly.</div>';
+    return;
+  }
+  let uimpV = uimpBasic.value;
+  let uimpNote = '';
+  if (insulationLevel === 'reinforced') {
+    const idx = IMPULSE_SERIES.indexOf(uimpV);
+    if (idx >= 0 && idx < IMPULSE_SERIES.length - 1) {
+      uimpV = IMPULSE_SERIES[idx + 1];
+      uimpNote = ' (stepped up one level from basic for reinforced insulation)';
+    } else {
+      uimpNote = ' (already at the top of the series — could not step up for reinforced; check the standard)';
+    }
+  }
+  document.getElementById('out-uimp').textContent = `${uimpV.toLocaleString()} V`;
+
+  // --- Clearance ---
+  const baseClearance = lookupClearance(uimpV);
+  if (baseClearance == null) {
+    document.getElementById('out-clearance').textContent = '–';
+    document.getElementById('clearance-breakdown').textContent = '';
+    warnEl.innerHTML += '<div class="warn">Rated impulse voltage is above this tool\'s clearance table (15&nbsp;kV) — consult IEC 60664-1 directly.</div>';
+  } else {
+    const floor = PD_CLEARANCE_FLOOR[pd] || 0;
+    const preAltitude = Math.max(baseClearance, floor);
+    const alt = altitudeFactor(altitude);
+    const finalClearance = alt.factor != null ? preAltitude * alt.factor : preAltitude;
+    document.getElementById('out-clearance').textContent = alt.factor != null ? `${fmt(finalClearance, 2)} mm` : '–';
+    let breakdown = `Uᵢₘₚ ${(uimpV/1000).toFixed(2)} kV${uimpNote} → table value ${fmt(baseClearance,2)} mm, ` +
+      `pollution-degree floor ${fmt(floor,2)} mm → ${fmt(preAltitude,2)} mm`;
+    if (altitude > 2000) breakdown += `, ×${fmt(alt.factor ?? 1, 2)} altitude factor at ${altitude.toLocaleString()} m`;
+    breakdown += '.';
+    document.getElementById('clearance-breakdown').textContent = breakdown;
+    if (alt.outOfRange) {
+      warnEl.innerHTML += '<div class="warn">Altitude is above 8000&nbsp;m — beyond this tool\'s correction-factor table; consult IEC 60664-1 Annex A.</div>';
+    }
+  }
+
+  // --- Creepage ---
+  const baseCreepage = group ? lookupCreepage(workingV, pd, group) : null;
+  if (baseCreepage == null) {
+    document.getElementById('out-creepage').textContent = '–';
+    document.getElementById('creepage-breakdown').textContent = '';
+    if (group) {
+      warnEl.innerHTML += '<div class="warn">Working voltage is above this tool\'s creepage table (1000&nbsp;V) — consult IEC 60664-1 directly.</div>';
+    }
+  } else {
+    const finalCreepage = insulationLevel === 'reinforced' ? baseCreepage * 2 : baseCreepage;
+    document.getElementById('out-creepage').textContent = `${fmt(finalCreepage, 2)} mm`;
+    const materialLabel = materialMode === 'lookup'
+      ? `${document.getElementById('substrateMaterial').selectedOptions[0]?.textContent || ''} (Group ${group})`
+      : `Group ${group}`;
+    let breakdown = `${workingV.toLocaleString()} V, PD${pd}, ${materialLabel} → table value ${fmt(baseCreepage,2)} mm`;
+    if (insulationLevel === 'reinforced') breakdown += ', ×2 for reinforced insulation';
+    breakdown += '.';
+    document.getElementById('creepage-breakdown').textContent = breakdown;
+  }
+}
+
+['mainsVoltage', 'ovCategory', 'altitude', 'workingVoltage', 'pollutionDegree', 'materialGroup', 'substrateMaterial'].forEach(id =>
+  document.getElementById(id).addEventListener('input', update));
+
+populateSubstrateSelect();
+renderMaterialModePills();
+applyMaterialMode();
+renderInsulationPills();
+update();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  function current(){
+    var t = document.documentElement.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  function apply(state){
+    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', state); }
+    try {
+      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
+      else { localStorage.setItem('mdg-theme', state); }
+    } catch (e) {}
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  if (btn) {
+    btn.textContent = LABELS[current()];
+    btn.addEventListener('click', function(){
+      var idx = STATES.indexOf(current());
+      apply(STATES[(idx + 1) % STATES.length]);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  // Legibility floor: never shrink below this, even if that means the page then
+  // spills onto a 2nd (or 3rd) sheet. A handful of very long pages (e.g. the
+  // Material Library table, the O-Ring groove-design page) would otherwise need
+  // to zoom out well below half size to fit a single sheet, which prints too
+  // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
+  var MIN_SCALE = 0.65;
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+</body>
+</html>

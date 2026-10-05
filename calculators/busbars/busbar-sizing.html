@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<title>Busbar Sizing — Machine Design Guides</title>
+<style>
+  /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #a53b8f;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --warn: #b5484d;
+    --input-bg: #fbeef8; --input-border: #d9a0cc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+      --warn: #e0696d;
+      --input-bg: #352432; --input-border: #7a4a70;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+    --warn: #e0696d;
+    --input-bg: #352432; --input-border: #7a4a70;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); flex-wrap: wrap; }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 980px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  h2 { font-size: 1.05rem; margin: 0 0 0.75rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1.1rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); line-height: 1.5; }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  table.mdg-table tr.current td { font-weight: 600; background: rgba(165,59,143,0.12); }
+  .note { font-size: 0.82rem; color: var(--mdg-text-muted); margin: 0.5rem 0 0; line-height: 1.45; }
+  label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.3rem; }
+  label .sub { font-weight: 400; color: var(--mdg-text-muted); }
+  select, input[type=number] {
+    font-family: var(--mdg-font); font-size: 0.9rem; padding: 0.4rem 0.55rem;
+    border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); color: var(--mdg-text);
+    width: 100%;
+  }
+  .row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 0.85rem; }
+  .row:last-child { margin-bottom: 0; }
+  .field { display: flex; flex-direction: column; min-width: 200px; flex: 1 1 200px; }
+  .input-row { display: flex; align-items: center; gap: 0.4rem; }
+  .input-row input, .input-row select { flex: 1 1 auto; min-width: 0; }
+  .input-row .unit { font-size: 0.85rem; color: var(--mdg-text-muted); white-space: nowrap; }
+  .pill-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .pill { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.35rem 0.85rem;
+    font-size: 0.85rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text); }
+  .pill.active { background: var(--mdg-accent); border-color: var(--mdg-accent); color: #fff; }
+  .divider { border: none; border-top: 1px solid var(--mdg-border); margin: 0.9rem 0; }
+  .lib-note { font-size: 0.78rem; color: var(--mdg-text-muted); font-style: italic; margin: -0.4rem 0 0.75rem; }
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.6rem; margin-top: 0.75rem; }
+  .result { background: var(--mdg-bg); border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.55rem 0.7rem; }
+  .result.headline { border-color: var(--mdg-accent); grid-column: span 2; }
+  .result .k { font-size: 0.72rem; color: var(--mdg-text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+  .result .v { font-family: var(--mdg-font-mono); font-size: 1.05rem; margin-top: 0.15rem; }
+  .result.headline .v { font-size: 1.5rem; color: var(--mdg-accent); }
+  .result .v .unit-sm { font-size: 0.7rem; color: var(--mdg-text-muted); font-family: var(--mdg-font); margin-left: 0.15rem; }
+  .result.warn-state { border-color: var(--warn); }
+  .result.warn-state .v { color: var(--warn); }
+  .aspect-layout { display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: flex-start; margin-top: 0.9rem; }
+  .aspect-options { flex: 1 1 240px; min-width: 240px; display: flex; flex-direction: column; gap: 0.5rem; }
+  .aspect-card { border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.55rem 0.75rem; cursor: pointer; }
+  .aspect-card.active { border-color: var(--mdg-accent); background: rgba(165,59,143,0.07); }
+  .aspect-card .name { font-size: 0.88rem; font-weight: 600; }
+  .aspect-card .dims { font-family: var(--mdg-font-mono); font-size: 0.85rem; color: var(--mdg-text); margin-top: 0.15rem; }
+  .aspect-card .ratio-note { font-size: 0.74rem; color: var(--mdg-text-muted); margin-top: 0.1rem; }
+  .aspect-card .skin-note { font-size: 0.74rem; margin-top: 0.3rem; padding-top: 0.3rem; border-top: 1px dashed var(--mdg-border); }
+  .aspect-card input[type=range] { width: 100%; margin-top: 0.4rem; accent-color: var(--mdg-accent); }
+  .skin-ok { color: var(--mdg-text-muted); }
+  .skin-mild { color: #b5842a; }
+  .skin-poor { color: var(--warn); font-weight: 600; }
+  .diagram-wrap { flex: none; background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: 6px; padding: 0.75rem; width: 300px; }
+  .diagram-wrap svg { display: block; width: 100%; height: auto; }
+  .diagram-wrap figcaption { font-size: 0.72rem; color: var(--mdg-text-muted); text-align: center; margin-top: 0.5rem; }
+  .warn { background: rgba(181,72,77,0.12); border: 1px solid var(--warn); border-radius: 6px;
+    padding: 0.6rem 0.8rem; font-size: 0.85rem; margin-top: 0.75rem; color: var(--mdg-text); }
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+  .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
+    background: var(--mdg-surface); margin: 0 0 1.1rem; }
+  .mdg-collapsible > summary { cursor: pointer; list-style: none; display: flex; align-items: center;
+    gap: 0.5rem; padding: 0.65rem 0.9rem; font-size: 0.92rem; font-weight: 600; user-select: none; }
+  .mdg-collapsible > summary::-webkit-details-marker { display: none; }
+  .mdg-collapsible > summary::before { content: ''; flex: none; width: 0; height: 0;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+    border-left: 6px solid var(--mdg-text-muted); transition: transform 0.18s ease; }
+  .mdg-collapsible[open] > summary::before { transform: rotate(90deg); }
+  .mdg-collapsible > summary .hint { font-weight: 400; font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .mdg-collapsible-body { padding: 0 0.9rem 0.9rem; }
+  @media (max-width: 560px) { .result.headline { grid-column: span 1; } }
+  @media print {
+    .mdg-header, .mdg-no-print { display: none !important; }
+    .mdg-collapsible:not([open]) { display: block; }
+    .mdg-collapsible > summary::before { display: none; }
+    .mdg-collapsible-body { display: block !important; }
+  }
+
+
+  /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). Forces a light,
+     compact one-page A4 layout via a temporary .mdg-pdf-mode class on <html>, applied just
+     before window.print() and removed on afterprint/focus. */
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-collapsible,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+      <strong>Busbar Sizing</strong>
+      <span class="mdg-tag">Electrical</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">Current-density method</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Busbar Sizing<span class="mdg-print-tag">Electrical</span></div>
+    <div class="mdg-print-meta">Current-density method &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+
+  <div class="mdg-card">
+    <p>Bare rectangular busbar cross-section from a target current density, plus a suggested width/thickness
+      (X/Y) split with a skin-effect check for AC, and a transient-overload check for a brief current above the
+      continuous rating. Materials come from the shared library<sup><a href="#ref6">6</a></sup>; the
+      current-density defaults and aspect-ratio presets are this page's own rules of thumb, not a reproduction
+      of a standard's sizing tables.</p>
+  </div>
+
+  <!-- ============ 1. INPUTS ============ -->
+  <div class="mdg-card">
+    <h2>1. Inputs</h2>
+
+    <div class="row">
+      <div class="field">
+        <label>Supply type</label>
+        <div class="pill-row" id="supply-pills"></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="current" id="current-label">Current, I</label>
+        <div class="input-row">
+          <input type="number" id="current" value="600" min="0" step="1">
+          <span class="unit">A</span>
+        </div>
+      </div>
+      <div class="field" id="freq-field">
+        <label for="frequency">Frequency, f</label>
+        <div class="input-row">
+          <input type="number" id="frequency" value="400" min="0" step="1">
+          <span class="unit">Hz</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="material">Busbar material</label>
+        <select id="material"></select>
+      </div>
+    </div>
+    <p class="lib-note">Materials from the shared library (data/materials.js) — filtered to conductor grades
+      (those with a documented %IACS conductivity). Default is C101 electrolytic tough pitch copper<sup><a href="#ref6">6</a></sup>.</p>
+    <p class="note" id="ac-note" style="margin-top:-0.4rem;">For AC, I is <strong>RMS</strong> — heating follows
+      I&sup2;R. Peak current isn't used here; it only matters for a separate short-circuit-force check.</p>
+
+    <hr class="divider">
+
+    <div class="row">
+      <div class="field">
+        <label for="environment">Environment condition</label>
+        <select id="environment"></select>
+      </div>
+      <div class="field">
+        <label for="density">Current density, J</label>
+        <div class="input-row">
+          <input type="number" id="density" value="6" min="0.05" step="0.05">
+          <span class="unit">A/mm&sup2;</span>
+        </div>
+      </div>
+      <div class="field" style="flex: 0 0 auto;">
+        <label>&nbsp;</label>
+        <button type="button" id="reset-density" style="padding:0.42rem 0.75rem; border-radius:6px; border:1px solid var(--mdg-border); background:var(--mdg-surface); color:var(--mdg-text-muted); cursor:pointer; font-size:0.82rem;">Reset to default</button>
+      </div>
+    </div>
+    <p class="note" id="density-note" style="margin-top:0;"></p>
+
+    <details class="mdg-collapsible" style="margin-top:0.75rem;">
+      <summary>Current-density defaults used above <span class="hint">base density &times; environment factor, by material family</span></summary>
+      <div class="mdg-collapsible-body">
+        <table class="mdg-table">
+          <thead><tr><th>Material family</th><th>Base J, open air</th><th>Enclosed / poor vent.<sup><a href="#ref3">3</a></sup></th><th>Open air (reference)</th><th>Outdoor / forced-air<sup><a href="#ref4">4</a></sup></th></tr></thead>
+          <tbody>
+            <tr><td>Copper</td><td>6.00 A/mm&sup2;</td><td>4.20 A/mm&sup2; (&times;0.70)</td><td>6.00 A/mm&sup2; (&times;1.00)</td><td>6.60 A/mm&sup2; (&times;1.10)</td></tr>
+            <tr><td>Aluminium</td><td>1.04 A/mm&sup2;<sup><a href="#ref1">1</a>,<a href="#ref2">2</a></sup></td><td>0.73 A/mm&sup2; (&times;0.70)</td><td>1.04 A/mm&sup2; (&times;1.00)</td><td>1.14 A/mm&sup2; (&times;1.10)</td></tr>
+          </tbody>
+        </table>
+        <p class="note">Copper's base is Equipmake's own design target, above the cited literature range.
+          Aluminium's base follows that literature range, at ~65% of a "typical" copper value<sup><a href="#ref1">1</a></sup>.
+          Knockdown factors aren't a substitute for a full IEC&nbsp;61439-1 calculation.</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- ============ 2. CROSS-SECTION ============ -->
+  <div class="mdg-card">
+    <h2>2. Required Cross-Section</h2>
+    <div class="result-grid">
+      <div class="result headline">
+        <div class="k">Required cross-section, A</div>
+        <div class="v" id="out-area">–</div>
+      </div>
+      <div class="result" id="skin-depth-result" style="display:none;">
+        <div class="k">Skin depth, &delta;, at f<sup><a href="#ref5">5</a></sup></div>
+        <div class="v" id="out-skin-depth">–</div>
+      </div>
+    </div>
+    <p class="note">A&nbsp;=&nbsp;I&nbsp;&divide;&nbsp;J. Frequency doesn't change A — skin effect instead
+      affects how it should be <em>shaped</em>, checked in section 3.</p>
+  </div>
+
+  <!-- ============ 3. ASPECT RATIO & DIMENSIONS ============ -->
+  <div class="mdg-card">
+    <h2>3. Aspect Ratio &amp; Dimensions</h2>
+    <div class="aspect-layout">
+      <div class="aspect-options" id="aspect-options"></div>
+      <figure class="diagram-wrap">
+        <svg id="dim-svg" viewBox="0 0 280 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="dimTitle">
+          <title id="dimTitle">Busbar cross-section, width X by thickness Y</title>
+          <defs>
+            <marker id="dimArrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,1 L9,5 L0,9 Z" fill="var(--mdg-text-muted)"/>
+            </marker>
+          </defs>
+          <style>
+            .bb-fill { fill: rgba(165,59,143,0.22); stroke: var(--mdg-accent); stroke-width: 1.6; }
+            .bb-dim { stroke: var(--mdg-text-muted); stroke-width: 1; marker-start: url(#dimArrow); marker-end: url(#dimArrow); }
+            .bb-ext { stroke: var(--mdg-text-muted); stroke-width: 0.75; stroke-dasharray: 2,2; }
+            .bb-label { font: 600 13px var(--mdg-font, sans-serif); fill: var(--mdg-text); }
+          </style>
+          <g id="bb-rect-group"></g>
+        </svg>
+        <figcaption>Cross-section drawn to the computed X:Y proportions &mdash; X is the wider face, Y the thickness.</figcaption>
+      </figure>
+    </div>
+    <p class="note">X&thinsp;&ge;&thinsp;Y by convention — wider and thinner sheds heat better and, for AC,
+      stays closer to a skin depth<sup><a href="#ref4">4</a></sup>. Above ~20&ndash;25&nbsp;mm thickness, prefer
+      laminated bars.</p>
+  </div>
+
+  <!-- ============ 4. TRANSIENT OVERLOAD CHECK ============ -->
+  <div class="mdg-card">
+    <h2>4. Transient Overload Check</h2>
+    <p class="note" style="margin-top:0;">Section 2 sizes for continuous current; a brief overload doesn't last
+      long enough to reach that steady state. This instead checks whether the bar's thermal mass can absorb it,
+      against a bare-copper short-time limit<sup><a href="#ref7">7</a></sup>.</p>
+
+    <div class="row">
+      <div class="field">
+        <label for="transientCurrent" id="transient-current-label">Transient current, I<sub>t</sub></label>
+        <div class="input-row">
+          <input type="number" id="transientCurrent" value="1200" min="0" step="10">
+          <span class="unit">A</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="transientDuration">Duration, t</label>
+        <div class="input-row">
+          <input type="number" id="transientDuration" value="120" min="0" step="1">
+          <span class="unit">s</span>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="preTransientTemp">Pre-transient temperature, &theta;<sub>0</sub></label>
+        <div class="input-row">
+          <input type="number" id="preTransientTemp" value="90" step="1">
+          <span class="unit">&deg;C</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="transientFrequency">Occurs <span class="sub">(times per hour)</span></label>
+        <div class="input-row">
+          <input type="number" id="transientFrequency" value="0" min="0" step="1">
+          <span class="unit">/hr</span>
+        </div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:0;">&theta;<sub>0</sub> is the bar's temperature just before the transient
+      hits, not ambient — 90&nbsp;°C is a placeholder pending an actual continuous-duty value. "Occurs" is 0 for
+      a one-off event.</p>
+
+    <div class="result-grid">
+      <div class="result">
+        <div class="k">Adiabatic temperature rise, &Delta;T</div>
+        <div class="v" id="out-transient-rise">–</div>
+      </div>
+      <div class="result headline" id="out-transient-temp-result">
+        <div class="k">Peak transient temperature, &theta;<sub>t</sub></div>
+        <div class="v" id="out-transient-temp">–</div>
+      </div>
+    </div>
+    <div id="transient-warning"></div>
+    <p class="note">&Delta;T&nbsp;=&nbsp;I<sub>t</sub>&sup2;&thinsp;&rho;&thinsp;t&nbsp;/&nbsp;(c&thinsp;&times;&thinsp;density&thinsp;&times;&thinsp;A&sup2;)
+      — the adiabatic short-circuit thermal-withstand method<sup><a href="#ref7">7</a>,<a href="#ref8">8</a></sup>,
+      conservative for longer pulses. It models one isolated pulse; a duty cycle repeating faster than the bar
+      can cool needs an RMS-equivalent current instead.</p>
+  </div>
+
+  <div class="mdg-card mdg-footer" style="margin-bottom:0;">
+    <p><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li><a href="https://webstore.iec.ch/publication/2317" target="_blank" rel="noopener">IEC 60943</a> — Guidance concerning the permissible temperature rise for parts of electrical equipment, in particular for terminals.</li>
+      <li><a href="https://webstore.iec.ch/publication/23350" target="_blank" rel="noopener">IEC 61439-1</a> — Low-voltage switchgear and controlgear assemblies — Part 1: General rules (temperature-rise limits for bare conductors in an assembly).</li>
+      <li><a href="https://webstore.iec.ch/publication/1418" target="_blank" rel="noopener">IEC 60287-1-1</a> — Electric cables — Calculation of the current rating — Part 1-1: AC resistance / skin and proximity effect provisions, the basis for the skin-depth check in section 3.</li>
+      <li><a href="https://webstore.iec.ch/publication/2378" target="_blank" rel="noopener">IEC 60865-1</a> — Short-circuit currents — Calculation of effects — Part 1: Definitions and calculation methods (the adiabatic thermal-withstand method behind section 4).</li>
+    </ul>
+    <p class="note" style="margin-top:0;">This page uses simplified rules of thumb, not these standards' own
+      tables. Conformance- or safety-critical design should go to the full standards directly.</p>
+
+    <p style="margin-top:0.75rem;"><strong>References</strong></p>
+    <ol class="ref-list">
+      <li id="ref1"><a href="https://payapress.com/busbar-sizing/" target="_blank" rel="noopener">Busbar Sizing by Current and Temperature Rise: A Complete Engineering Guide</a> — payapress.com (copper current-density range in LV switchgear practice; aluminium as ~65% of copper's rating for the same rise).</li>
+      <li id="ref2"><a href="https://www.grlcopper.com/blogs/copper-busbar-size-and-current-rating/" target="_blank" rel="noopener">Copper Busbar Size And Current Rating</a> — grlcopper.com (typical copper current density; "prefer wider over thicker" guidance; practical thickness ceiling; qualitative skin-effect/lamination guidance).</li>
+      <li id="ref3"><a href="https://www.grlcopper.com/blogs/copper-busbar-size-and-current-rating/" target="_blank" rel="noopener">Copper Busbar Size And Current Rating</a> — grlcopper.com (mounting/enclosure derating factors — enclosed switchgear/cubicle factor).</li>
+      <li id="ref4"><a href="https://filipinoengineer.com/blog/2026/06/bus-bar-sizing-for-low-voltage-switchgear-a-complete-engineering-guide.html" target="_blank" rel="noopener">Bus Bar Sizing for Low-Voltage Switchgear: A Complete Engineering Guide</a> — filipinoengineer.com (ventilated/forced-air enclosure derating factors; IEC 60287-style skin/proximity factor form).</li>
+      <li id="ref5"><a href="https://en.wikipedia.org/wiki/Skin_effect" target="_blank" rel="noopener">Skin effect</a> — Wikipedia (skin-depth formula &delta;&nbsp;=&nbsp;&radic;(&rho;/(&pi;f&mu;)), used with each material's resistivity derived from its %IACS conductivity in the shared library).</li>
+      <li id="ref6">Shared material library, <a href="../materials/material-library.html">data/materials.js</a> — C101/C11000 copper and 1350/6101 aluminium conductor-grade entries (including specific heat) used by this page.</li>
+      <li id="ref7"><a href="https://electrical-engineering-portal.com/calculating-the-short-circuit-heating-of-busbars" target="_blank" rel="noopener">Calculating The Short-Circuit Heating Of Busbars</a> — electrical-engineering-portal.com (adiabatic heating formula; ~200&nbsp;°C short-time temperature limit for bare copper).</li>
+      <li id="ref8"><a href="https://industrialmonitordirect.com/blogs/knowledgebase/calculating-copper-busbar-cross-section-for-7000a-peak-and-1600a-continuous" target="_blank" rel="noopener">Copper Busbar Sizing: 7000A Peak and 1600A Continuous Current</a> — industrialmonitordirect.com (worked example: continuous current governs cross-section, peak current checked separately via adiabatic heating since a short pulse doesn't reach thermal equilibrium).</li>
+    </ol>
+    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-09-23 &middot; Rev 3.</p>
+  </div>
+
+</main>
+
+<script src="../../data/materials.js"></script>
+<script>
+  // ---------- current-density model (this page's own rule of thumb — see refs 1-4) ----------
+  var BASE_DENSITY = { 'copper-alloy': 6, 'aluminum': 1.04 }; // A/mm^2, open air / horizontal reference — copper is an internal design target (see section 1 note), aluminium follows ref 1/2
+  var ENV_FACTOR = {
+    enclosed: { label: 'Enclosed / poor ventilation', factor: 0.70 },
+    open:     { label: 'Open air / naturally ventilated', factor: 1.00 },
+    outdoor:  { label: 'Outdoor / forced-air cooled', factor: 1.10 }
+  };
+  var ASPECTS = [
+    { id: 'compact', name: 'Compact', ratio: 3, note: 'X:Y ≈ 3:1 — more material-efficient footprint, less surface area' },
+    { id: 'standard', name: 'Standard', ratio: 6, note: 'X:Y ≈ 6:1 — typical flat-bar proportion for busbar' },
+    { id: 'wide', name: 'Wide / finned', ratio: 10, note: 'X:Y ≈ 10:1 — maximises convective surface and minimises skin-effect penalty' }
+  ];
+  var IACS_REF_RESISTIVITY = 1.7241e-8; // Ω·m at 100% IACS, 20°C — International Annealed Copper Standard
+  var MU0 = 4 * Math.PI * 1e-7; // H/m, non-magnetic conductors (Cu, Al)
+  var TRANSIENT_LIMIT_C = 200; // bare copper short-time temperature limit (ref 7)
+  var TRANSIENT_WARN_C = 180; // "approaching" threshold shown as an amber caution
+
+  var supply = 'ac';
+  var aspectId = 'standard';
+  var customRatio = 6;
+
+  function fmt(n, dp) { return Number(n).toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp }); }
+
+  function conductorMaterials() {
+    if (typeof window.MDG_MATERIALS === 'undefined') return [];
+    return window.MDG_MATERIALS.grades.filter(function (g) { return typeof g.conductivity_pct_IACS === 'number'; });
+  }
+  function currentMaterial() {
+    var id = document.getElementById('material').value;
+    return conductorMaterials().find(function (g) { return g.id === id; });
+  }
+  function materialFamily(m) { return m.type === 'copper-alloy' ? 'copper-alloy' : 'aluminum'; }
+  function materialResistivity(m) { return IACS_REF_RESISTIVITY / (m.conductivity_pct_IACS / 100); } // Ω·m
+
+  function populateSelects() {
+    var matSel = document.getElementById('material');
+    matSel.innerHTML = '';
+    conductorMaterials().forEach(function (g) {
+      var opt = document.createElement('option');
+      opt.value = g.id; opt.textContent = g.grade + ' (' + g.condition + ')';
+      if (g.id === 'cu-c101-etp') opt.selected = true;
+      matSel.appendChild(opt);
+    });
+    var envSel = document.getElementById('environment');
+    envSel.innerHTML = '';
+    Object.keys(ENV_FACTOR).forEach(function (id) {
+      var opt = document.createElement('option');
+      opt.value = id; opt.textContent = ENV_FACTOR[id].label;
+      if (id === 'open') opt.selected = true;
+      envSel.appendChild(opt);
+    });
+  }
+
+  function renderSupplyPills() {
+    var wrap = document.getElementById('supply-pills');
+    wrap.innerHTML = '';
+    [{ id: 'ac', label: 'AC' }, { id: 'dc', label: 'DC' }].forEach(function (s) {
+      var b = document.createElement('div');
+      b.className = 'pill' + (s.id === supply ? ' active' : '');
+      b.textContent = s.label;
+      b.addEventListener('click', function () { supply = s.id; onSupplyChange(); });
+      wrap.appendChild(b);
+    });
+  }
+  function onSupplyChange() {
+    renderSupplyPills();
+    var isAC = supply === 'ac';
+    document.getElementById('freq-field').style.display = isAC ? '' : 'none';
+    document.getElementById('current-label').innerHTML = isAC ? 'Current, I<sub>rms</sub>' : 'Current, I';
+    document.getElementById('transient-current-label').innerHTML = isAC ? 'Transient current, I<sub>t,rms</sub>' : 'Transient current, I<sub>t</sub>';
+    document.getElementById('ac-note').style.display = isAC ? '' : 'none';
+    document.getElementById('skin-depth-result').style.display = isAC ? '' : 'none';
+    updateAll();
+  }
+
+  function applyDefaultDensity() {
+    var m = currentMaterial();
+    if (!m) return;
+    var env = document.getElementById('environment').value;
+    var base = BASE_DENSITY[materialFamily(m)];
+    var d = base * ENV_FACTOR[env].factor;
+    document.getElementById('density').value = Math.round(d * 100) / 100;
+    document.getElementById('density-note').innerHTML =
+      'Default: ' + fmt(base, 2) + ' A/mm&sup2; (' + (materialFamily(m) === 'copper-alloy' ? 'copper' : 'aluminium') +
+      ') &times; ' + fmt(ENV_FACTOR[env].factor, 2) + ' (' + ENV_FACTOR[env].label + ').';
+    updateAll();
+  }
+
+  function skinDepthMm(material, freqHz) {
+    if (!material || !freqHz || freqHz <= 0) return null;
+    var rho = materialResistivity(material); // Ω·m
+    var delta = Math.sqrt(rho / (Math.PI * freqHz * MU0)); // m
+    return delta * 1000; // mm
+  }
+
+  function skinAssessment(y, delta) {
+    if (delta == null) return null;
+    var ratio = y / delta;
+    if (ratio <= 1.5) return { cls: 'skin-ok', text: fmt(ratio, 1) + '&times; skin depth — current stays close to uniform.' };
+    if (ratio <= 3) return { cls: 'skin-mild', text: fmt(ratio, 1) + '&times; skin depth — some crowding; AC resistance is modestly above DC.' };
+    return { cls: 'skin-poor', text: fmt(ratio, 1) + '&times; skin depth — significant crowding; prefer wider/thinner or laminated bars.' };
+  }
+
+  function renderAspectOptions(area, material, freqHz) {
+    var isAC = supply === 'ac';
+    var delta = isAC ? skinDepthMm(material, freqHz) : null;
+    var wrap = document.getElementById('aspect-options');
+    wrap.innerHTML = '';
+
+    function cardFor(ratio, isCustom) {
+      var x = area ? Math.sqrt(area * ratio) : 0;
+      var y = area ? Math.sqrt(area / ratio) : 0;
+      var skin = isAC ? skinAssessment(y, delta) : null;
+      var thickWarn = y > 25 ? '<div class="skin-note skin-poor">Y exceeds ~25&nbsp;mm — unusual for a solid bar; consider laminated bars instead.</div>' : '';
+      var skinHtml = skin ? '<div class="skin-note ' + skin.cls + '">' + skin.text + '</div>' : '';
+      return '<div class="dims">' + (area ? ('X = ' + fmt(x, 1) + ' mm &times; Y = ' + fmt(y, 1) + ' mm') : '–') + '</div>' +
+        skinHtml + thickWarn;
+    }
+
+    ASPECTS.forEach(function (a) {
+      var card = document.createElement('div');
+      card.className = 'aspect-card' + (a.id === aspectId ? ' active' : '');
+      card.innerHTML = '<div class="name">' + a.name + '</div>' + cardFor(a.ratio, false) +
+        '<div class="ratio-note">' + a.note + '</div>';
+      card.addEventListener('click', function () { aspectId = a.id; updateAll(); });
+      wrap.appendChild(card);
+    });
+
+    var custom = document.createElement('div');
+    custom.className = 'aspect-card' + (aspectId === 'custom' ? ' active' : '');
+    custom.innerHTML = '<div class="name">Custom ratio</div>' + cardFor(customRatio, true) +
+      '<div class="ratio-note">X:Y = ' + fmt(customRatio, 1) + ':1</div>' +
+      '<input type="range" min="1" max="15" step="0.5" value="' + customRatio + '" id="custom-slider">';
+    custom.addEventListener('click', function (ev) {
+      if (ev.target.id === 'custom-slider') return;
+      aspectId = 'custom'; updateAll();
+    });
+    wrap.appendChild(custom);
+    document.getElementById('custom-slider').addEventListener('input', function () {
+      customRatio = Number(this.value); aspectId = 'custom'; updateAll();
+    });
+  }
+
+  function currentXY(area) {
+    var ratio = aspectId === 'custom' ? customRatio : (ASPECTS.find(function (a) { return a.id === aspectId; }) || ASPECTS[1]).ratio;
+    return { x: area ? Math.sqrt(area * ratio) : 0, y: area ? Math.sqrt(area / ratio) : 0 };
+  }
+
+  function renderDiagram(x, y) {
+    var g = document.getElementById('bb-rect-group');
+    if (!x || !y) { g.innerHTML = ''; return; }
+    var maxW = 190, maxH = 120;
+    var scale = Math.min(maxW / x, maxH / y);
+    var rw = x * scale, rh = y * scale;
+    var rx = (280 - rw) / 2, ry = 40 + (120 - rh) / 2;
+    var xDimY = ry - 18;
+    var yDimX = rx + rw + 22;
+
+    g.innerHTML =
+      '<rect x="' + rx + '" y="' + ry + '" width="' + rw + '" height="' + rh + '" class="bb-fill" rx="1.5"/>' +
+      '<line x1="' + rx + '" y1="' + ry + '" x2="' + rx + '" y2="' + (xDimY - 6) + '" class="bb-ext"/>' +
+      '<line x1="' + (rx + rw) + '" y1="' + ry + '" x2="' + (rx + rw) + '" y2="' + (xDimY - 6) + '" class="bb-ext"/>' +
+      '<line x1="' + rx + '" y1="' + xDimY + '" x2="' + (rx + rw) + '" y2="' + xDimY + '" class="bb-dim"/>' +
+      '<text x="' + (rx + rw / 2) + '" y="' + (xDimY - 8) + '" class="bb-label" text-anchor="middle">X = ' + fmt(x, 1) + ' mm</text>' +
+      '<line x1="' + (rx + rw) + '" y1="' + ry + '" x2="' + (yDimX + 6) + '" y2="' + ry + '" class="bb-ext"/>' +
+      '<line x1="' + (rx + rw) + '" y1="' + (ry + rh) + '" x2="' + (yDimX + 6) + '" y2="' + (ry + rh) + '" class="bb-ext"/>' +
+      '<line x1="' + yDimX + '" y1="' + ry + '" x2="' + yDimX + '" y2="' + (ry + rh) + '" class="bb-dim"/>' +
+      '<text x="' + (yDimX + 10) + '" y="' + (ry + rh / 2) + '" class="bb-label" text-anchor="middle" transform="rotate(90 ' + (yDimX + 10) + ' ' + (ry + rh / 2) + ')">Y = ' + fmt(y, 1) + ' mm</text>';
+  }
+
+  function updateTransient(area, material) {
+    var headline = document.getElementById('out-transient-temp-result');
+    var warnEl = document.getElementById('transient-warning');
+    warnEl.innerHTML = '';
+    headline.classList.remove('warn-state');
+
+    var It = Math.max(0, parseFloat(document.getElementById('transientCurrent').value) || 0);
+    var t = Math.max(0, parseFloat(document.getElementById('transientDuration').value) || 0);
+    var theta0 = parseFloat(document.getElementById('preTransientTemp').value);
+    if (isNaN(theta0)) theta0 = 0;
+    var occursPerHr = Math.max(0, parseFloat(document.getElementById('transientFrequency').value) || 0);
+
+    if (!material || !area || It <= 0 || t <= 0) {
+      document.getElementById('out-transient-rise').textContent = '–';
+      document.getElementById('out-transient-temp').textContent = '–';
+      return;
+    }
+
+    var rho = materialResistivity(material); // Ω·m
+    var c = material.specific_heat_J_per_kgK; // J/kg·K
+    var density = material.density_kg_m3; // kg/m3
+    var A_m2 = area / 1e6; // mm² -> m²
+
+    if (!c) {
+      document.getElementById('out-transient-rise').textContent = '–';
+      document.getElementById('out-transient-temp').textContent = '–';
+      warnEl.innerHTML = '<div class="warn">Selected material has no specific-heat value in the shared library — can\'t compute the transient rise for it.</div>';
+      return;
+    }
+
+    var deltaT = (It * It * rho * t) / (density * c * A_m2 * A_m2); // K
+    var thetaT = theta0 + deltaT;
+
+    document.getElementById('out-transient-rise').innerHTML = fmt(deltaT, 1) + ' <span class="unit-sm">K</span>';
+    document.getElementById('out-transient-temp').innerHTML = fmt(thetaT, 1) + ' <span class="unit-sm">&deg;C</span>';
+
+    if (thetaT >= TRANSIENT_LIMIT_C) {
+      headline.classList.add('warn-state');
+      warnEl.innerHTML = '<div class="warn">Peak transient temperature reaches or exceeds the ~' + TRANSIENT_LIMIT_C +
+        '&nbsp;°C bare-copper short-time limit<sup><a href="#ref7">7</a></sup> — increase cross-section, shorten the transient, or lower the pre-transient temperature.</div>';
+    } else if (thetaT >= TRANSIENT_WARN_C) {
+      headline.classList.add('warn-state');
+      warnEl.innerHTML = '<div class="warn">Approaching the ~' + TRANSIENT_LIMIT_C +
+        '&nbsp;°C bare-copper short-time limit<sup><a href="#ref7">7</a></sup> — worth some margin before relying on this.</div>';
+    }
+
+    if (occursPerHr > 0) {
+      var intervalS = 3600 / occursPerHr;
+      warnEl.innerHTML += '<p class="note" style="margin-top:0.5rem;">Repeats roughly every ' + fmt(intervalS, 0) +
+        ' s. This check only models a single isolated pulse starting from &theta;<sub>0</sub> — if that\'s not ' +
+        'enough time for the bar to fully cool back to &theta;<sub>0</sub> between events, actual temperatures ' +
+        'will run higher than shown here; consider an RMS-equivalent duty-cycle current instead.</p>';
+    }
+  }
+
+  function updateAll() {
+    var I = Math.max(0, parseFloat(document.getElementById('current').value) || 0);
+    var f = Math.max(0, parseFloat(document.getElementById('frequency').value) || 0);
+    var J = Math.max(0.01, parseFloat(document.getElementById('density').value) || 0.01);
+    var material = currentMaterial();
+    var isAC = supply === 'ac';
+
+    var area = I / J;
+    document.getElementById('out-area').innerHTML = fmt(area, 1) + ' <span class="unit-sm">mm&sup2;</span>';
+
+    if (isAC && material) {
+      var delta = skinDepthMm(material, f);
+      document.getElementById('out-skin-depth').innerHTML = delta != null ? (fmt(delta, 2) + ' <span class="unit-sm">mm</span>') : '–';
+    }
+
+    renderAspectOptions(area, material, f);
+    var xy = currentXY(area);
+    renderDiagram(xy.x, xy.y);
+
+    updateTransient(area, material);
+  }
+
+  populateSelects();
+  renderSupplyPills();
+  document.getElementById('material').addEventListener('change', applyDefaultDensity);
+  document.getElementById('environment').addEventListener('change', applyDefaultDensity);
+  document.getElementById('reset-density').addEventListener('click', applyDefaultDensity);
+  ['current', 'frequency', 'density', 'transientCurrent', 'transientDuration', 'preTransientTemp', 'transientFrequency'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', updateAll);
+  });
+
+  onSupplyChange();
+  applyDefaultDensity();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  function current(){
+    var t = document.documentElement.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  function apply(state){
+    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', state); }
+    try {
+      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
+      else { localStorage.setItem('mdg-theme', state); }
+    } catch (e) {}
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  if (btn) {
+    btn.textContent = LABELS[current()];
+    btn.addEventListener('click', function(){
+      var idx = STATES.indexOf(current());
+      apply(STATES[(idx + 1) % STATES.length]);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  // Legibility floor: never shrink below this, even if that means the page then
+  // spills onto a 2nd (or 3rd) sheet. A handful of very long pages (e.g. the
+  // Material Library table, the O-Ring groove-design page) would otherwise need
+  // to zoom out well below half size to fit a single sheet, which prints too
+  // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
+  var MIN_SCALE = 0.65;
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+</body>
+</html>

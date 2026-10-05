@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<title>HV Cable Sizing — Machine Design Guides</title>
+<style>
+  /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #a53b8f;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --input-bg: #fbeef8; --input-border: #d9a0cc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+      --input-bg: #352432; --input-border: #7a4a70;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+    --input-bg: #352432; --input-border: #7a4a70;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 980px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .mdg-card h2 { margin: 0 0 0.75rem; font-size: 1rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.4rem 0.6rem; text-align: left; font-size: 0.9rem; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+  .note { font-size: 0.82rem; color: var(--mdg-text-muted); margin: 0.5rem 0 0; }
+  .warn { font-size: 0.8rem; background: color-mix(in srgb, #b23b3b 12%, transparent);
+    border: 1px solid #b23b3b; color: #b23b3b; border-radius: var(--mdg-radius);
+    padding: 0.5rem 0.75rem; margin: 0.75rem 0 0; }
+
+  /* --- page-specific --- */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.85rem; }
+  label { display: block; font-size: 0.82rem; color: var(--mdg-text-muted); margin-bottom: 0.25rem; }
+  input, select { width: 100%; padding: 0.4rem 0.55rem; border: 1px solid var(--input-border);
+    border-radius: 6px; background: var(--input-bg); color: var(--mdg-text); font-size: 0.92rem;
+    font-family: var(--mdg-font); }
+  .field { margin-bottom: 0; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.75rem; }
+  .stat { background: var(--mdg-bg); border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
+    padding: 0.6rem 0.75rem; }
+  .stat .label { font-size: 0.75rem; color: var(--mdg-text-muted); }
+  .stat .value { font-size: 1.15rem; font-weight: 600; margin-top: 0.15rem; }
+  .stat .unit { font-size: 0.75rem; color: var(--mdg-text-muted); font-weight: 400; }
+  .pass { color: #2f8f4e; }
+  .fail { color: #b23b3b; }
+  .dim-cell.na { color: var(--mdg-text-muted); }
+  .stat.headline { border-color: var(--mdg-accent); }
+  .stat.headline .value { color: var(--mdg-accent); font-size: 1.35rem; }
+  .stat.warn-state { border-color: #b23b3b; }
+  .stat.warn-state .value { color: #b23b3b; }
+  .caution { font-size: 0.8rem; background: color-mix(in srgb, #b5842a 12%, transparent);
+    border: 1px solid #b5842a; border-radius: var(--mdg-radius); padding: 0.5rem 0.75rem; margin: 0.75rem 0 0; }
+  label .sub { color: var(--mdg-text-muted); font-weight: 400; }
+  @media print { .mdg-header, .mdg-no-print { display: none !important; } }
+  /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). Forces a light,
+     compact one-page A4 layout via a temporary .mdg-pdf-mode class on <html>, applied just
+     before window.print() and removed on afterprint/focus. */
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-collapsible,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem;">
+      <strong>HV Cable Sizing</strong>
+      <span class="mdg-tag">Electrical</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">Internal method (IEC 60287-style)</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">HV Cable Sizing<span class="mdg-print-tag">Electrical</span></div>
+    <div class="mdg-print-meta">Internal method (IEC 60287-style) &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+
+  <div class="mdg-card">
+    <h2>Inputs</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="size">Cable cross-section</label>
+        <select id="size"></select>
+      </div>
+      <div class="field">
+        <label for="desiredCurrent">Desired continuous current, I<sub>des</sub> (A<sub>rms</sub>)</label>
+        <input id="desiredCurrent" type="number" value="475" step="1" min="0">
+      </div>
+      <div class="field">
+        <label for="ambient">Ambient temperature, θ<sub>a</sub> (°C)</label>
+        <input id="ambient" type="number" value="85" step="1">
+      </div>
+      <div class="field">
+        <label for="conductorTemp">Permissible conductor temperature, θ<sub>c</sub> (°C)</label>
+        <input id="conductorTemp" type="number" value="145" step="1">
+      </div>
+      <div class="field">
+        <label for="frequency">Frequency (Hz)</label>
+        <input id="frequency" type="number" value="200" step="1" min="0" max="10000">
+      </div>
+      <div class="field">
+        <label for="numCables">Number of cables routed together</label>
+        <input id="numCables" type="number" value="1" step="1" min="1" max="20">
+      </div>
+      <div class="field" style="grid-column: 1 / -1;">
+        <label for="installMethod">Installation method</label>
+        <select id="installMethod"></select>
+      </div>
+    </div>
+    <p class="note">θ<sub>c</sub> is a design choice, not a fixed insulation rating — a lower value buys longer expected
+      life at the cost of current-carrying capacity (see the life/temperature relationship below); it should not exceed
+      the cable's insulation temperature class.</p>
+  </div>
+
+  <div class="mdg-card">
+    <h2>Current rating &amp; safety factor</h2>
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="label">Base rating (std. conditions)<sup><a href="#ref1">1</a></sup></div>
+        <div class="value" id="outBase">–</div>
+      </div>
+      <div class="stat">
+        <div class="label">Temperature factor<sup><a href="#ref2">2</a></sup></div>
+        <div class="value" id="outTempFactor">–</div>
+      </div>
+      <div class="stat">
+        <div class="label">Frequency factor</div>
+        <div class="value" id="outFreqFactor">–</div>
+      </div>
+      <div class="stat">
+        <div class="label">Installation factor<sup><a href="#ref3">3</a></sup></div>
+        <div class="value" id="outInstallFactor">–</div>
+      </div>
+      <div class="stat">
+        <div class="label">Rating (service conditions)</div>
+        <div class="value" id="outService">–</div>
+      </div>
+      <div class="stat">
+        <div class="label">Safety factor</div>
+        <div class="value" id="outSafety">–</div>
+      </div>
+    </div>
+    <div id="warnBox"></div>
+    <p class="note">Rating (service) = base rating × temperature factor × frequency factor × installation factor.
+      Safety factor = rating (service) ÷ desired current — below 1.0 means the cable is undersized for the stated
+      conditions.</p>
+  </div>
+
+  <div class="mdg-card">
+    <h2>Expected conductor life</h2>
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="label">Expected life at θ<sub>c</sub><sup><a href="#ref4">4</a></sup></div>
+        <div class="value" id="outLife">–</div>
+      </div>
+      <div class="stat">
+        <div class="label">≈ equivalent, continuous</div>
+        <div class="value" id="outLifeYears">–</div>
+      </div>
+    </div>
+    <p class="note">Follows a 10&nbsp;°C-halving (Arrhenius/Montsinger) ageing rule, anchored at 3000&nbsp;h for a
+      conductor held continuously at 150&nbsp;°C: life = 3000 × 0.5<sup>(θc − 150)/10</sup> hours. It estimates
+      insulation thermal ageing only — it is not a fatigue, mechanical or partial-discharge life estimate.</p>
+  </div>
+
+  <div class="mdg-card">
+    <h2>Transient overload check</h2>
+    <p class="note" style="margin-top:0;">The rating above is for continuous current; a brief overload doesn't
+      last long enough to reach that steady state. This checks whether the conductor's thermal mass can absorb it
+      without exceeding the insulation's short-time temperature limit<sup><a href="#ref5">5</a></sup>.</p>
+    <div class="grid" style="margin-top:0.75rem;">
+      <div class="field">
+        <label for="transientCurrent">Transient current, I<sub>t</sub> (A<sub>rms</sub>)</label>
+        <input id="transientCurrent" type="number" value="950" step="10" min="0">
+      </div>
+      <div class="field">
+        <label for="transientDuration">Duration, t (s)</label>
+        <input id="transientDuration" type="number" value="60" step="1" min="0">
+      </div>
+      <div class="field">
+        <label for="preTransientTemp">Pre-transient conductor temperature, θ<sub>0</sub> (°C)</label>
+        <input id="preTransientTemp" type="number" value="145" step="1">
+      </div>
+      <div class="field">
+        <label for="transientFrequency">Occurs <span class="sub">(times per hour)</span></label>
+        <input id="transientFrequency" type="number" value="0" step="1" min="0">
+      </div>
+      <div class="field">
+        <label for="shortTimeLimit">Insulation short-time limit, θ<sub>max</sub> (°C)</label>
+        <input id="shortTimeLimit" type="number" value="250" step="5">
+      </div>
+    </div>
+    <p class="note">θ<sub>0</sub> is the conductor temperature just before the event — θ<sub>c</sub> at full continuous
+      load is the worst case. θ<sub>max</sub> defaults to 250&nbsp;°C (XLPE/EPR); PVC is typically 160&nbsp;°C<sup><a href="#ref5">5</a></sup>
+      — check the cable datasheet's short-circuit rating. "Occurs" is 0 for a one-off event.</p>
+
+    <div class="stat-grid" style="margin-top:0.75rem;">
+      <div class="stat">
+        <div class="label">Adiabatic temperature rise, ΔT</div>
+        <div class="value" id="outTransientRise">–</div>
+      </div>
+      <div class="stat headline" id="outTransientTempTile">
+        <div class="label">Peak transient temperature, θ<sub>t</sub></div>
+        <div class="value" id="outTransientTemp">–</div>
+      </div>
+    </div>
+    <div id="transientWarning"></div>
+    <p class="note">θ<sub>t</sub>&nbsp;=&nbsp;(θ<sub>0</sub>&nbsp;+&nbsp;234.5)&middot;exp[(I<sub>eff</sub>&radic;t&nbsp;/&nbsp;(226&middot;S))&sup2;]&nbsp;&minus;&nbsp;234.5
+      — the adiabatic copper-conductor equation, which accounts for resistance rising with temperature<sup><a href="#ref5">5</a></sup>.
+      S is the nominal cross-section; I<sub>eff</sub>&nbsp;=&nbsp;I<sub>t</sub>&nbsp;&divide;&nbsp;frequency factor, so AC
+      skin effect is carried over from the rating above. It ignores heat lost to the insulation, so it is
+      conservative for longer pulses, and it models one isolated pulse.</p>
+  </div>
+
+  <div class="mdg-card">
+    <h2>Cable dimensions at selected size</h2>
+    <div style="overflow-x:auto;">
+      <table class="mdg-table" id="dimTable">
+        <thead>
+          <tr>
+            <th>Cable family</th>
+            <th>Conductor max. Ø (mm)</th>
+            <th>Insulation Ø (mm)</th>
+            <th>Screen (mm)</th>
+            <th>Overall Ø (mm)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="note">Three screened single-core HV cable families used on HV traction/pump programmes — dimensions
+      from each manufacturer's datasheet, keyed by nominal cross-section. "—" means that family isn't offered in the
+      selected size.</p>
+  </div>
+
+  <div class="mdg-card mdg-footer">
+    <p><strong>Source &amp; method</strong></p>
+    <p>This page reproduces the calculation logic of an internal HV cable sizing spreadsheet (a traction/pump HV
+      cable sizing tool), not a single published standard. The pieces of that method:</p>
+    <ul class="ref-list">
+      <li>Base current ratings (std. conditions) and cable dimensions — manufacturer datasheet figures carried over
+        from the source workbook (Coroflex 9-2611 series, Radox and Radox FLEX screened single-core HV cable).</li>
+      <li>Ambient-temperature correction factor — the classic form used in <strong>IEC 60287</strong> current-rating
+        calculations, factor = √((θc − θa) ⁄ (θc,ref − θa,ref)), evaluated here with θc,ref = 150&nbsp;°C and
+        θa,ref = 30&nbsp;°C fixed by the source workbook.</li>
+      <li>Grouping/installation derating by number of cables and installation method — the same style of factor as
+        <strong>IEC 60364-5-52</strong> grouping tables.</li>
+      <li>Conductor thermal life vs. temperature — a 10&nbsp;°C-halving Arrhenius/Montsinger approximation, a common
+        rule of thumb for polymer insulation ageing, not itself a standard.</li>
+      <li>Transient overload — the adiabatic short-circuit heating equation for copper conductors (the basis of the
+        <strong>IEC 60949</strong> / IEC 60364-5-54 k-factor method), not taken from the source workbook.</li>
+    </ul>
+    <p>This page does not replace the source spreadsheet or the cable manufacturers' datasheets — for a specific
+      programme, check current figures against the datasheet revision actually procured. Figures throughout are for
+      indication only.</p>
+
+    <p style="margin-top:0.75rem;"><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li><a href="https://webstore.iec.ch/publication/1418">IEC 60287</a> — Electric cables — Calculation of the
+        current rating.</li>
+      <li><a href="https://webstore.iec.ch/publication/23404">IEC 60364-5-52</a> — Low-voltage electrical
+        installations — Part 5-52: Selection and erection of electrical equipment — Wiring systems.</li>
+      <li><a href="https://webstore.iec.ch/publication/1428">IEC 60949</a> — Calculation of thermally permissible
+        short-circuit currents, taking into account non-adiabatic heating effects.</li>
+    </ul>
+    <p>This page does not reproduce these standards' own tables or calculation procedure in full; conformance-critical
+      cable sizing should refer to the standards themselves and to the cable manufacturer's datasheet.</p>
+
+    <p><strong>References</strong></p>
+    <ol class="ref-list">
+      <li id="ref1">Internal HV cable sizing spreadsheet — "Current Rating" sheet (base current rating by
+        cross-section, Coroflex/Radox datasheet-derived).</li>
+      <li id="ref2">Internal HV cable sizing spreadsheet — "Temperature Factor" sheet (ambient-temperature
+        correction, IEC 60287-style, and life-vs-temperature rule).</li>
+      <li id="ref3">Internal HV cable sizing spreadsheet — "Installation Factor" sheet (grouping/installation
+        derating by method and cable count).</li>
+      <li id="ref4">Internal HV cable sizing spreadsheet — "Temperature Factor" sheet (expected conductor life,
+        3000&nbsp;h reference at 150&nbsp;°C).</li>
+      <li id="ref5"><a href="https://wiki.openelectrical.org/index.php?title=Adiabatic_Short_Circuit_Temperature_Rise" target="_blank" rel="noopener">Adiabatic Short Circuit Temperature Rise</a> — wiki.openelectrical.org (adiabatic
+        temperature-rise equation, copper k-factor form with the 234.5 temperature coefficient, and typical final
+        short-circuit temperatures: 160&nbsp;°C PVC, 250&nbsp;°C XLPE/EPR).</li>
+    </ol>
+
+    <p>Last updated: 2026-09-30 &middot; Rev 4</p>
+  </div>
+
+</main>
+
+<script>
+  // --- Data lifted from an internal "HV Cable Selection" spreadsheet ---
+
+  // Base current rating (A) at reference conditions (150 °C conductor / 30 °C ambient), by nominal size (mm²).
+  var CURRENT_RATING = {
+    4: 72, 6: 94, 10: 135, 16: 178, 25: 233, 35: 295, 50: 378, 70: 467,
+    95: 585, 120: 679, 150: 776, 185: 891.66, 240: 1057.78
+  };
+  var SIZES = Object.keys(CURRENT_RATING).map(Number).sort(function (a, b) { return a - b; });
+
+  // Frequency (skin-effect) derating factor by size (mm²) and frequency breakpoint (Hz). Linearly interpolated
+  // between breakpoints — indicative only, not a measured or datasheet value.
+  var FREQ_BREAKPOINTS = [0, 200, 400, 600, 800, 1000, 2000, 3000, 4000, 5000, 10000];
+  var FREQUENCY_FACTOR = {
+    4:   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.98],
+    6:   [1, 1, 1, 1, 1, 1, 1, 1, 1, 0.99, 0.93],
+    10:  [1, 1, 1, 1, 1, 1, 1, 1, 0.96, 0.93, 0.82],
+    16:  [1, 1, 1, 1, 1, 1, 1, 0.95, 0.91, 0.87, 0.76],
+    25:  [1, 1, 1, 1, 1, 1, 0.94, 0.88, 0.83, 0.8, 0.69],
+    35:  [1, 1, 1, 1, 1, 0.98, 0.89, 0.82, 0.77, 0.74, 0.64],
+    50:  [1, 1, 1, 1, 0.97, 0.94, 0.83, 0.76, 0.72, 0.69, 0.59],
+    70:  [1, 1, 1, 0.95, 0.91, 0.88, 0.77, 0.71, 0.67, 0.63, 0.54],
+    95:  [1, 1, 0.98, 0.93, 0.88, 0.84, 0.73, 0.67, 0.63, 0.6, 0.51],
+    120: [1, 0.99, 0.94, 0.88, 0.84, 0.8, 0.69, 0.64, 0.6, 0.57, 0.48],
+    150: [1, 0.97, 0.9, 0.85, 0.8, 0.77, 0.66, 0.61, 0.57, 0.54, 0.46],
+    185: [1, 0.95, 0.86, 0.81, 0.76, 0.73, 0.62, 0.57, 0.53, 0.51, 0.43],
+    240: [1, 0.91, 0.81, 0.75, 0.7, 0.67, 0.57, 0.52, 0.49, 0.46, 0.39]
+  };
+
+  // Installation/grouping factor by method and number of cables routed together (1-20; plateaus beyond 20).
+  var INSTALLATION_FACTOR = {
+    "In free air or perforated tray": [1, 0.86, 0.8, 0.78, 0.76, 0.75, 0.74, 0.74, 0.73, 0.73, 0.72, 0.72, 0.72, 0.72, 0.72, 0.72, 0.72, 0.72, 0.72, 0.72],
+    "On floor or wall": [0.96, 0.8, 0.75, 0.72, 0.7, 0.69, 0.68, 0.67, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66, 0.66],
+    "On ceiling or under floor": [0.92, 0.74, 0.68, 0.65, 0.63, 0.62, 0.61, 0.6, 0.59, 0.59, 0.59, 0.59, 0.59, 0.59, 0.59, 0.59, 0.59, 0.59, 0.59, 0.59],
+    "In a corrugated pipe": [0.96, 0.8, 0.75, 0.72, 0.71, 0.7, 0.69, 0.69, 0.68, 0.68, 0.67, 0.67, 0.67, 0.67, 0.67, 0.67, 0.66, 0.66, 0.66, 0.66],
+    "In a conduit": [0.76, 0.61, 0.54, 0.49, 0.46, 0.43, 0.41, 0.39, 0.38, 0.36, 0.34, 0.34, 0.33, 0.33, 0.31, 0.31, 0.19, 0.19, 0.19, 0.19]
+  };
+
+  // Reference conditions used by the temperature-factor and life formulas.
+  var TEMP_REF_C = 150;    // θc,ref (°C) — reference conductor temperature
+  var AMB_REF_C = 30;      // θa,ref (°C) — reference ambient temperature
+  var LIFE_REF_HOURS = 3000; // expected life (h) at θc,ref, continuous
+
+  // Adiabatic transient heating, copper conductor (ref 5): I²t = k²S², k = 226·√ln((θf+234.5)/(θ0+234.5))
+  var K0_COPPER = 226;       // A·√s/mm²
+  var BETA_COPPER = 234.5;   // °C, reciprocal temperature coefficient of resistance at 0 °C
+  var TRANSIENT_CAUTION_MARGIN = 20; // °C below θmax at which an amber caution is shown
+
+  // Cable dimensions by nominal size (mm²) — "N/A" in the source workbook becomes null here.
+  var DIM_COROFLEX = { // conductor Ø, insulation Ø (-tol), screen max thickness, overall Ø (-tol)
+    4: [2.8, 3.7, 0.16, 5.8], 6: [3.4, 4.3, 0.16, 6.5], 10: [4.5, 6, 0.16, 8.8],
+    16: [5.8, 7.2, 0.16, 10.2], 25: [7, 8.8, 0.21, 12.2], 35: [8.5, 10.5, 0.21, 14.4],
+    50: [10, 12.2, 0.21, 15.8], 70: [12.5, 14.4, 0.21, 18.2], 95: [14.8, 17.2, 0.26, 20.9],
+    120: [16.5, 19, 0.26, 23], 150: null, 185: null, 240: null
+  };
+  var DIM_RADOX = { // conductor Ø, insulation Ø, screen Ø, overall Ø (± tol)
+    4: [2.5, 3.55, 4, 5.8], 6: [3, 4.15, 4.7, 6.6], 10: [4.3, 5.75, 6.3, 8.4],
+    16: [5.4, 6.9, 7.5, 9.7], 25: [6.7, 8.2, 8.9, 11.2], 35: [7.9, 9.7, 10.4, 12.7],
+    50: [9.4, 11.5, 12.6, 14.9], 70: [11.6, 13.7, 14.6, 17], 95: [13.5, 16.2, 17.3, 19.9],
+    120: [15.1, 18, 19.1, 22.6], 150: [17, 20, 21.3, 24.9], 185: null, 240: null
+  };
+  var DIM_RADOX_FLEX = { // conductor Ø, insulation Ø, screen Ø, overall Ø (± tol)
+    16: [5.4, 6.85, 8, 9.3], 25: [7.1, 8.35, 9.5, 11], 35: [8.2, 9.9, 11.2, 12.9],
+    50: [9.9, 11.7, 13, 14.9], 70: [11.6, 14, 15.2, 17], 95: [13.3, 16.2, 17.7, 19.5],
+    120: [15.1, 19.1, 20.7, 22.6], 150: [17.2, 21.1, 22.6, 25], 185: [18.5, 22.5, 23.9, 26.6],
+    4: null, 6: null, 10: null, 240: null
+  };
+
+  function interp(xs, ys, x) {
+    if (x <= xs[0]) return ys[0];
+    if (x >= xs[xs.length - 1]) return ys[ys.length - 1];
+    for (var i = 0; i < xs.length - 1; i++) {
+      if (x >= xs[i] && x <= xs[i + 1]) {
+        var t = (x - xs[i]) / (xs[i + 1] - xs[i]);
+        return ys[i] + t * (ys[i + 1] - ys[i]);
+      }
+    }
+    return ys[ys.length - 1];
+  }
+
+
+
+  function fmt(n, dp) {
+    if (n === null || n === undefined || isNaN(n)) return '–';
+    return n.toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp });
+  }
+
+  function populateSelects() {
+    var sizeSel = document.getElementById('size');
+    SIZES.forEach(function (s) {
+      var opt = document.createElement('option');
+      opt.value = s; opt.textContent = s + ' mm²';
+      sizeSel.appendChild(opt);
+    });
+    sizeSel.value = 120;
+
+    var methodSel = document.getElementById('installMethod');
+    Object.keys(INSTALLATION_FACTOR).forEach(function (m) {
+      var opt = document.createElement('option');
+      opt.value = m; opt.textContent = m;
+      methodSel.appendChild(opt);
+    });
+    methodSel.value = 'In free air or perforated tray';
+  }
+
+  function dimRow(family, dims) {
+    if (!dims) {
+      return '<tr><td>' + family + '</td><td class="dim-cell na" colspan="4">— not offered in this size —</td></tr>';
+    }
+    return '<tr><td>' + family + '</td><td>' + dims[0] + '</td><td>' + dims[1] + '</td>' +
+      '<td>' + dims[2] + '</td><td>' + dims[3] + '</td></tr>';
+  }
+
+  function recalc() {
+    var size = Number(document.getElementById('size').value);
+    var iDes = Number(document.getElementById('desiredCurrent').value);
+    var ta = Number(document.getElementById('ambient').value);
+    var tc = Number(document.getElementById('conductorTemp').value);
+    var freq = Number(document.getElementById('frequency').value);
+    var n = Math.max(1, Number(document.getElementById('numCables').value) || 1);
+    var method = document.getElementById('installMethod').value;
+
+    var base = CURRENT_RATING[size];
+    var warnBox = document.getElementById('warnBox');
+    warnBox.innerHTML = '';
+
+    var deltaT = tc - ta;
+    var tempFactor = deltaT > 0 ? Math.sqrt(deltaT / (TEMP_REF_C - AMB_REF_C)) : NaN;
+    if (!(deltaT > 0)) {
+      warnBox.innerHTML = '<div class="warn">Permissible conductor temperature must be greater than ambient temperature.</div>';
+    }
+
+    var freqRow = FREQUENCY_FACTOR[size];
+    var freqFactor = interp(FREQ_BREAKPOINTS, freqRow, freq);
+
+    var instRow = INSTALLATION_FACTOR[method];
+    var col = Math.min(Math.max(Math.round(n), 1), 20) - 1;
+    var installFactor = instRow[col];
+
+    var service = isNaN(tempFactor) ? NaN : base * tempFactor * freqFactor * installFactor;
+    var safety = isNaN(service) ? NaN : service / iDes;
+
+    document.getElementById('outBase').innerHTML = fmt(base, 0) + ' <span class="unit">A</span>';
+    document.getElementById('outTempFactor').textContent = isNaN(tempFactor) ? '–' : fmt(tempFactor, 2);
+    document.getElementById('outFreqFactor').textContent = fmt(freqFactor, 2);
+    document.getElementById('outInstallFactor').textContent = fmt(installFactor, 2);
+    document.getElementById('outService').innerHTML = fmt(service, 1) + ' <span class="unit">A</span>';
+    var safetyEl = document.getElementById('outSafety');
+    safetyEl.textContent = isNaN(safety) ? '–' : fmt(safety, 2) + '×';
+    safetyEl.className = 'value ' + (isNaN(safety) ? '' : (safety >= 1 ? 'pass' : 'fail'));
+    if (!isNaN(safety) && safety < 1) {
+      warnBox.innerHTML += '<div class="warn">Cable is undersized: rating (service) is below the desired current for these conditions.</div>';
+    }
+
+    var life = tc <= TEMP_REF_C || true ? LIFE_REF_HOURS * Math.pow(0.5, (tc - TEMP_REF_C) / 10) : NaN;
+    document.getElementById('outLife').innerHTML = fmt(life, 0) + ' <span class="unit">h</span>';
+    document.getElementById('outLifeYears').innerHTML = fmt(life / 8760, 1) + ' <span class="unit">years</span>';
+
+    var tbody = document.querySelector('#dimTable tbody');
+    tbody.innerHTML =
+      dimRow('Coroflex (screened, single-core)', DIM_COROFLEX[size]) +
+      dimRow('Radox (screened, single-core)', DIM_RADOX[size]) +
+      dimRow('Radox FLEX (screened, single-core)', DIM_RADOX_FLEX[size]);
+
+    updateTransient(size, freqFactor);
+  }
+
+  function updateTransient(size, freqFactor) {
+    var tile = document.getElementById('outTransientTempTile');
+    var warnEl = document.getElementById('transientWarning');
+    warnEl.innerHTML = '';
+    tile.classList.remove('warn-state');
+
+    var It = Math.max(0, parseFloat(document.getElementById('transientCurrent').value) || 0);
+    var t = Math.max(0, parseFloat(document.getElementById('transientDuration').value) || 0);
+    var theta0 = parseFloat(document.getElementById('preTransientTemp').value);
+    if (isNaN(theta0)) theta0 = 0;
+    var occursPerHr = Math.max(0, parseFloat(document.getElementById('transientFrequency').value) || 0);
+    var thetaMax = parseFloat(document.getElementById('shortTimeLimit').value);
+
+    if (!size || It <= 0 || t <= 0 || !(freqFactor > 0)) {
+      document.getElementById('outTransientRise').textContent = '–';
+      document.getElementById('outTransientTemp').textContent = '–';
+      return;
+    }
+
+    var iEff = It / freqFactor;
+    var x = iEff * Math.sqrt(t) / (K0_COPPER * size);
+    var thetaT = (theta0 + BETA_COPPER) * Math.exp(x * x) - BETA_COPPER;
+    var rise = thetaT - theta0;
+
+    document.getElementById('outTransientRise').innerHTML = fmt(rise, 1) + ' <span class="unit">K</span>';
+    document.getElementById('outTransientTemp').innerHTML = fmt(thetaT, 1) + ' <span class="unit">°C</span>';
+
+    if (!isNaN(thetaMax)) {
+      if (thetaT >= thetaMax) {
+        tile.classList.add('warn-state');
+        warnEl.innerHTML = '<div class="warn">Peak transient temperature reaches or exceeds the ' + fmt(thetaMax, 0) +
+          '&nbsp;°C insulation short-time limit — increase cross-section, shorten the transient, or lower the ' +
+          'pre-transient temperature.</div>';
+      } else if (thetaT >= thetaMax - TRANSIENT_CAUTION_MARGIN) {
+        tile.classList.add('warn-state');
+        warnEl.innerHTML = '<div class="caution">Within ' + TRANSIENT_CAUTION_MARGIN + '&nbsp;K of the ' +
+          fmt(thetaMax, 0) + '&nbsp;°C insulation short-time limit — worth some margin before relying on this.</div>';
+      }
+    }
+
+    if (occursPerHr > 0) {
+      var intervalS = 3600 / occursPerHr;
+      warnEl.innerHTML += '<p class="note">Repeats roughly every ' + fmt(intervalS, 0) + '&nbsp;s. This check ' +
+        'models a single isolated pulse starting from θ<sub>0</sub> — if the conductor can\'t cool back to ' +
+        'θ<sub>0</sub> between events, actual temperatures will run higher; if the duty is repetitive, check an ' +
+        'RMS-equivalent current against the continuous rating above instead.</p>';
+      if (t * occursPerHr >= 3600) {
+        warnEl.innerHTML += '<div class="warn">Duration × occurrences per hour is at least an hour — this is ' +
+          'effectively continuous duty, so the continuous rating above governs, not this transient check.</div>';
+      }
+    }
+  }
+
+  populateSelects();
+  document.querySelectorAll('#size, #desiredCurrent, #ambient, #conductorTemp, #frequency, #numCables, #installMethod, ' +
+      '#transientCurrent, #transientDuration, #preTransientTemp, #transientFrequency, #shortTimeLimit')
+    .forEach(function (el) { el.addEventListener('input', recalc); el.addEventListener('change', recalc); });
+  recalc();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  function current(){
+    var t = document.documentElement.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  function apply(state){
+    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', state); }
+    try {
+      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
+      else { localStorage.setItem('mdg-theme', state); }
+    } catch (e) {}
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  if (btn) {
+    btn.textContent = LABELS[current()];
+    btn.addEventListener('click', function(){
+      var idx = STATES.indexOf(current());
+      apply(STATES[(idx + 1) % STATES.length]);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  // Legibility floor: never shrink below this, even if that means the page then
+  // spills onto a 2nd (or 3rd) sheet. A handful of very long pages (e.g. the
+  // Material Library table, the O-Ring groove-design page) would otherwise need
+  // to zoom out well below half size to fit a single sheet, which prints too
+  // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
+  var MIN_SCALE = 0.65;
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+</body>
+</html>
