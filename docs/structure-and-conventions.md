@@ -121,6 +121,7 @@ The small `<p class="note">` under each section explains the figures above it â€
 - **Colour by category**: each category in the taxonomy gets one accent colour, used consistently for its tag/badge across the hub and its pages, so the eye learns "this colour = fasteners" etc.
 - **Typography**: one system font stack, no per-page font choices.
 - **Print-friendly**: pages should print sensibly (results table visible, nav/chrome hidden) since these often get printed and pinned up or dropped into a drawing pack. See also "Save as PDF" below for the dedicated one-click export.
+- **Drop-downs, lists**: all drop-downs, lists, and items within a category shall be listed alphanumerically in ascending order.
 
 ## Shared material library (`data/materials.js`)
 
