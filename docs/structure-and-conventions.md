@@ -14,9 +14,17 @@ Machine Design Guides/
   assets/
     css/style.css                Shared design tokens + component styles
     js/app.js                    Shared hub logic (reads the manifest, builds nav)
+    js/requests.js               Change / page request button (Smartsheet hand-off, see below)
   data/
     manifest.js                  Registry of every calculator/page — source of truth for the hub's nav
     materials.js                 Shared material property library (see below)
+    fluids.js                    Shared fluid (liquid) property library (see below)
+    fasteners.js                 Shared fastener library
+    bearings_skf.js              Shared COTS component libraries, <item type>_<supplier>.js (see below)
+    locknuts_skf.js
+    shaft-seals_skf.js
+    wave-springs_smalley.js
+    clinch-nuts_pem.js
   calculators/
     <category-slug>/
       <page-slug>.html           One self-contained page per calculator/reference tool
@@ -24,7 +32,7 @@ Machine Design Guides/
     calculator-template.html     Starting point to copy for a new page
   docs/
     00-structure-and-conventions.md   This document
-    99-notes-ideas.md                Quick-capture backlog of future topics
+    99-notes-ideas.md                 Quick-capture backlog of future topics
 ```
 
 Everything under `calculators/` is grouped by category folder (see taxonomy below). Each page is a single, self-contained `.html` file — no separate JS/CSS per page — so it can be opened directly, copied, or handed off individually without broken references, and so a future desktop/Electron wrapper can just point at the file.
@@ -67,9 +75,11 @@ the hub doesn't fragment into a long list of near-empty groups as pages are adde
 
 - `fits` — Fits (ISO 286 hole-basis fits/tolerances, and shaft-connection topics like keyways/splines — anything about how two mating parts locate or transmit load relative to each other)
 - `fasteners` — Fasteners & Torque (screw torques, thread standards, washers)
-- `seals` — Seals & O-Rings (sizing, material/compound selection, groove design)
+- `seals` — Seals & O-Rings (sizing, material/compound selection, groove design, rotary shaft seals)
 - `electrical` — Electrical (creepage/clearance per IEC 60664, HV/LV cable sizing and current rating, and future electrical topics — busbars, connectors, etc.)
 - `materials` — Materials reference (properties, equivalence tables)
+- `components` — Components (bought-in COTS parts selected from supplier catalogues: bearings, wave springs, lock nuts; later the Bearing Selector and Shaft Design Guide). Colour `#7a6a2e`, folder `calculators/components/`. Shaft seals stay under `seals`.
+- `thermal` — Thermal & Fluids (thermal expansion, pipe/coolant flow and pressure drop, and future heat-transfer topics). Colour `#2b8799`, folder `calculators/thermal/`. Added 2026-10-07; Thermal Expansion moved here from `materials`.
 
 New categories get added to this list in this doc (and mirrored in `style.css` if they carry a colour tag) before the first page in them is built, so the taxonomy stays a deliberate decision rather than drifting. Prefer folding a new narrow topic into an existing general category over minting a new one, unless it's genuinely a different subject area.
 
@@ -105,6 +115,7 @@ The small `<p class="note">` under each section explains the figures above it �
 
 - **Units**: metric only (mm, N·m, MPa, °C), by default, on every page. Do not add an imperial toggle or an imperial lookup table as a matter of course — only include imperial values where the specific topic makes that unavoidable (e.g. a standard that is itself defined in inches, like AS568), and say so explicitly on that page rather than presenting it as the norm. State the unit next to every input/output, always.
 - **Unit placement on inputs**: the unit label for a user input box goes to the **right of the box, on the same line** — never underneath it. Don't put a bare unit as trailing text straight after an `<input>` inside a `.field` (a `flex-direction: column` container) — the browser wraps that trailing text onto its own line below the box, which is exactly the layout this rule forbids. Instead wrap the input and its unit in a row: `<div class="input-row"><input ...><span class="unit">mm</span></div>` inside the `.field`. Copy `.input-row`/`.unit` from `assets/css/style.css` alongside the other shared component classes. A unit already folded into the label text itself (e.g. a label reading "Operating temp — minimum (°C)") satisfies the rule without needing `.input-row` — the "to the right, not underneath" requirement is about where the unit lands relative to the box, not that every input must have a separate unit span.
+- **Input box colour**: user input boxes (`input[type=number]`, `select`) take a light tint of the page's category colour via `--input-bg` / `--input-border` (with matching dark-mode values), and an accent border on focus — e.g. Keyways (fits blue), Pipe Pressure Drop (thermal teal). This marks what the user can change versus computed output.
 - **Theme**: light and dark variants using CSS custom properties (tokens defined once in `assets/css/style.css`), so pages behave in either without per-page work. See "Dark mode toggle" below for how the user actually switches between them.
 - **Diagrams**: draw them as inline SVG using the shared CSS tokens (`var(--mdg-text)`, `var(--mdg-accent)`, etc.), never as an embedded base64 raster image. See "Diagrams: inline SVG, not embedded raster" below.
 - **Colour by category**: each category in the taxonomy gets one accent colour, used consistently for its tag/badge across the hub and its pages, so the eye learns "this colour = fasteners" etc.
@@ -131,6 +142,52 @@ to see the current grade list, its citation convention (every value traces to a 
 flagged as a typical/generic value with its own source), and the caveat that this is *not* a reproduction
 of MMPDS (the real handbook is a paywalled, statistically-derived allowables reference — this is a much
 smaller, typical-properties starting set modelled on its type→grade layout).
+
+## Shared fluid library (`data/fluids.js`)
+
+Same shared-data exception as `materials.js`, for temperature-dependent liquid properties (density, dynamic and
+kinematic viscosity). Assigns `window.MDG_FLUIDS` with `types`, `fluids` and a `props(id, T)` helper that returns
+`{ rho, mu, nu, inRange }` at a temperature — every page uses that one helper so the property models aren't
+re-implemented per page. Two models per fluid:
+
+- `"table"` — tabulated `rho` / `mu` points (water, water–glycol mixes): linear interpolation for density,
+  log-linear for viscosity, end segments extrapolated.
+- `"walther"` — oils: ASTM D341 (Walther) viscosity fitted through the datasheet ν at 40 and 100 °C, and density
+  from ρ15 with a single volumetric expansion coefficient (`oil_beta_per_K`).
+
+Each fluid carries `range_C` (pages warn outside it), `notes` and `refs` (`label`, `url`, `domain`, `backs`).
+Units: °C, kg/m³, cP, mm²/s. Current set: water, 50/50 and 30/70 water–ethylene glycol, ISO VG 32 and VG 46
+hydraulic oil, ATF (Dexron VI type), SAE 75W-90 gear oil. Used by `calculators/thermal/pipe-pressure-drop.html`;
+no browsable page yet.
+
+## Shared component libraries (`data/<item type>_<supplier>.js`)
+
+Bought-in (COTS) parts follow the same shared-data exception as `materials.js`: pages never hold their own
+catalogue data, they load and filter a library. Each library is named `<item type>_<supplier>.js`, so a second
+supplier sits alongside (`bearings_fag.js`) without touching the first, and assigns one global:
+
+| File | Global | Browsable page |
+|---|---|---|
+| `bearings_skf.js` | `MDG_BEARINGS_SKF` | `calculators/components/bearing-library.html` |
+| `locknuts_skf.js` | `MDG_LOCKNUTS_SKF` | `calculators/components/locknut-library.html` |
+| `shaft-seals_skf.js` | `MDG_SHAFT_SEALS_SKF` | `calculators/seals/shaft-seal-library.html` |
+| `wave-springs_smalley.js` | `MDG_WAVE_SPRINGS_SMALLEY` | `calculators/components/wave-spring-library.html` |
+| `clinch-nuts_pem.js` | `MDG_CLINCH_NUTS_PEM` | none yet — consumed by `calculators/fasteners/screw-torque.html` |
+
+Conventions:
+
+- **Scraped, not hand-typed.** Values come from the supplier's own product data (SKF's details service behind
+  its product pages; Smalley's part search and part pages) and carry `scraped` (date) and `sources`. Don't
+  hand-edit numbers — re-scrape, so every value stays traceable. Anything derived on a page (e.g. a spring's
+  solid height) is labelled as calculated.
+- **Common keys**: `supplier`, `scraped`, `range`, `notes`, `refs`, `sources` (same shape as `fasteners.js`:
+  `label`, `url`, `domain`, `backs`), plus a `fields` map of key → [label, symbol, unit] so a page can render
+  any record without its own label table.
+- **Large tables are column arrays** (`columns` + `rows`) to keep file size down (seals, wave springs).
+  Bearings are objects; deep-groove shielded/sealed versions sit in `variants` on the open bearing and hold only
+  fields that differ (`null` = SKF gives no value for that version).
+- **Units**: mm, kN (bearing loads, nut axial capacity), N (spring loads), r/min, m/s, °C, kg, µm for run-outs.
+- Supplier records with missing or self-contradictory data are omitted and listed in that library's `notes`.
 
 ## Collapsible reference tables
 
@@ -301,6 +358,16 @@ preference:
 
 Keep each diagram's SVG a fixed, labelled schematic (not to scale, same as the old raster figures were) —
 its purpose is to define the parameters, not to visualise the specific numbers entered above it.
+
+## Change & page requests (`assets/js/requests.js`)
+
+Users suggest changes to a page ("Change request", in every page header before Save PDF) or new pages ("Page request", on the hub). Requests go to the Smartsheet sheet **MDG Request Log** (TK Personal Workspace, app.smartsheet.eu), which auto-numbers them `REQ-0001`, `REQ-0002`… The hub's "Request log" link opens that sheet (needs sheet access); there is no request log page on the site.
+
+- **Flow.** The pop-up asks for title (required, ≤80), description (required, ≤2000) and name (optional, remembered per browser under `mdg-request-name`). "Continue to form" opens the Smartsheet form in a new tab with every field pre-filled via the query string; the user presses Submit there. The REQ number is assigned on submit, so it isn't shown in the pop-up.
+- **Auto-filled fields** (hidden on the form): Type (`Change` / `New page`), Page ID (file name), Page Title (header `<strong>`), Page Rev (last "Rev N" in the footer), Status (`New`). Smartsheet adds Submitted.
+- **Triage** in the sheet: Status (New → Accepted → In progress → Done / Rejected), Resolution, Done in Rev.
+- **Shared file, by design.** Same narrow exception as `data/materials.js`: the form and sheet links live in one place. The script injects its own button and styles (using the page's tokens), so a page needs only one line before `</body>`, already in the template: `<script src="../../assets/js/requests.js" data-mdg-request="change"></script>`. The hub uses `data-mdg-request="page"` and carries hidden `#mdg-page-request` / `#mdg-request-log` elements the script reveals. If the script fails to load, nothing appears and the page still works.
+- **Coverage:** every calculator page now carries the script line (Thread Undercuts (DIN 76) was the last, added at Rev 3).
 
 ## The hub (`index.html`)
 

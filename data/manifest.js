@@ -7,6 +7,7 @@
 // meant to be a short summary, fully visible, not the page's full feature list. Longer detail belongs
 // on the page itself.
 window.MDG_MANIFEST = {
+  "updated": "2026-10-07",
   "categories": [
     {
       "slug": "fits",
@@ -32,6 +33,16 @@ window.MDG_MANIFEST = {
       "slug": "materials",
       "title": "Materials",
       "color": "#5b5b5b"
+    },
+    {
+      "slug": "components",
+      "title": "Components",
+      "color": "#7a6a2e"
+    },
+    {
+      "slug": "thermal",
+      "title": "Thermal & Fluids",
+      "color": "#2b8799"
     }
   ],
   "pages": [
@@ -57,7 +68,7 @@ window.MDG_MANIFEST = {
         "copper"
       ],
       "status": "done",
-      "rev": 1
+      "rev": 2
     },
     {
       "id": "o-ring-sizing",
@@ -99,7 +110,7 @@ window.MDG_MANIFEST = {
         "force estimate"
       ],
       "status": "done",
-      "rev": 2
+      "rev": 3
     },
     {
       "id": "creepage-clearance",
@@ -120,7 +131,7 @@ window.MDG_MANIFEST = {
         "substrate material"
       ],
       "status": "done",
-      "rev": 1
+      "rev": 2
     },
     {
       "id": "keyways",
@@ -142,15 +153,15 @@ window.MDG_MANIFEST = {
         "factor of safety"
       ],
       "status": "done",
-      "rev": 3
+      "rev": 4
     },
     {
       "id": "screw-torque",
       "title": "Screw Torques",
       "category": "fasteners",
       "path": "calculators/fasteners/screw-torque.html",
-      "standard": "ISO 898-1 / ISO 3506-1 / NASA/TM-2017-219475",
-      "description": "Tightening torque for bolted joints and tapped-hole joints, sized from proof stress or thread-pullout capacity.",
+      "standard": "ISO 898-1 / ISO 3506-1 / NASA/TM-2017-219475 / PEM data",
+      "description": "Tightening torque for bolted, PEM clinch-nut and tapped-hole joints, from proof stress, PEM tables or thread pullout.",
       "tags": [
         "screw",
         "bolt",
@@ -161,12 +172,15 @@ window.MDG_MANIFEST = {
         "nyloc",
         "rivnut",
         "self-clinching nut",
+        "PEM",
+        "clinch nut",
         "pullout",
         "thread stripping",
-        "NASA"
+        "NASA",
+        "fine pitch"
       ],
       "status": "done",
-      "rev": 1
+      "rev": 7
     },
     {
       "id": "fastener-library",
@@ -205,7 +219,7 @@ window.MDG_MANIFEST = {
         "fine pitch"
       ],
       "status": "done",
-      "rev": 4
+      "rev": 5
     },
     {
       "id": "din76-thread-undercuts",
@@ -225,7 +239,7 @@ window.MDG_MANIFEST = {
         "tapped hole"
       ],
       "status": "done",
-      "rev": 2
+      "rev": 3
     },
     {
       "id": "hv-cable-sizing",
@@ -251,7 +265,7 @@ window.MDG_MANIFEST = {
         "IEC 60949"
       ],
       "status": "done",
-      "rev": 4
+      "rev": 5
     },
     {
       "id": "busbar-sizing",
@@ -276,7 +290,7 @@ window.MDG_MANIFEST = {
         "6101"
       ],
       "status": "done",
-      "rev": 3
+      "rev": 5
     },
     {
       "id": "gdt-tightness-guide",
@@ -303,6 +317,151 @@ window.MDG_MANIFEST = {
         "runout",
         "achievability",
         "process capability"
+      ],
+      "status": "done",
+      "rev": 3
+    },
+    {
+      "id": "thermal-expansion",
+      "title": "Thermal Expansion",
+      "category": "thermal",
+      "path": "calculators/thermal/thermal-expansion.html",
+      "standard": "ASTM E228 (CTE basis)",
+      "description": "X/Y dimensions at two target temperatures from a reference size, with an optional second material to compare growth.",
+      "tags": [
+        "thermal expansion",
+        "CTE",
+        "linear expansion",
+        "temperature",
+        "shrink fit",
+        "differential expansion",
+        "ASTM E228",
+        "material comparison"
+      ],
+      "status": "done",
+      "rev": 3
+    },
+    {
+      "id": "pipe-pressure-drop",
+      "title": "Pipe Pressure Drop",
+      "category": "thermal",
+      "path": "calculators/thermal/pipe-pressure-drop.html",
+      "standard": "Darcy–Weisbach · Swamee–Jain",
+      "description": "Pressure drop, velocity and Reynolds number for liquid flow in a round pipe, with water, glycol and oil properties by temperature.",
+      "tags": [
+        "pressure drop",
+        "pipe flow",
+        "Darcy-Weisbach",
+        "Swamee-Jain",
+        "friction factor",
+        "Reynolds number",
+        "head loss",
+        "minor losses",
+        "coolant",
+        "ethylene glycol",
+        "water",
+        "hydraulic oil",
+        "ATF",
+        "gear oil",
+        "viscosity",
+        "ASTM D341"
+      ],
+      "status": "done",
+      "rev": 2
+    },
+    {
+      "id": "bearing-library",
+      "title": "Bearing Library",
+      "category": "components",
+      "path": "calculators/components/bearing-library.html",
+      "standard": "SKF catalogue data · ISO 15 / ISO 104 / ISO 281",
+      "description": "SKF bearings d 10–130 mm: deep groove, cylindrical roller, angular contact, four-point and thrust — dimensions, ratings, speeds.",
+      "tags": [
+        "bearing",
+        "rolling bearing",
+        "SKF",
+        "deep groove",
+        "cylindrical roller",
+        "angular contact",
+        "four-point contact",
+        "thrust bearing",
+        "load rating",
+        "limiting speed",
+        "abutment",
+        "2RS",
+        "2Z",
+        "COTS"
+      ],
+      "status": "done",
+      "rev": 3
+    },
+    {
+      "id": "wave-spring-library",
+      "title": "Wave Spring Library",
+      "category": "components",
+      "path": "calculators/components/wave-spring-library.html",
+      "standard": "Smalley catalogue data",
+      "description": "Smalley metric wave springs by housing bore, with load at your installed height range and a linear-range check.",
+      "tags": [
+        "wave spring",
+        "Smalley",
+        "bearing preload",
+        "crest-to-crest",
+        "nested",
+        "single turn",
+        "spring rate",
+        "work height",
+        "COTS"
+      ],
+      "status": "done",
+      "rev": 3
+    },
+    {
+      "id": "locknut-library",
+      "title": "Lock Nut Library",
+      "category": "components",
+      "path": "calculators/components/locknut-library.html",
+      "standard": "SKF catalogue data · ISO 2982-2 / DIN 981",
+      "description": "SKF KM, KMFE and KMT lock nuts M10–M60 with MB lock washers, shaft-slot size and axial load capacity.",
+      "tags": [
+        "lock nut",
+        "locknut",
+        "KM",
+        "KMFE",
+        "KMT",
+        "MB",
+        "lock washer",
+        "SKF",
+        "shaft nut",
+        "bearing retention",
+        "DIN 981",
+        "COTS"
+      ],
+      "status": "done",
+      "rev": 2
+    },
+    {
+      "id": "shaft-seal-library",
+      "title": "Shaft Seal Library",
+      "category": "seals",
+      "path": "calculators/seals/shaft-seal-library.html",
+      "standard": "SKF catalogue data · ISO 6194-1 / DIN 3760",
+      "description": "SKF radial shaft seals for 10–60 mm shafts, filtered by size, design, lip material, temperature and lip speed.",
+      "tags": [
+        "shaft seal",
+        "radial shaft seal",
+        "rotary seal",
+        "oil seal",
+        "lip seal",
+        "SKF",
+        "HMS5",
+        "HMSA10",
+        "CRW1",
+        "NBR",
+        "FKM",
+        "DIN 3760",
+        "ISO 6194",
+        "COTS"
       ],
       "status": "done",
       "rev": 2

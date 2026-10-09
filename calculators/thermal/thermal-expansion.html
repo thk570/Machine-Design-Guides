@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<title>Thermal Expansion — Machine Design Guides</title>
+<style>
+  /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #2b8799;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --warn: #b5484d;
+    --input-bg: #f0f0ee; --input-border: #bdbdb5;
+    --col-a: #3b6ea5; --col-b: #a5623b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+      --warn: #e0696d;
+      --input-bg: #2a2a2d; --input-border: #55555a;
+      --col-a: #6f9fd4; --col-b: #d99066;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+    --warn: #e0696d;
+    --input-bg: #2a2a2d; --input-border: #55555a;
+    --col-a: #6f9fd4; --col-b: #d99066;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); flex-wrap: wrap; }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 980px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  h2 { font-size: 1.05rem; margin: 0 0 0.75rem; }
+  h3 { font-size: 0.92rem; margin: 0 0 0.6rem; display: flex; align-items: center; gap: 0.5rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1.1rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); line-height: 1.5; }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  table.mdg-table td.num { font-family: var(--mdg-font-mono); text-align: right; white-space: nowrap; }
+  table.mdg-table th.num { text-align: right; }
+  table.mdg-table tr.ref-row td { color: var(--mdg-text-muted); }
+  .table-scroll { overflow-x: auto; }
+  .note { font-size: 0.82rem; color: var(--mdg-text-muted); margin: 0.5rem 0 0; line-height: 1.45; }
+  label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.3rem; }
+  label .sub { font-weight: 400; color: var(--mdg-text-muted); }
+  select, input[type=number] {
+    font-family: var(--mdg-font); font-size: 0.9rem; padding: 0.4rem 0.55rem;
+    border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); color: var(--mdg-text);
+    width: 100%;
+  }
+  input:disabled, select:disabled { opacity: 0.55; cursor: not-allowed; }
+  .row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 0.85rem; }
+  .row:last-child { margin-bottom: 0; }
+  .field { display: flex; flex-direction: column; min-width: 150px; flex: 1 1 150px; }
+  .field.wide { flex: 2 1 280px; }
+  .input-row { display: flex; align-items: center; gap: 0.4rem; }
+  .input-row input, .input-row select { flex: 1 1 auto; min-width: 0; }
+  .input-row .unit { font-size: 0.85rem; color: var(--mdg-text-muted); white-space: nowrap; }
+  .check { display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem; font-weight: 600; cursor: pointer; margin: 0; }
+  .check input { width: auto; accent-color: var(--mdg-accent); }
+  .divider { border: none; border-top: 1px solid var(--mdg-border); margin: 0.9rem 0; }
+  .lib-note { font-size: 0.78rem; color: var(--mdg-text-muted); font-style: italic; margin: 0.4rem 0 0.75rem; }
+  .chip { display: inline-block; min-width: 1.4rem; text-align: center; padding: 0.05rem 0.45rem; border-radius: 4px;
+    font-size: 0.78rem; font-weight: 700; color: #fff; }
+  .chip.a { background: var(--col-a); } .chip.b { background: var(--col-b); }
+  .mat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; }
+  .mat-col { border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.8rem 0.9rem; }
+  .mat-col.a { border-top: 3px solid var(--col-a); }
+  .mat-col.b { border-top: 3px solid var(--col-b); }
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.6rem; margin: 0.25rem 0 0.9rem; }
+  .result { background: var(--mdg-bg); border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.55rem 0.7rem; }
+  .result .k { font-size: 0.72rem; color: var(--mdg-text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+  .result .v { font-family: var(--mdg-font-mono); font-size: 1.05rem; margin-top: 0.15rem; }
+  .result .v .unit-sm { font-size: 0.7rem; color: var(--mdg-text-muted); font-family: var(--mdg-font); margin-left: 0.15rem; }
+  .result.a { border-left: 3px solid var(--col-a); } .result.b { border-left: 3px solid var(--col-b); }
+  .diagram-wrap { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: 6px; padding: 0.75rem; max-width: 420px; margin: 0.9rem 0 0; }
+  .diagram-wrap svg { display: block; width: 100%; height: auto; }
+  .diagram-wrap figcaption { font-size: 0.72rem; color: var(--mdg-text-muted); text-align: center; margin-top: 0.5rem; }
+  .warn { background: rgba(181,72,77,0.12); border: 1px solid var(--warn); border-radius: 6px;
+    padding: 0.6rem 0.8rem; font-size: 0.85rem; margin-top: 0.75rem; color: var(--mdg-text); }
+  .caution { background: rgba(181,132,42,0.13); border: 1px solid #b5842a; border-radius: 6px;
+    padding: 0.6rem 0.8rem; font-size: 0.85rem; margin-top: 0.75rem; color: var(--mdg-text); }
+  sup a, .ref-list a { color: var(--col-a); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+  .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
+    background: var(--mdg-surface); margin: 0 0 1.1rem; }
+  .mdg-collapsible > summary { cursor: pointer; list-style: none; display: flex; align-items: center;
+    gap: 0.5rem; padding: 0.65rem 0.9rem; font-size: 0.92rem; font-weight: 600; user-select: none; }
+  .mdg-collapsible > summary::-webkit-details-marker { display: none; }
+  .mdg-collapsible > summary::before { content: ''; flex: none; width: 0; height: 0;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+    border-left: 6px solid var(--mdg-text-muted); transition: transform 0.18s ease; }
+  .mdg-collapsible[open] > summary::before { transform: rotate(90deg); }
+  .mdg-collapsible > summary .hint { font-weight: 400; font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .mdg-collapsible-body { padding: 0 0.9rem 0.9rem; }
+  @media print {
+    .mdg-header, .mdg-no-print { display: none !important; }
+    .mdg-collapsible:not([open]) { display: block; }
+    .mdg-collapsible > summary::before { display: none; }
+    .mdg-collapsible-body { display: block !important; }
+  }
+
+  /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). Forces a light,
+     compact one-page A4 layout via a temporary .mdg-pdf-mode class on <html>, applied just
+     before window.print() and removed on afterprint/focus. */
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-collapsible,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+      <strong>Thermal Expansion</strong>
+      <span class="mdg-tag">Thermal &amp; Fluids</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">Linear expansion, ASTM E228 CTE basis</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Thermal Expansion<span class="mdg-print-tag">Thermal &amp; Fluids</span></div>
+    <div class="mdg-print-meta">Linear expansion, ASTM E228 CTE basis &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+  <div class="mdg-card">
+    <p style="margin:0;">Size of an X&times;Y part at two target temperatures from its dimensions at a reference
+      temperature, using the linear relation L&nbsp;=&nbsp;L<sub>0</sub>(1&nbsp;+&nbsp;&alpha;&Delta;T)<sup><a href="#ref1">1</a></sup>.
+      Coefficients come from the shared material library<sup><a href="#ref3">3</a></sup>. Optionally add a second
+      material to see how the two grow apart &mdash; useful for sanity-checking a shrink fit, a bore in a housing, or
+      a mixed-material joint.</p>
+  </div>
+
+  <!-- ============ 1. INPUTS ============ -->
+  <div class="mdg-card">
+    <h2>1. Inputs</h2>
+
+    <div class="row">
+      <div class="field">
+        <label for="a-t0">Reference temperature, T<sub>0</sub></label>
+        <div class="input-row"><input type="number" id="a-t0" value="20" step="1"><span class="unit">&deg;C</span></div>
+      </div>
+      <div class="field">
+        <label for="a-t1">Target temperature 1, T<sub>1</sub></label>
+        <div class="input-row"><input type="number" id="a-t1" value="60" step="1"><span class="unit">&deg;C</span></div>
+      </div>
+      <div class="field">
+        <label for="a-t2">Target temperature 2, T<sub>2</sub></label>
+        <div class="input-row"><input type="number" id="a-t2" value="100" step="1"><span class="unit">&deg;C</span></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="a-x">Dimension X at T<sub>0</sub></label>
+        <div class="input-row"><input type="number" id="a-x" value="100" min="0" step="0.01"><span class="unit">mm</span></div>
+      </div>
+      <div class="field">
+        <label for="a-y">Dimension Y at T<sub>0</sub></label>
+        <div class="input-row"><input type="number" id="a-y" value="50" min="0" step="0.01"><span class="unit">mm</span></div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:-0.2rem;">Enter a bore or shaft diameter in X (and Y if needed) &mdash; a hole
+      grows or shrinks like solid material of the same part, so the same relation applies.
+      Targets below T<sub>0</sub> give shrinkage.</p>
+
+    <hr class="divider">
+
+    <div class="mat-grid">
+      <div class="mat-col a">
+        <h3><span class="chip a">A</span> Material A</h3>
+        <div class="field" style="margin-bottom:0.6rem;">
+          <label for="a-mat">Material</label>
+          <select id="a-mat"></select>
+        </div>
+        <div class="field" id="a-custom-field" style="display:none;">
+          <label for="a-custom">Custom CTE, &alpha;</label>
+          <div class="input-row"><input type="number" id="a-custom" value="12" min="0" step="0.1"><span class="unit">&micro;m/m&middot;K</span></div>
+        </div>
+        <div class="note" id="a-cte-note" style="margin-top:0.4rem;"></div>
+      </div>
+
+      <div class="mat-col b" id="b-col">
+        <h3><span class="chip b">B</span> Material B (compare)
+          <label class="check" style="margin-left:auto; font-weight:500;"><input type="checkbox" id="b-on" checked> Enable</label></h3>
+        <div id="b-body">
+          <label class="check" style="margin-bottom:0.6rem; font-weight:500;"><input type="checkbox" id="b-sync" checked> Same dimensions &amp; temperatures as A</label>
+          <div class="field" style="margin-bottom:0.6rem;">
+            <label for="b-mat">Material</label>
+            <select id="b-mat"></select>
+          </div>
+          <div class="field" id="b-custom-field" style="display:none; margin-bottom:0.6rem;">
+            <label for="b-custom">Custom CTE, &alpha;</label>
+            <div class="input-row"><input type="number" id="b-custom" value="12" min="0" step="0.1"><span class="unit">&micro;m/m&middot;K</span></div>
+          </div>
+          <div class="note" id="b-cte-note" style="margin:0 0 0.6rem;"></div>
+          <div id="b-dims">
+            <div class="row" style="margin-bottom:0.6rem;">
+              <div class="field"><label for="b-x">X at T<sub>0</sub></label>
+                <div class="input-row"><input type="number" id="b-x" value="100" min="0" step="0.01"><span class="unit">mm</span></div></div>
+              <div class="field"><label for="b-y">Y at T<sub>0</sub></label>
+                <div class="input-row"><input type="number" id="b-y" value="50" min="0" step="0.01"><span class="unit">mm</span></div></div>
+            </div>
+            <div class="row" style="margin-bottom:0;">
+              <div class="field"><label for="b-t0">T<sub>0</sub></label>
+                <div class="input-row"><input type="number" id="b-t0" value="20" step="1"><span class="unit">&deg;C</span></div></div>
+              <div class="field"><label for="b-t1">T<sub>1</sub></label>
+                <div class="input-row"><input type="number" id="b-t1" value="60" step="1"><span class="unit">&deg;C</span></div></div>
+              <div class="field"><label for="b-t2">T<sub>2</sub></label>
+                <div class="input-row"><input type="number" id="b-t2" value="100" step="1"><span class="unit">&deg;C</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="lib-note">Materials from the shared library (data/materials.js), grouped by type. &alpha; is the
+      library's single mean value per grade<sup><a href="#ref3">3</a></sup>; choose &ldquo;Custom CTE&rdquo; for anything not listed.</p>
+    <div id="input-warnings"></div>
+  </div>
+
+  <!-- ============ 2. RESULTS ============ -->
+  <div class="mdg-card">
+    <h2>2. Dimensions at Temperature</h2>
+    <div class="result-grid" id="headline"></div>
+
+    <div id="tables"></div>
+
+    <figure class="diagram-wrap" id="diagram-fig" style="display:none;">
+      <svg id="te-svg" viewBox="0 0 340 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="teTitle">
+        <title id="teTitle">Part outline at the reference temperature and the two target temperatures, expansion exaggerated</title>
+        <g id="te-group"></g>
+      </svg>
+      <figcaption id="te-caption"></figcaption>
+    </figure>
+    <p class="note">&Delta;L&nbsp;=&nbsp;&alpha;&thinsp;L<sub>0</sub>&thinsp;(T&nbsp;&minus;&nbsp;T<sub>0</sub>),
+      L&nbsp;=&nbsp;L<sub>0</sub>&nbsp;+&nbsp;&Delta;L<sup><a href="#ref1">1</a>,<a href="#ref2">2</a></sup>.
+      The same strain applies to X and Y, so a part keeps its proportions; area grows by roughly 2&alpha;&Delta;T<sup><a href="#ref1">1</a></sup>.</p>
+  </div>
+
+  <!-- ============ 3. COMPARISON ============ -->
+  <div class="mdg-card" id="compare-card">
+    <h2>3. Material A vs Material B</h2>
+    <div class="table-scroll" id="compare-table"></div>
+    <p class="note"><em>Size difference</em> is B&nbsp;&minus;&nbsp;A at that temperature. <em>Differential growth</em>
+      is how much more B has changed than A since T<sub>0</sub> &mdash; for the same nominal size, a positive value
+      means B grows away from A (a B bore loosens round an A shaft; a B shaft tightens in an A bore).</p>
+  </div>
+
+  <!-- ============ CTE TABLE ============ -->
+  <details class="mdg-collapsible">
+    <summary>Coefficients available <span class="hint">mean linear CTE by type and grade, from the shared library</span></summary>
+    <div class="mdg-collapsible-body">
+      <div class="table-scroll"><table class="mdg-table" id="cte-table"></table></div>
+      <p class="note">Values are the library's quoted figures (typically near room temperature up to a few hundred &deg;C) and
+        are applied as constants. Library data sources are cited per grade on the Material Library page.</p>
+    </div>
+  </details>
+
+  <div class="mdg-card">
+    <h2>Limits of this method</h2>
+    <p class="note" style="margin-top:0;">&alpha; normally rises with temperature, so a single mean value is a good
+      estimate over modest temperature spans and degrades for large &Delta;T<sup><a href="#ref1">1</a>,<a href="#ref2">2</a></sup>.
+      For wide ranges, use a coefficient measured over the actual span (dilatometer data, e.g. ASTM&nbsp;E228) or step through
+      smaller ranges. Also not covered: anisotropic materials, phase changes, and restrained expansion (thermal stress).</p>
+  </div>
+
+  <div class="mdg-card mdg-footer" style="margin-bottom:0;">
+    <p><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li><a href="https://store.astm.org/e0228-17.html" target="_blank" rel="noopener">ASTM E228</a> &mdash; Standard Test Method for Linear Thermal Expansion of Solid Materials With a Push-Rod Dilatometer (how metal CTE data is measured).</li>
+      <li><a href="https://www.iso.org/standard/81835.html" target="_blank" rel="noopener">ISO 11359-2</a> &mdash; Plastics &mdash; Thermomechanical analysis (TMA) &mdash; Part 2: Determination of coefficient of linear thermal expansion and glass transition temperature (for polymers; none are in the shared library yet).</li>
+    </ul>
+    <p class="note" style="margin-top:0;">This page applies a simple constant-coefficient relation; it does not reproduce either test standard.
+      Conformance-critical work should refer to the standards and to measured data for the actual material.</p>
+
+    <p style="margin-top:0.75rem;"><strong>References</strong></p>
+    <ol class="ref-list">
+      <li id="ref1"><a href="https://en.wikipedia.org/wiki/Thermal_expansion" target="_blank" rel="noopener">Thermal expansion</a> &mdash; Wikipedia (&Delta;L&nbsp;=&nbsp;&alpha;L<sub>0</sub>&Delta;T and L&nbsp;=&nbsp;L<sub>0</sub>(1&nbsp;+&nbsp;&alpha;&Delta;T); &alpha; near-constant for small temperature changes but varying for larger ones; area &asymp;&nbsp;2&alpha;).</li>
+      <li id="ref2"><a href="https://www.engineeringtoolbox.com/linear-thermal-expansion-d_1379.html" target="_blank" rel="noopener">Linear Thermal Expansion</a> &mdash; engineeringtoolbox.com (dL&nbsp;=&nbsp;L<sub>0</sub>&alpha;(t<sub>1</sub>&nbsp;&minus;&nbsp;t<sub>0</sub>) with worked aluminium example; coefficient varies with temperature, so integrate over smaller spans for wide ranges).</li>
+      <li id="ref3">Shared material library, <a href="../materials/material-library.html">data/materials.js</a> &mdash; mean linear CTE per grade (cited per grade on the Material Library page).</li>
+    </ol>
+    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-07 &middot; Rev 3</p>
+  </div>
+
+</main>
+
+<script src="../../data/materials.js"></script>
+<script>
+  var CUSTOM_ID = '__custom';
+  var WIDE_DT = 200; // K — beyond this, show a constant-alpha accuracy caution
+  var SETS = {};     // resolved inputs per material, rebuilt on each update
+
+  function fmt(n, dp) { return Number(n).toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp }); }
+  function el(id) { return document.getElementById(id); }
+  function num(id) { var v = parseFloat(el(id).value); return isNaN(v) ? null : v; }
+  function sgn(n, dp) { return (n > 0 ? '+' : '') + fmt(n, dp); }
+
+  function cteGrades() {
+    if (typeof window.MDG_MATERIALS === 'undefined') return [];
+    return window.MDG_MATERIALS.grades.filter(function (g) { return typeof g.cte_um_per_mK === 'number'; });
+  }
+  function typeTitle(slug) {
+    var t = window.MDG_MATERIALS.types.filter(function (x) { return x.slug === slug; })[0];
+    return t ? t.title : slug;
+  }
+  function gradeLabel(g) { return g.grade + ' (' + g.condition + ')'; }
+
+  function populateMaterial(selId, defaultId) {
+    var sel = el(selId);
+    sel.innerHTML = '';
+    var grades = cteGrades();
+    window.MDG_MATERIALS.types.forEach(function (t) {
+      var inType = grades.filter(function (g) { return g.type === t.slug; });
+      if (!inType.length) return;
+      var og = document.createElement('optgroup');
+      og.label = t.title;
+      inType.forEach(function (g) {
+        var o = document.createElement('option');
+        o.value = g.id; o.textContent = gradeLabel(g);
+        if (g.id === defaultId) o.selected = true;
+        og.appendChild(o);
+      });
+      sel.appendChild(og);
+    });
+    var c = document.createElement('option');
+    c.value = CUSTOM_ID; c.textContent = 'Custom CTE…';
+    sel.appendChild(c);
+  }
+
+  function resolveMaterial(p) {
+    var id = el(p + '-mat').value;
+    if (id === CUSTOM_ID) {
+      var a = num(p + '-custom');
+      return { name: 'Custom (α = ' + (a == null ? '–' : fmt(a, 1)) + ' µm/m·K)', alpha: a };
+    }
+    var g = cteGrades().filter(function (x) { return x.id === id; })[0];
+    return g ? { name: g.grade + ' ' + g.condition, alpha: g.cte_um_per_mK, grade: g } : { name: '–', alpha: null };
+  }
+
+  function syncB() {
+    var on = el('b-on').checked, sync = el('b-sync').checked;
+    el('b-body').style.display = on ? '' : 'none';
+    ['x', 'y', 't0', 't1', 't2'].forEach(function (k) {
+      var b = el('b-' + k);
+      b.disabled = sync;
+      if (sync) b.value = el('a-' + k).value;
+    });
+  }
+
+  function readSet(p) {
+    var m = resolveMaterial(p);
+    return { p: p, name: m.name, alpha: m.alpha, x: num(p + '-x'), y: num(p + '-y'),
+             t0: num(p + '-t0'), t1: num(p + '-t1'), t2: num(p + '-t2') };
+  }
+  function valid(s) {
+    return s.alpha != null && s.alpha >= 0 && s.x != null && s.y != null && s.x >= 0 && s.y >= 0 &&
+           s.t0 != null && s.t1 != null && s.t2 != null &&
+           s.t0 >= -273.15 && s.t1 >= -273.15 && s.t2 >= -273.15;
+  }
+  // strain at temperature T, dimensionless
+  function strain(s, T) { return s.alpha * 1e-6 * (T - s.t0); }
+  function size(L0, s, T) { return L0 * (1 + strain(s, T)); }
+
+  function pointsOf(s) {
+    return [{ lab: 'T<sub>0</sub>', T: s.t0, ref: true }, { lab: 'T<sub>1</sub>', T: s.t1 }, { lab: 'T<sub>2</sub>', T: s.t2 }];
+  }
+
+  function tableFor(s, chipCls, chipTxt) {
+    var rows = pointsOf(s).map(function (pt) {
+      var e = strain(s, pt.T), X = size(s.x, s, pt.T), Y = size(s.y, s, pt.T);
+      return '<tr' + (pt.ref ? ' class="ref-row"' : '') + '><td>' + pt.lab + '</td><td class="num">' + fmt(pt.T, 1) + '</td>' +
+        '<td class="num">' + fmt(X, 4) + '</td><td class="num">' + (pt.ref ? '–' : sgn((X - s.x) * 1000, 1)) + '</td>' +
+        '<td class="num">' + fmt(Y, 4) + '</td><td class="num">' + (pt.ref ? '–' : sgn((Y - s.y) * 1000, 1)) + '</td>' +
+        '<td class="num">' + (pt.ref ? '–' : sgn(e * 100, 4)) + '</td></tr>';
+    }).join('');
+    return '<h3 style="margin-top:0.4rem;"><span class="chip ' + chipCls + '">' + chipTxt + '</span> ' + s.name +
+      ' <span style="font-weight:400; color:var(--mdg-text-muted); font-size:0.8rem;">&alpha; = ' + fmt(s.alpha, 1) + ' &micro;m/m&middot;K</span></h3>' +
+      '<div class="table-scroll"><table class="mdg-table"><thead><tr><th>Point</th><th class="num">Temp (&deg;C)</th>' +
+      '<th class="num">X (mm)</th><th class="num">&Delta;X (&micro;m)</th><th class="num">Y (mm)</th><th class="num">&Delta;Y (&micro;m)</th>' +
+      '<th class="num">Strain (%)</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
+  function headlineFor(s, cls, txt) {
+    var out = '';
+    [['T<sub>1</sub>', s.t1], ['T<sub>2</sub>', s.t2]].forEach(function (pt) {
+      var dX = size(s.x, s, pt[1]) - s.x;
+      out += '<div class="result ' + cls + '"><div class="k">' + txt + ' &mdash; &Delta;X at ' + pt[0] + ' (' + fmt(pt[1], 0) + '&nbsp;&deg;C)</div>' +
+        '<div class="v">' + sgn(dX * 1000, 1) + '<span class="unit-sm">&micro;m</span></div></div>';
+    });
+    return out;
+  }
+
+  function compareTable(a, b) {
+    var rows = [
+      { lab: 'T<sub>0</sub>', Ta: a.t0, Tb: b.t0, ref: true },
+      { lab: 'T<sub>1</sub>', Ta: a.t1, Tb: b.t1 },
+      { lab: 'T<sub>2</sub>', Ta: a.t2, Tb: b.t2 }
+    ].map(function (r) {
+      var Xa = size(a.x, a, r.Ta), Ya = size(a.y, a, r.Ta), Xb = size(b.x, b, r.Tb), Yb = size(b.y, b, r.Tb);
+      var dgX = (Xb - b.x) - (Xa - a.x), dgY = (Yb - b.y) - (Ya - a.y);
+      var tcell = (r.Ta === r.Tb) ? fmt(r.Ta, 1) : (fmt(r.Ta, 1) + ' / ' + fmt(r.Tb, 1));
+      return '<tr' + (r.ref ? ' class="ref-row"' : '') + '><td>' + r.lab + '</td><td class="num">' + tcell + '</td>' +
+        '<td class="num">' + sgn((Xb - Xa) * 1000, 1) + '</td><td class="num">' + sgn((Yb - Ya) * 1000, 1) + '</td>' +
+        '<td class="num">' + (r.ref ? '–' : sgn(dgX * 1000, 1)) + '</td><td class="num">' + (r.ref ? '–' : sgn(dgY * 1000, 1)) + '</td></tr>';
+    }).join('');
+    return '<table class="mdg-table"><thead><tr><th>Point</th><th class="num">Temp A / B (&deg;C)</th>' +
+      '<th class="num">Size diff. X, B&minus;A (&micro;m)</th><th class="num">Size diff. Y, B&minus;A (&micro;m)</th>' +
+      '<th class="num">Differential growth X (&micro;m)</th><th class="num">Differential growth Y (&micro;m)</th></tr></thead><tbody>' +
+      rows + '</tbody></table>';
+  }
+
+  function renderDiagram(a, b) {
+    var g = el('te-group');
+    var sets = [a].concat(b ? [b] : []);
+    var all = [];
+    sets.forEach(function (s) { all.push(Math.abs(strain(s, s.t1)), Math.abs(strain(s, s.t2))); });
+    var maxE = Math.max.apply(null, all);
+    var wrap = el('diagram-fig');
+    if (!(a.x > 0) || !(a.y > 0)) { wrap.style.display = 'none'; return; }
+    wrap.style.display = '';
+    var k = maxE > 0 ? 0.14 / maxE : 0;
+    var maxW = 190, maxH = 120, sc = Math.min(maxW / a.x, maxH / a.y);
+    var bw = a.x * sc, bh = a.y * sc, cx = 170, cy = 105;
+    function rect(e, stroke, w, dash, fill) {
+      var f = 1 + k * e, rw = bw * f, rh = bh * f;
+      return '<rect x="' + (cx - rw / 2) + '" y="' + (cy - rh / 2) + '" width="' + rw + '" height="' + rh + '" rx="1.5" fill="' + (fill || 'none') +
+        '" stroke="' + stroke + '" stroke-width="' + w + '"' + (dash ? ' stroke-dasharray="4,3"' : '') + '/>';
+    }
+    var out = rect(0, 'var(--mdg-text-muted)', 1.2, true);
+    sets.forEach(function (s, i) {
+      var col = i === 0 ? 'var(--col-a)' : 'var(--col-b)';
+      out += rect(strain(s, s.t2), col, 1.6, false, 'none');
+      out += rect(strain(s, s.t1), col, 1.1, false, 'none');
+    });
+    // legend
+    var ly = 208;
+    out += '<line x1="30" y1="' + ly + '" x2="52" y2="' + ly + '" stroke="var(--mdg-text-muted)" stroke-width="1.2" stroke-dasharray="4,3"/>' +
+      '<text x="57" y="' + (ly + 4) + '" font-size="11" fill="var(--mdg-text)">T0</text>' +
+      '<line x1="95" y1="' + ly + '" x2="117" y2="' + ly + '" stroke="var(--col-a)" stroke-width="1.6"/>' +
+      '<text x="122" y="' + (ly + 4) + '" font-size="11" fill="var(--mdg-text)">A (T1 inner, T2 outer if heating)</text>';
+    if (b) out += '<line x1="30" y1="' + (ly + 14) + '" x2="52" y2="' + (ly + 14) + '" stroke="var(--col-b)" stroke-width="1.6"/>' +
+      '<text x="57" y="' + (ly + 18) + '" font-size="11" fill="var(--mdg-text)">B (same outline order)</text>';
+    g.innerHTML = out;
+    el('te-caption').textContent = 'Outline at T₀ (dashed) and at T₁ / T₂' + (b ? ' for A and B' : '') +
+      ', drawn on A’s proportions with growth exaggerated — not to scale.';
+  }
+
+  function update() {
+    syncB();
+    var a = readSet('a');
+    var bOn = el('b-on').checked;
+    var b = bOn ? readSet('b') : null;
+    // custom CTE fields
+    el('a-custom-field').style.display = el('a-mat').value === CUSTOM_ID ? '' : 'none';
+    el('b-custom-field').style.display = el('b-mat').value === CUSTOM_ID ? '' : 'none';
+    [['a', a], ['b', b]].forEach(function (pr) {
+      var s = pr[1], n = el(pr[0] + '-cte-note');
+      if (!s) { n.innerHTML = ''; return; }
+      n.innerHTML = s.alpha != null ? ('&alpha; = <strong>' + fmt(s.alpha, 1) + '</strong> &micro;m/m&middot;K') : '';
+    });
+
+    var warns = '';
+    var okA = valid(a), okB = !bOn || valid(b);
+    if (!okA || !okB) {
+      warns = '<div class="warn">Enter valid non-negative dimensions, a non-negative CTE, and temperatures above absolute zero (&minus;273.15&nbsp;&deg;C) for ' +
+        (!okA ? 'material A' : 'material B') + '.</div>';
+    } else {
+      [a].concat(bOn ? [b] : []).forEach(function (s) {
+        var dt = Math.max(Math.abs(s.t1 - s.t0), Math.abs(s.t2 - s.t0));
+        if (dt > WIDE_DT) {
+          warns += '<div class="caution">' + (s.p === 'a' ? 'Material A' : 'Material B') + ': a temperature change of ' + fmt(dt, 0) +
+            '&nbsp;K is large for one mean coefficient &mdash; treat results as approximate<sup><a href="#ref1">1</a>,<a href="#ref2">2</a></sup>.</div>';
+        }
+      });
+    }
+    el('input-warnings').innerHTML = warns;
+
+    var tables = el('tables'), head = el('headline');
+    if (!okA || !okB) {
+      tables.innerHTML = ''; head.innerHTML = ''; el('diagram-fig').style.display = 'none';
+      el('compare-card').style.display = 'none';
+      return;
+    }
+    head.innerHTML = headlineFor(a, 'a', 'A') + (bOn ? headlineFor(b, 'b', 'B') : '');
+    tables.innerHTML = tableFor(a, 'a', 'A') + (bOn ? tableFor(b, 'b', 'B') : '');
+    renderDiagram(a, bOn ? b : null);
+    if (bOn) {
+      el('compare-card').style.display = '';
+      el('compare-table').innerHTML = compareTable(a, b);
+    } else {
+      el('compare-card').style.display = 'none';
+    }
+  }
+
+  function buildCteTable() {
+    var rows = '';
+    window.MDG_MATERIALS.types.forEach(function (t) {
+      var inType = cteGrades().filter(function (g) { return g.type === t.slug; });
+      inType.forEach(function (g, i) {
+        rows += '<tr><td>' + (i === 0 ? t.title : '') + '</td><td>' + g.grade + '</td><td>' + g.condition +
+          '</td><td class="num">' + fmt(g.cte_um_per_mK, 1) + '</td></tr>';
+      });
+    });
+    el('cte-table').innerHTML = '<thead><tr><th>Type</th><th>Grade</th><th>Condition</th><th class="num">&alpha; (&micro;m/m&middot;K)</th></tr></thead><tbody>' + rows + '</tbody>';
+  }
+
+  populateMaterial('a-mat', 'al-6061-t6');
+  populateMaterial('b-mat', 'steel-1045-cd');
+  buildCteTable();
+  document.querySelectorAll('main input, main select').forEach(function (n) {
+    n.addEventListener('input', update);
+    n.addEventListener('change', update);
+  });
+  update();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  function current(){
+    var t = document.documentElement.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  function apply(state){
+    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', state); }
+    try {
+      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
+      else { localStorage.setItem('mdg-theme', state); }
+    } catch (e) {}
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  if (btn) {
+    btn.textContent = LABELS[current()];
+    btn.addEventListener('click', function(){
+      var idx = STATES.indexOf(current());
+      apply(STATES[(idx + 1) % STATES.length]);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  // Legibility floor: never shrink below this, even if that means the page then
+  // spills onto a 2nd (or 3rd) sheet. A handful of very long pages (e.g. the
+  // Material Library table, the O-Ring groove-design page) would otherwise need
+  // to zoom out well below half size to fit a single sheet, which prints too
+  // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
+  var MIN_SCALE = 0.65;
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
+</body>
+</html>

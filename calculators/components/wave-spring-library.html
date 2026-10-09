@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<title>Wave Spring Library — Machine Design Guides</title>
+<style>
+  /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #7a6a2e;
+    --mdg-accent-soft: rgba(122, 106, 46, 0.10);
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --poor: #b5484d; --good: #2e7d4f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent-soft: rgba(122, 106, 46, 0.26);
+      --poor: #e0696d; --good: #5cc28a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent-soft: rgba(122, 106, 46, 0.26);
+    --poor: #e0696d; --good: #5cc28a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); flex-wrap: wrap; }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .mdg-card h2 { margin: 0 0 0.75rem; font-size: 1.05rem; }
+  .mdg-card h3 { margin: 0.9rem 0 0.4rem; font-size: 0.92rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); line-height: 1.5; }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.35rem 0.55rem; text-align: left; font-size: 0.84rem; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  table.mdg-table td.num, table.mdg-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.mdg-table tr.current td { font-weight: 600; background: var(--mdg-accent-soft); }
+  table.pick tbody tr { cursor: pointer; }
+  table.pick tbody tr:hover td { background: var(--mdg-accent-soft); }
+  table.mdg-table thead th { position: sticky; top: 0; z-index: 1; }
+  .scroll { max-height: 420px; overflow: auto; border: 1px solid var(--mdg-border); border-radius: 6px; }
+  .scroll table.mdg-table th, .scroll table.mdg-table td { border-top: 0; }
+  td.sym { font-style: italic; color: var(--mdg-text-muted); width: 4.2rem; white-space: nowrap; }
+  .note { font-size: 0.8rem; color: var(--mdg-text-muted); margin: 0.6rem 0 0; }
+  .lbl { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; }
+  select, input[type=number], input[type=text] { font-family: var(--mdg-font); font-size: 0.9rem; padding: 0.4rem 0.55rem;
+    border: 1px solid var(--mdg-border); border-radius: 6px; background: var(--mdg-bg); color: var(--mdg-text); }
+  input[type=number] { width: 6.5rem; }
+  .field { display: flex; flex-direction: column; }
+  .input-row { display: flex; align-items: center; gap: 0.4rem; }
+  .input-row input { flex: 0 1 auto; min-width: 0; }
+  .input-row .unit { font-size: 0.85rem; color: var(--mdg-text-muted); white-space: nowrap; }
+  .row { display: flex; gap: 1.1rem; flex-wrap: wrap; align-items: flex-end; margin-top: 0.8rem; }
+  .row:first-of-type { margin-top: 0; }
+  .seg { display: inline-flex; border: 1px solid var(--mdg-border); border-radius: 6px; overflow: hidden; flex-wrap: wrap; }
+  .seg button { padding: 0.4rem 0.7rem; font-size: 0.84rem; border: 0; border-right: 1px solid var(--mdg-border);
+    background: var(--mdg-bg); color: var(--mdg-text); cursor: pointer; font-family: var(--mdg-font); }
+  .seg button:last-child { border-right: 0; }
+  .seg button.on { background: var(--mdg-accent); color: #fff; }
+  .chk { font-size: 0.85rem; display: inline-flex; gap: 0.35rem; align-items: center; }
+  .count { font-size: 0.82rem; color: var(--mdg-text-muted); margin: 0 0 0.5rem; }
+  .designation { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    border-left: 4px solid var(--mdg-accent); padding-left: 0.9rem; }
+  .designation .big { font-size: 1.3rem; font-weight: 700; }
+  .designation .sub { font-size: 0.85rem; color: var(--mdg-text-muted); margin-top: 0.2rem; }
+  .designation a { color: var(--mdg-accent); font-size: 0.82rem; }
+  .kpis { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .kpi { border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.45rem 0.75rem; min-width: 110px; background: var(--mdg-bg); }
+  .kpi b { display: block; font-family: var(--mdg-font-mono); font-size: 1.0rem; font-weight: 600; }
+  .kpi span { font-size: 0.72rem; color: var(--mdg-text-muted); }
+  .warn { background: rgba(181,72,77,0.10); border: 1px solid var(--poor); border-radius: 6px;
+    padding: 0.5rem 0.75rem; font-size: 0.83rem; margin-top: 0.6rem; }
+  .info { background: var(--mdg-accent-soft); border: 1px solid var(--mdg-border); border-radius: 6px;
+    padding: 0.5rem 0.75rem; font-size: 0.83rem; margin-top: 0.6rem; }
+  .ok { color: var(--good); font-weight: 600; } .bad { color: var(--poor); font-weight: 600; }
+  .muted { color: var(--mdg-text-muted); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .grid-2 > .mdg-card { margin-bottom: 0; }
+  @media (max-width: 820px) { .grid-2 { grid-template-columns: 1fr; } }
+  .diagram svg { width: 100%; height: auto; display: block; max-height: 300px; }
+  .diagram text { font-family: var(--mdg-font); font-size: 12px; fill: var(--mdg-text); }
+  .diagram .dim { stroke: var(--mdg-accent); stroke-width: 1; fill: none; }
+  .diagram .dimtxt { fill: var(--mdg-accent); font-weight: 600; font-style: italic; }
+  .diagram .part { fill: var(--mdg-accent-soft); stroke: var(--mdg-text); stroke-width: 1.4; }
+  .diagram .solid { fill: var(--mdg-text-muted); stroke: var(--mdg-text); stroke-width: 1; opacity: 0.55; }
+  .diagram .env { fill: none; stroke: var(--mdg-text-muted); stroke-width: 1; }
+  .diagram .hatch { fill: url(#hatch); stroke: var(--mdg-text-muted); stroke-width: 1; }
+  .diagram .cl { stroke: var(--mdg-text-muted); stroke-width: 0.8; stroke-dasharray: 8 3 2 3; fill: none; }
+  .diagram .thin { stroke: var(--mdg-text-muted); stroke-width: 0.8; fill: none; }
+  .diagram .cap { fill: var(--mdg-text-muted); font-size: 11px; }
+  .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
+    background: var(--mdg-surface); margin: 0.75rem 0 0; }
+  .mdg-collapsible > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.65rem 0.9rem; font-size: 0.92rem; font-weight: 600; user-select: none; }
+  .mdg-collapsible > summary::-webkit-details-marker { display: none; }
+  .mdg-collapsible > summary::before { content: ''; flex: none; width: 0; height: 0;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+    border-left: 6px solid var(--mdg-text-muted); transition: transform 0.18s ease; }
+  .mdg-collapsible[open] > summary::before { transform: rotate(90deg); }
+  .mdg-collapsible > summary .hint { font-weight: 400; font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .mdg-collapsible-body { padding: 0 0.9rem 0.9rem; overflow-x: auto; }
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+  .ref-list li:target { color: var(--mdg-text); }
+  @media print {
+    .mdg-header, .mdg-no-print { display: none !important; }
+    .mdg-collapsible:not([open]) { display: block; }
+    .mdg-collapsible > summary::before { display: none; }
+    .mdg-collapsible-body { display: block !important; }
+    .scroll { max-height: none; overflow: visible; }
+  }
+  /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). */
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-collapsible,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .scroll { max-height: none; overflow: visible; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+      <strong>Wave Spring Library</strong>
+      <span class="mdg-tag">Components</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">Smalley catalogue data</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Wave Spring Library<span class="mdg-print-tag">Components</span></div>
+    <div class="mdg-print-meta">Smalley catalogue data &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+  <div class="mdg-card">
+    <p style="margin:0;">Smalley metric stock wave springs for housing bores of 19–280 mm. Enter the bore, the shaft
+      and the installed height range to get the spring load at each end of that range. Data comes from the shared
+      library <code>data/wave-springs_smalley.js</code>.</p>
+  </div>
+
+  <div class="mdg-card mdg-no-print">
+    <h2>1. Envelope and duty</h2>
+    <div class="row">
+      <div class="field"><label class="lbl" for="bore">Housing bore</label>
+        <div class="input-row"><input type="number" id="bore" step="1" value="47"><span class="unit">mm</span></div></div>
+      <div class="field"><label class="lbl" for="shaft">Shaft / inner part diameter</label>
+        <div class="input-row"><input type="number" id="shaft" step="1" value="35"><span class="unit">mm</span></div></div>
+      <div class="field"><label class="lbl" for="hmin">Installed height, min</label>
+        <div class="input-row"><input type="number" id="hmin" step="0.1" value="1.8"><span class="unit">mm</span></div></div>
+      <div class="field"><label class="lbl" for="hmax">Installed height, max</label>
+        <div class="input-row"><input type="number" id="hmax" step="0.1" value="2.4"><span class="unit">mm</span></div></div>
+      <div class="field"><label class="lbl" for="Freq">Load required at max height</label>
+        <div class="input-row"><input type="number" id="Freq" step="10" value="100"><span class="unit">N</span></div></div>
+    </div>
+    <div class="row">
+      <div><span class="lbl">Spring type</span><div class="seg" id="kind-seg"></div></div>
+      <div class="field"><label class="lbl" for="mat-sel">Material</label><select id="mat-sel"></select></div>
+    </div>
+    <p class="note" id="env-note"></p>
+  </div>
+
+  <div class="mdg-card">
+    <h2>2. Springs for this bore</h2>
+    <p class="count" id="count"></p>
+    <div class="scroll"><table class="mdg-table pick" id="results"></table></div>
+    <p class="note" id="res-note"></p>
+  </div>
+
+  <div class="grid-2">
+    <div class="mdg-card diagram">
+      <h2>3. Geometry</h2>
+      <div id="diagram"></div>
+      <p class="note">Schematic, not to scale.</p>
+    </div>
+    <div class="mdg-card">
+      <h2>4. Selected spring</h2>
+      <div class="designation" style="margin-bottom:0.6rem;"><div><div class="big" id="des-main">–</div><div class="sub" id="des-sub">–</div></div></div>
+      <table class="mdg-table"><tbody id="sel-body"></tbody></table>
+      <p class="note" id="sel-note"></p>
+    </div>
+  </div>
+
+  <div class="mdg-card">
+    <h2>5. Design equations</h2>
+    <table class="mdg-table"><tbody id="eq-body"></tbody></table>
+    <p class="note" id="eq-note"></p>
+  </div>
+
+  <div class="mdg-card mdg-footer">
+    <p><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li>No governing standard for wave springs — catalogue values and design equations are the supplier's (Smalley).</li>
+    </ul>
+    <p>Free height and spring rate are Smalley reference/theoretical values; confirm loads with Smalley for critical preload applications.</p>
+
+    <p style="margin-top:0.75rem;"><strong>References</strong></p>
+    <ol class="ref-list" id="ref-list"></ol>
+
+    <p>Last updated: 2026-10-07 &middot; Rev 3</p>
+  </div>
+
+</main>
+
+<script src="../../data/wave-springs_smalley.js"></script>
+<script>
+(function () {
+  var L = window.MDG_WAVE_SPRINGS_SMALLEY;
+  if (!L) { document.querySelector('main').insertAdjacentHTML('afterbegin',
+    '<div class="warn">data/wave-springs_smalley.js could not be loaded — this page needs the shared wave spring library.</div>'); return; }
+
+  // ---------- shared helpers ----------
+  function $(id) { return document.getElementById(id); }
+  function trim(v, dp) { if (v === null || v === undefined || v === '') return '–'; if (typeof v !== 'number') return v;
+    return String(+v.toFixed(dp === undefined ? 3 : dp)); }
+  function grp(v) { if (v === null || v === undefined) return '–'; return Number(v).toLocaleString('en-GB'); }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function num(id) { var v = parseFloat($(id).value); return isNaN(v) ? null : v; }
+  function hdim(x1, x2, y, label) {
+    return '<path class="dim" d="M' + x1 + ' ' + y + ' H' + x2 + ' M' + x1 + ' ' + (y - 5) + ' V' + (y + 5) +
+      ' M' + x2 + ' ' + (y - 5) + ' V' + (y + 5) + '"/><text class="dimtxt" text-anchor="middle" x="' + ((x1 + x2) / 2) +
+      '" y="' + (y - 5) + '">' + label + '</text>';
+  }
+  function vdim(x, y1, y2, label, side) {
+    return '<path class="dim" d="M' + x + ' ' + y1 + ' V' + y2 + ' M' + (x - 5) + ' ' + y1 + ' H' + (x + 5) +
+      ' M' + (x - 5) + ' ' + y2 + ' H' + (x + 5) + '"/><text class="dimtxt" text-anchor="' + (side < 0 ? 'end' : 'start') +
+      '" x="' + (x + side * 8) + '" y="' + ((y1 + y2) / 2 + 4) + '">' + label + '</text>';
+  }
+  var HATCH = '<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">' +
+    '<line x1="0" y1="0" x2="0" y2="6" style="stroke:var(--mdg-text-muted);stroke-width:1"/></pattern></defs>';
+  function renderRefs(order, sources) {
+    $('ref-list').innerHTML = order.map(function (k, i) {
+      var s = sources[k];
+      return '<li id="ref' + (i + 1) + '"><a href="' + s.url + '" target="_blank" rel="noopener">' + s.label +
+        '</a> — ' + s.domain + ' (' + s.backs + ').</li>';
+    }).join('');
+  }
+  function makeCite(order) {
+    return function (keys) {
+      return '<sup>' + keys.map(function (k) { var n = order.indexOf(k) + 1; return '<a href="#ref' + n + '">' + n + '</a>'; }).join(',') + '</sup>';
+    };
+  }
+
+  var REF_ORDER = ['smalley_search', 'smalley_mat', 'smalley_part', 'smalley_perf', 'smalley_multiturn'];
+  var cite = makeCite(REF_ORDER);
+  renderRefs(REF_ORDER, L.sources);
+  var ROWS = L.springs.map(function (r) { var o = {}; L.columns.forEach(function (c, i) { o[c] = r[i]; }); return o; });
+  var KINDS = Object.keys(L.kinds);
+  var state = { kinds: KINDS.slice(), mat: 'carbon', sel: null };
+
+  // solid height: wire thickness x layers (turns, plus shim layers)
+  function Hs(s) { return s.t * (s.turns + s.shims); }
+  // load at installed height h, linear through the catalogue point (WH, F) with the reference rate k
+  function F(s, h) { if (h >= s.FH) return 0; return Math.max(0, s.F + s.k * (s.WH - h)); }
+  function assess(s) {
+    var hmin = num('hmin'), hmax = num('hmax'), Freq = num('Freq'), out = { why: [], Fmin: null, Fmax: null };
+    if (hmin === null || hmax === null) return out;
+    out.Fmax = F(s, hmin); out.Fmin = F(s, hmax);
+    if (hmax >= s.FH) out.why.push('no preload at max height (free height ' + trim(s.FH, 2) + ')');
+    if (hmin < 2 * Hs(s)) out.why.push('min height below linear range (2 × solid = ' + trim(2 * Hs(s), 2) + ')');
+    if (Freq !== null && out.Fmin < Freq) out.why.push('load at max height below required');
+    return out;
+  }
+  function renderControls() {
+    $('kind-seg').innerHTML = KINDS.map(function (k) {
+      return '<button type="button" data-k="' + k + '"' + (state.kinds.indexOf(k) >= 0 ? ' class="on"' : '') + ' title="' + esc(L.kinds[k].title) + '">' + k + '</button>'; }).join('');
+    $('mat-sel').innerHTML = Object.keys(L.materials).map(function (k) {
+      return '<option value="' + k + '"' + (k === state.mat ? ' selected' : '') + '>' + L.materials[k].name + '</option>'; }).join('');
+  }
+  function render() {
+    renderControls();
+    var bore = num('bore'), shaft = num('shaft');
+    var bores = {}; ROWS.forEach(function (s) { bores[s.Db] = 1; });
+    var match = ROWS.filter(function (s) { return bore !== null && Math.abs(s.Db - bore) < 0.01 && state.kinds.indexOf(s.kind) >= 0 && (shaft === null || s.Ds >= shaft); });
+    var near = '';
+    if (!match.length && bore !== null) {
+      var list = Object.keys(bores).map(Number).sort(function (a, b) { return Math.abs(a - bore) - Math.abs(b - bore); }).slice(0, 4).sort(function (a, b) { return a - b; });
+      near = ' No stock spring for this bore — nearest stock bores: ' + list.join(', ') + ' mm.';
+    }
+    var res = match.map(function (s) { return { s: s, a: assess(s) }; }).sort(function (x, y) {
+      return (x.a.why.length - y.a.why.length) || (x.a.Fmin === null ? 0 : y.a.Fmin - x.a.Fmin); });
+    $('count').textContent = match.length + ' springs fit this bore and clear the shaft; ' + res.filter(function (x) { return !x.a.why.length; }).length + ' meet the height and load duty.' + near;
+    var suf = L.materials[state.mat].suffix;
+    $('results').innerHTML = '<thead><tr><th>Part number</th><th>Type</th><th class="num">D<sub>b</sub></th><th class="num">D<sub>s</sub></th><th class="num">t</th><th class="num">b</th>' +
+      '<th class="num">Turns</th><th class="num">Waves</th><th class="num">FH</th><th class="num">WH</th><th class="num">F @ WH (N)</th><th class="num">k (N/mm)</th>' +
+      '<th class="num">F @ h max</th><th class="num">F @ h min</th><th>Status</th></tr></thead><tbody>' + res.map(function (x) {
+        var s = x.s, a = x.a;
+        return '<tr data-pn="' + s.pn + '"' + (s.pn === state.sel ? ' class="current"' : '') + '><td>' + s.pn + suf + '</td><td>' + s.kind + '</td><td class="num">' + trim(s.Db) + '</td><td class="num">' + trim(s.Ds) +
+          '</td><td class="num">' + trim(s.t) + '</td><td class="num">' + trim(s.b) + '</td><td class="num">' + s.turns + (s.shims ? ' +' + s.shims + 'sh' : '') + '</td><td class="num">' + s.waves +
+          '</td><td class="num">' + trim(s.FH, 2) + '</td><td class="num">' + trim(s.WH, 2) + '</td><td class="num">' + trim(s.F, 1) + '</td><td class="num">' + trim(s.k, 1) +
+          '</td><td class="num">' + (a.Fmin === null ? '–' : trim(a.Fmin, 0)) + '</td><td class="num">' + (a.Fmax === null ? '–' : trim(a.Fmax, 0)) + '</td><td>' +
+          (a.why.length ? '<span class="bad">' + a.why.join('; ') + '</span>' : '<span class="ok">OK</span>') + '</td></tr>';
+      }).join('') + '</tbody>';
+    $('res-note').innerHTML = 'Catalogue data from Smalley' + cite(['smalley_search', 'smalley_part']) + '. Load at height h is extrapolated from the catalogue point: F = F<sub>WH</sub> + k·(WH − h), with Smalley\'s reference rate k. ' +
+      'Smalley treats the rate as linear only down to 2 × solid height' + cite(['smalley_perf']) + '.';
+    $('env-note').innerHTML = 'Installed height range = the axial gap at the tightest and loosest tolerance (and temperature) condition. Part numbers are material-neutral: carbon steel as listed, "-S17" for 17-7 PH stainless' + cite(['smalley_search', 'smalley_mat']) + '.';
+    if (!state.sel || !res.some(function (x) { return x.s.pn === state.sel; })) state.sel = res.length ? res[0].s.pn : null;
+    renderSel();
+  }
+  function renderSel() {
+    var s = ROWS.filter(function (x) { return x.pn === state.sel; })[0];
+    if (!s) { $('des-main').textContent = '–'; $('des-sub').textContent = 'No spring selected'; $('sel-body').innerHTML = ''; diagram(null); return; }
+    var a = assess(s), suf = L.materials[state.mat].suffix;
+    $('des-main').textContent = s.pn + suf;
+    $('des-sub').textContent = L.kinds[s.kind].title + ' · ' + L.materials[state.mat].name;
+    var OD = s.Ds + 2 * s.b, rows = [
+      ['D<sub>b</sub>', 'Operates in bore', trim(s.Db), 'mm'], ['D<sub>s</sub>', 'Clears shaft (spring ID)', trim(s.Ds), 'mm'],
+      ['OD', 'Spring OD ≈ D<sub>s</sub> + 2b (calculated)', trim(OD, 2), 'mm'], ['b', 'Radial wall', trim(s.b), 'mm'], ['t', 'Wire thickness', trim(s.t), 'mm'],
+      ['N', 'Waves per turn', s.waves, ''], ['Z', 'Turns' + (s.shims ? ' (+ shim ends)' : ''), s.turns + (s.shims ? ' + ' + s.shims : ''), ''],
+      ['FH', 'Free height (reference)', trim(s.FH, 2), 'mm'], ['WH', 'Work height', trim(s.WH, 2), 'mm'], ['F', 'Load at WH', trim(s.F, 1), 'N'],
+      ['k', 'Spring rate (reference)', trim(s.k, 2), 'N/mm'], ['H<sub>s</sub>', 'Solid height ≈ t × layers (calculated)', trim(Hs(s), 2), 'mm']];
+    if (a.Fmin !== null) rows.push(['', 'Load at installed max / min height', trim(a.Fmin, 0) + ' / ' + trim(a.Fmax, 0), 'N']);
+    $('sel-body').innerHTML = rows.map(function (r) { return '<tr><td class="sym">' + r[0] + '</td><td>' + r[1] + (r[3] ? ' (' + r[3] + ')' : '') + '</td><td class="num">' + r[2] + '</td></tr>'; }).join('');
+    var m = L.materials[state.mat];
+    $('sel-note').innerHTML = 'OD and solid height are derived here, not Smalley values. ' + (m.Tmax_C ? m.name + ' keeps its spring properties to ' + m.Tmax_C + ' °C' + cite(['smalley_mat']) + '.' : '');
+    diagram(s, a);
+  }
+  function diagram(s, a) {
+    if (!s) { $('diagram').innerHTML = ''; return; }
+    var x0 = 60, x1 = 330, yb = 200, hp = Math.min(140, 22 * s.FH), ytop = yb - hp, layers = s.turns + s.shims, sv = '';
+    sv += '<path class="hatch" d="M30 ' + yb + ' H360 V' + (yb + 16) + ' H30 Z" opacity="0.5"/>';
+    var lh = hp / Math.max(layers, 1);
+    for (var i = 0; i < layers; i++) {
+      var y0 = yb - i * lh - lh / 2, amp = lh / 2 - 1, path = '';
+      var isShim = s.shims && (i === 0 || i === layers - 1);
+      for (var x = x0; x <= x1; x += 3) { var ph = (x - x0) / (x1 - x0) * Math.PI * 2 * Math.min(s.waves, 6) + (i % 2 ? Math.PI : 0);
+        path += (x === x0 ? 'M' : 'L') + x + ' ' + (isShim ? y0 : (y0 + amp * Math.sin(ph))).toFixed(1); }
+      sv += '<path d="' + path + '" style="fill:none;stroke:var(--mdg-accent);stroke-width:2"/>';
+    }
+    sv += vdim(x1 + 24, ytop, yb, 'FH', 1);
+    sv += hdim(x0, x1, ytop - 16, 'D<tspan font-size="9" baseline-shift="sub">b</tspan> (OD side) / D<tspan font-size="9" baseline-shift="sub">s</tspan> (ID side)');
+    sv += '<text class="cap" x="30" y="' + (yb + 34) + '">' + s.waves + ' waves/turn · ' + layers + ' layer' + (layers > 1 ? 's' : '') + (s.shims ? ' incl. shim ends' : '') + '</text>';
+    $('diagram').innerHTML = '<svg viewBox="0 0 400 250" role="img" aria-label="Wave spring side-view schematic">' + sv + '</svg>';
+  }
+  function statics() {
+    var d = L.design;
+    $('eq-body').innerHTML = [['Deflection, crest-to-crest', d.deflection], ['Operating stress', d.stress],
+      ['Multiple-wave factor K', d.K.map(function (r) { return 'N ' + r[0] + '–' + (r[1] > 50 ? '+' : r[1]) + ': ' + r[2]; }).join(' · ')],
+      ['Stress limit', '≤ ' + d.maxStressFrac.static * 100 + ' % of min. tensile strength (static), ≤ ' + d.maxStressFrac.dynamic * 100 + ' % (dynamic)'],
+      ['Linear range', d.linearRange]].map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('');
+    $('eq-note').innerHTML = 'Equations and K from Smalley' + cite(['smalley_multiturn']) + '; limits from Smalley' + cite(['smalley_perf']) +
+      '. Stored in the library for the Shaft Design Guide; this page uses the catalogue rate instead.';
+  }
+  $('kind-seg').addEventListener('click', function (e) { var b = e.target.closest('[data-k]'); if (!b) return; var k = b.getAttribute('data-k'), i = state.kinds.indexOf(k);
+    if (i >= 0) { if (state.kinds.length > 1) state.kinds.splice(i, 1); } else state.kinds.push(k); render(); });
+  $('mat-sel').addEventListener('change', function () { state.mat = this.value; render(); });
+  ['bore', 'shaft', 'hmin', 'hmax', 'Freq'].forEach(function (id) { $(id).addEventListener('input', render); });
+  $('results').addEventListener('click', function (e) { var tr = e.target.closest('tr[data-pn]'); if (!tr) return; state.sel = tr.getAttribute('data-pn'); render(); });
+  window.__mdgWaveState = state; window.__mdgWaveRender = render;
+  statics(); render();
+})();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  function current(){
+    var t = document.documentElement.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  function apply(state){
+    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', state); }
+    try {
+      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
+      else { localStorage.setItem('mdg-theme', state); }
+    } catch (e) {}
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  if (btn) {
+    btn.textContent = LABELS[current()];
+    btn.addEventListener('click', function(){
+      var idx = STATES.indexOf(current());
+      apply(STATES[(idx + 1) % STATES.length]);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var MIN_SCALE = 0.65;   // legibility floor — see conventions doc ("Save as PDF")
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
+</body>
+</html>

@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<title>Lock Nut Library — Machine Design Guides</title>
+<style>
+  /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #7a6a2e;
+    --mdg-accent-soft: rgba(122, 106, 46, 0.10);
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --poor: #b5484d; --good: #2e7d4f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent-soft: rgba(122, 106, 46, 0.26);
+      --poor: #e0696d; --good: #5cc28a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent-soft: rgba(122, 106, 46, 0.26);
+    --poor: #e0696d; --good: #5cc28a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); flex-wrap: wrap; }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .mdg-card h2 { margin: 0 0 0.75rem; font-size: 1.05rem; }
+  .mdg-card h3 { margin: 0.9rem 0 0.4rem; font-size: 0.92rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); line-height: 1.5; }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.35rem 0.55rem; text-align: left; font-size: 0.84rem; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  table.mdg-table td.num, table.mdg-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.mdg-table tr.current td { font-weight: 600; background: var(--mdg-accent-soft); }
+  table.pick tbody tr { cursor: pointer; }
+  table.pick tbody tr:hover td { background: var(--mdg-accent-soft); }
+  table.mdg-table thead th { position: sticky; top: 0; z-index: 1; }
+  .scroll { max-height: 420px; overflow: auto; border: 1px solid var(--mdg-border); border-radius: 6px; }
+  .scroll table.mdg-table th, .scroll table.mdg-table td { border-top: 0; }
+  td.sym { font-style: italic; color: var(--mdg-text-muted); width: 4.2rem; white-space: nowrap; }
+  .note { font-size: 0.8rem; color: var(--mdg-text-muted); margin: 0.6rem 0 0; }
+  .lbl { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; }
+  select, input[type=number], input[type=text] { font-family: var(--mdg-font); font-size: 0.9rem; padding: 0.4rem 0.55rem;
+    border: 1px solid var(--mdg-border); border-radius: 6px; background: var(--mdg-bg); color: var(--mdg-text); }
+  input[type=number] { width: 6.5rem; }
+  .field { display: flex; flex-direction: column; }
+  .input-row { display: flex; align-items: center; gap: 0.4rem; }
+  .input-row input { flex: 0 1 auto; min-width: 0; }
+  .input-row .unit { font-size: 0.85rem; color: var(--mdg-text-muted); white-space: nowrap; }
+  .row { display: flex; gap: 1.1rem; flex-wrap: wrap; align-items: flex-end; margin-top: 0.8rem; }
+  .row:first-of-type { margin-top: 0; }
+  .seg { display: inline-flex; border: 1px solid var(--mdg-border); border-radius: 6px; overflow: hidden; flex-wrap: wrap; }
+  .seg button { padding: 0.4rem 0.7rem; font-size: 0.84rem; border: 0; border-right: 1px solid var(--mdg-border);
+    background: var(--mdg-bg); color: var(--mdg-text); cursor: pointer; font-family: var(--mdg-font); }
+  .seg button:last-child { border-right: 0; }
+  .seg button.on { background: var(--mdg-accent); color: #fff; }
+  .chk { font-size: 0.85rem; display: inline-flex; gap: 0.35rem; align-items: center; }
+  .count { font-size: 0.82rem; color: var(--mdg-text-muted); margin: 0 0 0.5rem; }
+  .designation { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    border-left: 4px solid var(--mdg-accent); padding-left: 0.9rem; }
+  .designation .big { font-size: 1.3rem; font-weight: 700; }
+  .designation .sub { font-size: 0.85rem; color: var(--mdg-text-muted); margin-top: 0.2rem; }
+  .designation a { color: var(--mdg-accent); font-size: 0.82rem; }
+  .kpis { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .kpi { border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.45rem 0.75rem; min-width: 110px; background: var(--mdg-bg); }
+  .kpi b { display: block; font-family: var(--mdg-font-mono); font-size: 1.0rem; font-weight: 600; }
+  .kpi span { font-size: 0.72rem; color: var(--mdg-text-muted); }
+  .warn { background: rgba(181,72,77,0.10); border: 1px solid var(--poor); border-radius: 6px;
+    padding: 0.5rem 0.75rem; font-size: 0.83rem; margin-top: 0.6rem; }
+  .info { background: var(--mdg-accent-soft); border: 1px solid var(--mdg-border); border-radius: 6px;
+    padding: 0.5rem 0.75rem; font-size: 0.83rem; margin-top: 0.6rem; }
+  .ok { color: var(--good); font-weight: 600; } .bad { color: var(--poor); font-weight: 600; }
+  .muted { color: var(--mdg-text-muted); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .grid-2 > .mdg-card { margin-bottom: 0; }
+  @media (max-width: 820px) { .grid-2 { grid-template-columns: 1fr; } }
+  .diagram svg { width: 100%; height: auto; display: block; max-height: 300px; }
+  .diagram text { font-family: var(--mdg-font); font-size: 12px; fill: var(--mdg-text); }
+  .diagram .dim { stroke: var(--mdg-accent); stroke-width: 1; fill: none; }
+  .diagram .dimtxt { fill: var(--mdg-accent); font-weight: 600; font-style: italic; }
+  .diagram .part { fill: var(--mdg-accent-soft); stroke: var(--mdg-text); stroke-width: 1.4; }
+  .diagram .solid { fill: var(--mdg-text-muted); stroke: var(--mdg-text); stroke-width: 1; opacity: 0.55; }
+  .diagram .env { fill: none; stroke: var(--mdg-text-muted); stroke-width: 1; }
+  .diagram .hatch { fill: url(#hatch); stroke: var(--mdg-text-muted); stroke-width: 1; }
+  .diagram .cl { stroke: var(--mdg-text-muted); stroke-width: 0.8; stroke-dasharray: 8 3 2 3; fill: none; }
+  .diagram .thin { stroke: var(--mdg-text-muted); stroke-width: 0.8; fill: none; }
+  .diagram .cap { fill: var(--mdg-text-muted); font-size: 11px; }
+  .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
+    background: var(--mdg-surface); margin: 0.75rem 0 0; }
+  .mdg-collapsible > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.65rem 0.9rem; font-size: 0.92rem; font-weight: 600; user-select: none; }
+  .mdg-collapsible > summary::-webkit-details-marker { display: none; }
+  .mdg-collapsible > summary::before { content: ''; flex: none; width: 0; height: 0;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+    border-left: 6px solid var(--mdg-text-muted); transition: transform 0.18s ease; }
+  .mdg-collapsible[open] > summary::before { transform: rotate(90deg); }
+  .mdg-collapsible > summary .hint { font-weight: 400; font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .mdg-collapsible-body { padding: 0 0.9rem 0.9rem; overflow-x: auto; }
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+  .ref-list li:target { color: var(--mdg-text); }
+  @media print {
+    .mdg-header, .mdg-no-print { display: none !important; }
+    .mdg-collapsible:not([open]) { display: block; }
+    .mdg-collapsible > summary::before { display: none; }
+    .mdg-collapsible-body { display: block !important; }
+    .scroll { max-height: none; overflow: visible; }
+  }
+  /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). */
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-collapsible,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .scroll { max-height: none; overflow: visible; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+      <strong>Lock Nut Library</strong>
+      <span class="mdg-tag">Components</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">SKF catalogue data &middot; ISO 2982-2 / DIN 981</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Lock Nut Library<span class="mdg-print-tag">Components</span></div>
+    <div class="mdg-print-meta">SKF catalogue data &middot; ISO 2982-2 / DIN 981 &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+  <div class="mdg-card">
+    <p style="margin:0;">SKF lock nuts M10–M60 for locating bearings and hubs on a shaft: KM nuts with MB tab washers,
+      KMFE nuts with an integral locking screw, and KMT precision nuts. Data comes from the shared library
+      <code>data/locknuts_skf.js</code>.</p>
+  </div>
+
+  <div class="mdg-card mdg-no-print">
+    <h2>1. Selection</h2>
+    <div class="row">
+      <div class="field"><label class="lbl" for="size-sel">Thread</label><select id="size-sel"></select></div>
+      <div><span class="lbl">Nut series</span><div class="seg" id="series-seg"></div></div>
+    </div>
+    <p class="note" id="sel-note"></p>
+  </div>
+
+  <div class="mdg-card">
+    <h2>2. Summary</h2>
+    <div class="designation">
+      <div><div class="big" id="des-main">–</div><div class="sub" id="des-sub">–</div></div>
+      <div class="kpis" id="kpis"></div>
+    </div>
+    <div id="flags"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="mdg-card diagram">
+      <h2>3. Geometry</h2>
+      <div id="diagram"></div>
+      <p class="note">Schematic, not to scale — defines the symbols in sections 4 and 5.</p>
+    </div>
+    <div class="mdg-card">
+      <h2>4. Nut dimensions</h2>
+      <table class="mdg-table"><tbody id="nut-body"></tbody></table>
+      <p class="note" id="nut-note"></p>
+    </div>
+  </div>
+
+  <div class="mdg-card" id="washer-card">
+    <h2>5. MB lock washer and shaft slot</h2>
+    <table class="mdg-table"><tbody id="washer-body"></tbody></table>
+    <p class="note" id="washer-note"></p>
+  </div>
+
+  <div class="mdg-card">
+    <h2>6. Reference tables</h2>
+    <details class="mdg-collapsible"><summary>KM lock nuts <span class="hint">all sizes M10–M60</span></summary>
+      <div class="mdg-collapsible-body"><table class="mdg-table" id="t-KM"></table></div></details>
+    <details class="mdg-collapsible"><summary>MB lock washers <span class="hint">all sizes, with shaft-slot dimensions</span></summary>
+      <div class="mdg-collapsible-body"><table class="mdg-table" id="t-MB"></table></div></details>
+    <details class="mdg-collapsible"><summary>KMFE lock nuts <span class="hint">integral locking screw, M20–M60</span></summary>
+      <div class="mdg-collapsible-body"><table class="mdg-table" id="t-KMFE"></table></div></details>
+    <details class="mdg-collapsible"><summary>KMT precision lock nuts <span class="hint">locking pins, M10–M60</span></summary>
+      <div class="mdg-collapsible-body"><table class="mdg-table" id="t-KMT"></table></div></details>
+  </div>
+
+  <div class="mdg-card mdg-footer">
+    <p><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li><strong>ISO 2982-2</strong> — Rolling bearings — Accessories — Part 2: Locknuts and locking devices — Dimensions</li>
+      <li><strong>DIN 981</strong> — Rolling bearings — Locknuts</li>
+      <li><strong>DIN 5406</strong> — Rolling bearings — Lock washers and locking clips</li>
+      <li><strong>ISO 965-1</strong> — ISO general purpose metric screw threads — Tolerances</li>
+    </ul>
+    <p>This page reproduces SKF catalogue data, not the standards' own tables. For conformance-critical work refer to the standard and the current SKF page.</p>
+
+    <p style="margin-top:0.75rem;"><strong>References</strong></p>
+    <ol class="ref-list" id="ref-list"></ol>
+
+    <p>Last updated: 2026-10-07 &middot; Rev 2</p>
+  </div>
+
+</main>
+
+<script src="../../data/locknuts_skf.js"></script>
+<script>
+(function () {
+  var L = window.MDG_LOCKNUTS_SKF;
+  if (!L) { document.querySelector('main').insertAdjacentHTML('afterbegin',
+    '<div class="warn">data/locknuts_skf.js could not be loaded — this page needs the shared lock nut library.</div>'); return; }
+
+  // ---------- shared helpers ----------
+  function $(id) { return document.getElementById(id); }
+  function trim(v, dp) { if (v === null || v === undefined || v === '') return '–'; if (typeof v !== 'number') return v;
+    return String(+v.toFixed(dp === undefined ? 3 : dp)); }
+  function grp(v) { if (v === null || v === undefined) return '–'; return Number(v).toLocaleString('en-GB'); }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function num(id) { var v = parseFloat($(id).value); return isNaN(v) ? null : v; }
+  function hdim(x1, x2, y, label) {
+    return '<path class="dim" d="M' + x1 + ' ' + y + ' H' + x2 + ' M' + x1 + ' ' + (y - 5) + ' V' + (y + 5) +
+      ' M' + x2 + ' ' + (y - 5) + ' V' + (y + 5) + '"/><text class="dimtxt" text-anchor="middle" x="' + ((x1 + x2) / 2) +
+      '" y="' + (y - 5) + '">' + label + '</text>';
+  }
+  function vdim(x, y1, y2, label, side) {
+    return '<path class="dim" d="M' + x + ' ' + y1 + ' V' + y2 + ' M' + (x - 5) + ' ' + y1 + ' H' + (x + 5) +
+      ' M' + (x - 5) + ' ' + y2 + ' H' + (x + 5) + '"/><text class="dimtxt" text-anchor="' + (side < 0 ? 'end' : 'start') +
+      '" x="' + (x + side * 8) + '" y="' + ((y1 + y2) / 2 + 4) + '">' + label + '</text>';
+  }
+  var HATCH = '<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">' +
+    '<line x1="0" y1="0" x2="0" y2="6" style="stroke:var(--mdg-text-muted);stroke-width:1"/></pattern></defs>';
+  function renderRefs(order, sources) {
+    $('ref-list').innerHTML = order.map(function (k, i) {
+      var s = sources[k];
+      return '<li id="ref' + (i + 1) + '"><a href="' + s.url + '" target="_blank" rel="noopener">' + s.label +
+        '</a> — ' + s.domain + ' (' + s.backs + ').</li>';
+    }).join('');
+  }
+  function makeCite(order) {
+    return function (keys) {
+      return '<sup>' + keys.map(function (k) { var n = order.indexOf(k) + 1; return '<a href="#ref' + n + '">' + n + '</a>'; }).join(',') + '</sup>';
+    };
+  }
+
+  var REF_ORDER = ['skf_km', 'skf_mb', 'skf_kmfe', 'skf_kmt'];
+  var cite = makeCite(REF_ORDER);
+  renderRefs(REF_ORDER, L.sources);
+  var REF_OF = { KM: 'skf_km', KMFE: 'skf_kmfe', KMT: 'skf_kmt' };
+  function series(id) { return L.series.filter(function (s) { return s.id === id; })[0]; }
+  function item(id, G) { return series(id).items.filter(function (x) { return x.G === G; })[0]; }
+  function washer(des) { return L.washers.filter(function (w) { return w.des === des; })[0]; }
+  var SIZES = series('KM').items.map(function (x) { return x.G; });
+  var state = { G: 30, s: 'KM' };
+
+  function renderSel() {
+    $('size-sel').innerHTML = series('KM').items.map(function (x) {
+      return '<option value="' + x.G + '"' + (x.G === state.G ? ' selected' : '') + '>' + x.thread + '</option>'; }).join('');
+    $('series-seg').innerHTML = L.series.map(function (s) {
+      var ok = !!item(s.id, state.G);
+      return '<button type="button" data-s="' + s.id + '"' + (s.id === state.s ? ' class="on"' : '') + (ok ? '' : ' disabled') + ' title="' + esc(s.title) + '">' + s.id + '</button>';
+    }).join('');
+    $('sel-note').textContent = series(state.s).title + '.';
+  }
+  function diagram(n, w) {
+    var s = HATCH, cx = 120, cy = 135, R = 95, r = R * (n.d1 / n.d3), rt = R * (n.G / n.d3);
+    // front view
+    s += '<circle class="part" cx="' + cx + '" cy="' + cy + '" r="' + R + '"/><circle cx="' + cx + '" cy="' + cy + '" r="' + rt + '" style="fill:var(--mdg-surface);stroke:var(--mdg-text);stroke-width:1.2"/>';
+    s += '<circle class="thin" cx="' + cx + '" cy="' + cy + '" r="' + (rt * 0.92) + '" stroke-dasharray="3 2"/>';
+    var bw = R * (n.b / n.d3) * 2, hh = R * (n.h / n.d3) * 2.2;
+    if (state.s !== 'KMT') for (var i = 0; i < 4; i++) {
+      s += '<rect x="' + (cx - bw / 2) + '" y="' + (cy - R - 1) + '" width="' + bw + '" height="' + (hh + 1) + '" style="fill:var(--mdg-surface);stroke:var(--mdg-text);stroke-width:1" transform="rotate(' + (i * 90) + ' ' + cx + ' ' + cy + ')"/>';
+    }
+    s += hdim(cx - R, cx + R, cy + R + 18, 'd<tspan font-size="9" baseline-shift="sub">3</tspan>');
+    s += hdim(cx - rt, cx + rt, cy + 4, 'G');
+    s += '<text class="dimtxt" x="' + (cx + bw / 2 + 4) + '" y="' + (cy - R + 12) + '">b × h</text>';
+    // side section
+    var x0 = 290, Bw = Math.max(26, 70 * n.B / 10);
+    if (Bw > 90) Bw = 90;
+    s += '<rect class="part" x="' + x0 + '" y="' + (cy - R) + '" width="' + Bw + '" height="' + (R - rt) + '"/>';
+    s += '<rect class="part" x="' + x0 + '" y="' + (cy + rt) + '" width="' + Bw + '" height="' + (R - rt) + '"/>';
+    s += '<path class="cl" d="M' + (x0 - 30) + ' ' + cy + ' H' + (x0 + Bw + 70) + '"/>';
+    s += hdim(x0, x0 + Bw, cy - R - 12, 'B');
+    if (w && state.s === 'KM') {
+      var tw = 6; s += '<rect class="solid" x="' + (x0 - tw) + '" y="' + (cy - R * (w.d2 / n.d3)) + '" width="' + tw + '" height="' + (R * (w.d2 / n.d3) - rt) + '"/>';
+      s += '<text class="cap" x="' + (x0 - 10) + '" y="' + (cy - R * (w.d2 / n.d3) - 4) + '" text-anchor="end">MB washer</text>';
+    }
+    $('diagram').innerHTML = '<svg viewBox="0 0 440 270" role="img" aria-label="Lock nut schematic">' +
+      '<text class="cap" x="20" y="16">Front view</text><text class="cap" x="270" y="16">Section</text>' + s + '</svg>';
+  }
+  var NUT_KEYS = ['thread', 'd3', 'd1', 'd4', 'd5', 'M', 'B', 'B3', 'b', 'h', 'Fax', 'spanner', 'washer', 'screw', 'screwTorque', 'm'];
+  function rowsFor(keys, obj, fields) {
+    return keys.filter(function (k) { return obj[k] !== undefined; }).map(function (k) {
+      var f = fields[k]; return '<tr><td class="sym">' + f[1] + '</td><td>' + f[0] + (f[2] ? ' (' + f[2] + ')' : '') + '</td><td class="num">' + trim(obj[k]) + '</td></tr>';
+    }).join('');
+  }
+  function render() {
+    if (!item(state.s, state.G)) state.s = 'KM';
+    renderSel();
+    var n = item(state.s, state.G), w = n.washer ? washer(n.washer) : washer('MB ' + n.des.split(' ')[1]);
+    $('des-main').textContent = n.des + (state.s === 'KM' ? ' + ' + n.washer : '');
+    $('des-sub').textContent = series(state.s).title;
+    var kp = [[n.thread, 'Thread'], [trim(n.d3), 'Outside d₃ (mm)'], [trim(n.B), 'Width B (mm)'], [trim(n.Fax), 'Axial capacity (kN)']];
+    if (n.screwTorque) kp.push([trim(n.screwTorque), 'Screw torque (N·m)']);
+    $('kpis').innerHTML = kp.map(function (x) { return '<div class="kpi"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join('');
+    var fl = [];
+    if (state.s === 'KM') fl.push('<div class="info">Needs a slot in the shaft for the washer tab — see section 5.</div>');
+    $('flags').innerHTML = fl.join('');
+    diagram(n, w);
+    $('nut-body').innerHTML = rowsFor(NUT_KEYS, n, L.fields);
+    $('nut-note').innerHTML = 'SKF product data' + cite([REF_OF[state.s]]) + '. Axial capacity is the nut\'s static load limit; screw torque is for the locking screw only, not the nut.';
+    $('washer-card').style.display = state.s === 'KM' ? '' : 'none';
+    if (state.s === 'KM') {
+      $('washer-body').innerHTML = rowsFor(['d', 'd1', 'd2', 'B', 'f', 'M', 'm'], w, L.washerFields) +
+        '<tr><td class="sym">—</td><td>Shaft slot: width ≥ f, depth to M (mm)</td><td class="num">' + trim(w.f) + ' wide, ' + trim(+(w.d - w.M).toFixed(2)) + ' deep</td></tr>';
+      $('washer-note').innerHTML = 'Washer data from SKF' + cite(['skf_mb']) + '. The slot row is derived from f and M (depth = d − M); check against your drawing standard.';
+    }
+  }
+  function tables() {
+    function t(id, rows, keys, fields) {
+      $(id).innerHTML = '<thead><tr><th>Designation</th>' + keys.map(function (k) { return '<th class="num">' + (fields[k][1] || fields[k][0]) + '</th>'; }).join('') +
+        '</tr></thead><tbody>' + rows.map(function (x) { return '<tr><td>' + x.des + '</td>' + keys.map(function (k) { return '<td class="num">' + trim(x[k]) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody>';
+    }
+    t('t-KM', series('KM').items, ['thread', 'd3', 'd1', 'B', 'b', 'h', 'Fax', 'washer', 'spanner', 'm'], L.fields);
+    t('t-MB', L.washers, ['d', 'd1', 'd2', 'B', 'f', 'M', 'm'], L.washerFields);
+    t('t-KMFE', series('KMFE').items, ['thread', 'd3', 'd1', 'B', 'B3', 'b', 'h', 'Fax', 'screw', 'screwTorque', 'm'], L.fields);
+    t('t-KMT', series('KMT').items, ['thread', 'd3', 'd1', 'd4', 'd5', 'M', 'B', 'b', 'h', 'Fax', 'screw', 'screwTorque', 'm'], L.fields);
+  }
+  $('size-sel').addEventListener('change', function () { state.G = +this.value; render(); });
+  $('series-seg').addEventListener('click', function (e) { var b = e.target.closest('[data-s]'); if (!b || b.disabled) return; state.s = b.getAttribute('data-s'); render(); });
+  window.__mdgLocknutState = state; window.__mdgLocknutRender = render;
+  tables(); render();
+})();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  function current(){
+    var t = document.documentElement.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  function apply(state){
+    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', state); }
+    try {
+      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
+      else { localStorage.setItem('mdg-theme', state); }
+    } catch (e) {}
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  if (btn) {
+    btn.textContent = LABELS[current()];
+    btn.addEventListener('click', function(){
+      var idx = STATES.indexOf(current());
+      apply(STATES[(idx + 1) % STATES.length]);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var MIN_SCALE = 0.65;   // legibility floor — see conventions doc ("Save as PDF")
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
+</body>
+</html>
