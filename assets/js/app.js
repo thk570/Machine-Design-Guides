@@ -5,6 +5,8 @@
 //
 // Categories and the cards within them are always rendered in alphabetical order (by title),
 // regardless of the order they're listed in manifest.js — that file's ordering doesn't matter.
+//
+// The header shows "Last updated: <date>" from manifest.updated (YYYY-MM-DD), set at each export.
 
 function mdgInit() {
   const manifest = window.MDG_MANIFEST;
@@ -15,8 +17,17 @@ function mdgInit() {
       '<code>data/</code> folder is still alongside this file.</div>';
     return;
   }
+  mdgShowUpdated(manifest.updated);
   mdgRender(manifest, '');
   document.getElementById('filter').addEventListener('input', (e) => mdgRender(manifest, e.target.value.toLowerCase()));
+}
+
+function mdgShowUpdated(iso) {
+  const el = document.getElementById('mdg-updated');
+  if (!el || !iso) return;
+  const d = new Date(iso + 'T00:00:00');
+  el.textContent = 'Last updated: ' + (isNaN(d) ? iso :
+    d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }));
 }
 
 function mdgRender(manifest, query) {

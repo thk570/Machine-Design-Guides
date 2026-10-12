@@ -363,8 +363,8 @@
   <div class="mdg-card mdg-footer" style="margin-bottom:0;">
     <h3 style="margin-top:0;">Applicable design standards</h3>
     <ul class="ref-list">
-      <li><a href="https://www.iso.org/standard/79088.html" target="_blank" rel="noopener">IEC 60664-1</a> — Insulation coordination for equipment within low-voltage systems — Part 1: Principles, requirements and tests</li>
       <li><a href="https://www.iso.org/standard/64992.html" target="_blank" rel="noopener">IEC 60112</a> — Method for the determination of the proof and the comparative tracking indices of solid insulating materials (defines the CTI values behind the material groups above)</li>
+      <li><a href="https://www.iso.org/standard/79088.html" target="_blank" rel="noopener">IEC 60664-1</a> — Insulation coordination for equipment within low-voltage systems — Part 1: Principles, requirements and tests</li>
     </ul>
     <p class="note" style="margin-top:0.5rem;">This page reproduces a subset of Annex F's tables (impulse
       voltage, clearance, altitude correction, creepage) for the single most common design path — it does not
@@ -385,7 +385,7 @@
       reconstructed from technical summaries and cross-checked across multiple independent industry sources
       rather than read directly from the standard's text — verify against a purchased copy before using these
       numbers on a certification-critical design.<br>
-      Last updated: 2026-09-21 &middot; Rev 1.</p>
+      Last updated: 2026-10-12 &middot; Rev 3.</p>
   </div>
 
 </main>
@@ -393,6 +393,8 @@
 <script src="../../data/materials.js"></script>
 <script>
 function fmt(n, d) { return n.toFixed(d); }
+// Natural (numeric-aware), case-insensitive ascending comparator — house rule: lists sorted alphanumerically.
+const NAT = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
 
 // ---------- Table F.1: rated impulse withstand voltage ----------
 const IMPULSE_TABLE = [
@@ -535,14 +537,14 @@ function populateSubstrateSelect() {
     const og = document.createElement('optgroup');
     og.label = GROUP_LABEL[g];
     if (libGrades.length) {
-      for (const m of libGrades.filter(x => x.cti_group === g)) {
+      for (const m of libGrades.filter(x => x.cti_group === g).sort((a, b) => NAT(a.grade, b.grade))) {
         const opt = document.createElement('option');
         opt.value = g;
         opt.textContent = m.grade;
         og.appendChild(opt);
       }
     } else {
-      for (const m of FALLBACK_SUBSTRATE_MATERIALS.filter(x => x.group === g)) {
+      for (const m of FALLBACK_SUBSTRATE_MATERIALS.filter(x => x.group === g).sort((a, b) => NAT(a.name, b.name))) {
         const opt = document.createElement('option');
         opt.value = g;
         opt.textContent = m.name;
@@ -559,8 +561,8 @@ function populateSubstrateSelect() {
 
 // ---------- Material-group input mode pills ----------
 const MATERIAL_MODES = [
-  { id: 'known', label: 'Material group known' },
   { id: 'lookup', label: 'Look up by substrate material' },
+  { id: 'known', label: 'Material group known' },
 ];
 let materialMode = 'known';
 const materialModePillRow = document.getElementById('material-mode-pills');
@@ -591,8 +593,8 @@ function getEffectiveMaterialGroup() {
 
 // ---------- Insulation level pills ----------
 const INSULATION_LEVELS = [
-  { id: 'functional', label: 'Functional' },
   { id: 'basic', label: 'Basic / Supplementary' },
+  { id: 'functional', label: 'Functional' },
   { id: 'reinforced', label: 'Reinforced' },
 ];
 let insulationLevel = 'basic';
@@ -794,5 +796,6 @@ update();
   });
 })();
 </script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
 </body>
 </html>

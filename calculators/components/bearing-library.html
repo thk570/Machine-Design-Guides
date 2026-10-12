@@ -252,11 +252,11 @@
     <p><strong>Applicable design standards</strong></p>
     <ul class="ref-list">
       <li><strong>ISO 15</strong> — Rolling bearings — Radial bearings — Boundary dimensions, general plan</li>
-      <li><strong>ISO 104</strong> — Rolling bearings — Thrust bearings — Boundary dimensions, general plan</li>
-      <li><strong>ISO 281</strong> — Rolling bearings — Dynamic load ratings and rating life</li>
       <li><strong>ISO 76</strong> — Rolling bearings — Static load ratings</li>
-      <li><strong>ISO 492</strong> — Rolling bearings — Radial bearings — Geometrical product specifications (GPS) and tolerance values</li>
+      <li><strong>ISO 104</strong> — Rolling bearings — Thrust bearings — Boundary dimensions, general plan</li>
       <li><strong>ISO 199</strong> — Rolling bearings — Thrust bearings — Geometrical product specifications (GPS) and tolerance values</li>
+      <li><strong>ISO 281</strong> — Rolling bearings — Dynamic load ratings and rating life</li>
+      <li><strong>ISO 492</strong> — Rolling bearings — Radial bearings — Geometrical product specifications (GPS) and tolerance values</li>
       <li><strong>ISO 15312</strong> — Rolling bearings — Thermal speed rating — Calculation</li>
     </ul>
     <p>This page reproduces SKF catalogue data, not the standards' own tables. Load ratings and speeds are SKF's (SKF Explorer where marked) and differ between manufacturers; check the current SKF page before release.</p>
@@ -264,7 +264,7 @@
     <p style="margin-top:0.75rem;"><strong>References</strong></p>
     <ol class="ref-list" id="ref-list"></ol>
 
-    <p>Last updated: 2026-10-07 &middot; Rev 3</p>
+    <p>Last updated: 2026-10-12 &middot; Rev 4</p>
   </div>
 
 </main>
@@ -324,7 +324,10 @@
       ROWS.push({ rec: r, base: b, suffix: v.suffix });
     });
   });
-  var CAPS = ['Z', '2Z', 'RSL', '2RSL', 'RZ', '2RZ', 'RSH', '2RSH', 'RS1', '2RS1'];
+  // house rule: lists/drop-downs alphanumeric ascending (natural, case-insensitive)
+  function ncmp(a, b) { return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }); }
+  var CAPS = ['Z', '2Z', 'RSL', '2RSL', 'RZ', '2RZ', 'RSH', '2RSH', 'RS1', '2RS1'].sort(ncmp);
+  var TYPE_SHORT = { '': 'All', dgbb: 'Deep groove', dgbb2: 'Deep groove, 2-row', crb: 'Cyl. roller', acbb: 'Angular contact', qj: 'Four-point', thrust: 'Thrust ball' };
   var state = { type: 'dgbb', series: '', d: '', cap: 'open', sel: '6205' };
 
   function productUrl(des) { return 'https://www.skf.com/group/products/' + typeOf(rowByDes(des).rec.type).family.split('/products/')[1] +
@@ -332,11 +335,11 @@
   function rowByDes(des) { return ROWS.filter(function (r) { return r.rec.des === des; })[0]; }
 
   function renderFilter() {
-    $('type-seg').innerHTML = [{ id: '', title: 'All' }].concat(TYPES).map(function (t) {
-      var short = { '': 'All', dgbb: 'Deep groove', dgbb2: 'Deep groove, 2-row', crb: 'Cyl. roller', acbb: 'Angular contact', qj: 'Four-point', thrust: 'Thrust ball' }[t.id];
+    $('type-seg').innerHTML = [{ id: '', title: 'All' }].concat(TYPES.slice().sort(function (a, b) { return ncmp(TYPE_SHORT[a.id], TYPE_SHORT[b.id]); })).map(function (t) {
+      var short = TYPE_SHORT[t.id];
       return '<button type="button" data-t="' + t.id + '"' + (t.id === state.type ? ' class="on"' : '') + ' title="' + esc(t.title) + '">' + short + '</button>';
     }).join('');
-    var series = state.type ? typeOf(state.type).series : [];
+    var series = state.type ? typeOf(state.type).series.slice().sort(ncmp) : [];
     $('series-sel').innerHTML = '<option value="">Any</option>' + series.map(function (s) {
       return '<option' + (s === state.series ? ' selected' : '') + '>' + s + '</option>'; }).join('');
     $('series-sel').disabled = !state.type;
@@ -369,7 +372,10 @@
   }
 
   function renderResults() {
-    var rows = filtered();
+    var rows = filtered().sort(function (x, y) {
+      var a = x.rec, b = y.rec;
+      return ncmp(typeOf(a.type).title, typeOf(b.type).title) || (a.d - b.d) || (a.D - b.D) || ncmp(a.des, b.des);
+    });
     $('count').textContent = rows.length + ' of ' + ROWS.length + ' bearings (incl. capped versions) match.';
     var h = '<thead><tr><th>Designation</th><th>Type</th><th class="num">d</th><th class="num">D</th><th class="num">B / H</th>' +
       '<th class="num">C (kN)</th><th class="num">C₀ (kN)</th><th class="num">P<sub>u</sub> (kN)</th><th class="num">n<sub>ref</sub></th>' +
@@ -459,7 +465,7 @@
     var base = r.base, vs = base.variants || [];
     $('var-card').style.display = vs.length ? '' : 'none';
     if (vs.length) {
-      var rows = [{ suffix: '', des: base.des }].concat(vs);
+      var rows = [{ suffix: '', des: base.des }].concat(vs).sort(function (p, q) { return ncmp(p.des, q.des); });
       $('var-table').innerHTML = '<thead><tr><th>Designation</th><th>Sealing</th><th class="num">n<sub>ref</sub></th><th class="num">n<sub>lim</sub></th>' +
         '<th class="num">d<sub>a</sub> max</th><th>Lubricant</th><th class="num">m (kg)</th></tr></thead><tbody>' + rows.map(function (v) {
           var x = rowByDes(v.des).rec;

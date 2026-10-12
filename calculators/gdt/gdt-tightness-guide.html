@@ -310,12 +310,17 @@
       <li id="ref3"><a href="https://www.criterionprecision.com/feeds/blog/tight-tolerance-jig-bore-machining">Tight-Tolerance Jig Bore Machining</a> — criterionprecision.com (jig-boring hole location within 1–5&nbsp;µm of datum, ultra-precision work to 1–2&nbsp;µm; bore diameter ±0.0002″; roundness/perpendicularity/straightness under 5&nbsp;µm for mold-base work).</li>
       <li id="ref4"><a href="https://fractory.com/concentricity-gdt-explained/">Concentricity (GD&amp;T) Explained</a> — fractory.com (concentricity described as difficult to achieve and measure; runout ≈ circularity + concentricity when a part is round; recommends runout, position or profile as the practical substitute).</li>
     </ol>
-    <p>Last updated: 2026-09-29 &middot; Rev 2</p>
+    <p>Last updated: 2026-10-12 &middot; Rev 4</p>
   </div>
 
 </main>
 
 <script>
+// House rule: drop-downs/lists are listed alphanumerically ascending (natural/numeric-aware,
+// case-insensitive). Option lists and named-item tables are sorted at render time with this
+// comparator; the band/tier scale itself keeps its logical loose -> tight order.
+const mdgCmp = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+
 // ---------------------------------------------------------------------------
 // Default (researched) GD&T achievability data. Bands are contiguous, ordered
 // loose -> tight, each { max, min } in the type's stated unit. See the page's
@@ -559,7 +564,7 @@ function fmtVal(v) {
 
 function groupsInOrder() {
   const order = ['Form', 'Profile', 'Orientation', 'Location', 'Runout'];
-  return order.filter(g => TYPES.some(t => t.group === g));
+  return order.filter(g => TYPES.some(t => t.group === g)).sort(mdgCmp);
 }
 
 function renderTypeSelect() {
@@ -568,7 +573,7 @@ function renderTypeSelect() {
   groupsInOrder().forEach(g => {
     const grp = document.createElement('optgroup');
     grp.label = g;
-    TYPES.filter(t => t.group === g).forEach(t => {
+    TYPES.filter(t => t.group === g).sort((a, b) => mdgCmp(a.label, b.label)).forEach(t => {
       const opt = document.createElement('option');
       opt.value = t.id;
       opt.textContent = t.label;
@@ -696,7 +701,7 @@ function updateSaveStatus() {
 function renderCompareTable() {
   const body = document.getElementById('compare-body');
   body.innerHTML = '';
-  TYPES.forEach(t => {
+  TYPES.slice().sort((a, b) => mdgCmp(a.label, b.label)).forEach(t => {
     const tr = document.createElement('tr');
     const cells = t.bands.map(b => `${fmtVal(b.max)}&ndash;${fmtVal(b.min)}`).join('</td><td>');
     tr.innerHTML = `<td><span class="gdt-icon-cell">${iconSVG(t.id)} ${t.label}</span></td><td>${cells}</td>`;
@@ -867,5 +872,6 @@ updateAll();
   });
 })();
 </script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
 </body>
 </html>

@@ -238,7 +238,7 @@
     <p style="margin-top:0.75rem;"><strong>References</strong></p>
     <ol class="ref-list" id="ref-list"></ol>
 
-    <p>Last updated: 2026-10-07 &middot; Rev 3</p>
+    <p>Last updated: 2026-10-12 &middot; Rev 4</p>
   </div>
 
 </main>
@@ -286,7 +286,10 @@
   var cite = makeCite(REF_ORDER);
   renderRefs(REF_ORDER, L.sources);
   var ROWS = L.springs.map(function (r) { var o = {}; L.columns.forEach(function (c, i) { o[c] = r[i]; }); return o; });
-  var KINDS = Object.keys(L.kinds);
+  // house rule: lists/drop-downs alphanumeric ascending (natural, case-insensitive)
+  function ncmp(a, b) { return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }); }
+  var KINDS = Object.keys(L.kinds).sort(ncmp);
+  var MATS = Object.keys(L.materials).sort(function (a, b) { return ncmp(L.materials[a].name, L.materials[b].name); });
   var state = { kinds: KINDS.slice(), mat: 'carbon', sel: null };
 
   // solid height: wire thickness x layers (turns, plus shim layers)
@@ -305,7 +308,7 @@
   function renderControls() {
     $('kind-seg').innerHTML = KINDS.map(function (k) {
       return '<button type="button" data-k="' + k + '"' + (state.kinds.indexOf(k) >= 0 ? ' class="on"' : '') + ' title="' + esc(L.kinds[k].title) + '">' + k + '</button>'; }).join('');
-    $('mat-sel').innerHTML = Object.keys(L.materials).map(function (k) {
+    $('mat-sel').innerHTML = MATS.map(function (k) {
       return '<option value="' + k + '"' + (k === state.mat ? ' selected' : '') + '>' + L.materials[k].name + '</option>'; }).join('');
   }
   function render() {

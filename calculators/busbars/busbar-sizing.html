@@ -228,7 +228,7 @@
       <div class="field">
         <label for="density">Current density, J</label>
         <div class="input-row">
-          <input type="number" id="density" value="6" min="0.05" step="0.05">
+          <input type="number" id="density" value="5" min="0.05" step="0.05">
           <span class="unit">A/mm&sup2;</span>
         </div>
       </div>
@@ -245,8 +245,8 @@
         <table class="mdg-table">
           <thead><tr><th>Material family</th><th>Base J, open air</th><th>Enclosed / poor vent.<sup><a href="#ref3">3</a></sup></th><th>Open air (reference)</th><th>Outdoor / forced-air<sup><a href="#ref4">4</a></sup></th></tr></thead>
           <tbody>
-            <tr><td>Copper</td><td>6.00 A/mm&sup2;</td><td>4.20 A/mm&sup2; (&times;0.70)</td><td>6.00 A/mm&sup2; (&times;1.00)</td><td>6.60 A/mm&sup2; (&times;1.10)</td></tr>
             <tr><td>Aluminium</td><td>1.04 A/mm&sup2;<sup><a href="#ref1">1</a>,<a href="#ref2">2</a></sup></td><td>0.73 A/mm&sup2; (&times;0.70)</td><td>1.04 A/mm&sup2; (&times;1.00)</td><td>1.14 A/mm&sup2; (&times;1.10)</td></tr>
+            <tr><td>Copper</td><td>5.00 A/mm&sup2;</td><td>3.50 A/mm&sup2; (&times;0.70)</td><td>5.00 A/mm&sup2; (&times;1.00)</td><td>5.50 A/mm&sup2; (&times;1.10)</td></tr>
           </tbody>
         </table>
         <p class="note">Copper's base is Equipmake's own design target, above the cited literature range.
@@ -305,8 +305,8 @@
   <!-- ============ 4. TRANSIENT OVERLOAD CHECK ============ -->
   <div class="mdg-card">
     <h2>4. Transient Overload Check</h2>
-    <p class="note" style="margin-top:0;">Section 2 sizes for continuous current; a brief overload doesn't last
-      long enough to reach that steady state. This instead checks whether the bar's thermal mass can absorb it,
+    <p class="note" style="margin-top:0;">Section 2 sizes for continuous current; a brief overload doesn't
+      last long enough to reach that steady state. This instead checks whether the bar's thermal mass can absorb it,
       against a bare-copper short-time limit<sup><a href="#ref7">7</a></sup>.</p>
 
     <div class="row">
@@ -365,10 +365,10 @@
   <div class="mdg-card mdg-footer" style="margin-bottom:0;">
     <p><strong>Applicable design standards</strong></p>
     <ul class="ref-list">
-      <li><a href="https://webstore.iec.ch/publication/2317" target="_blank" rel="noopener">IEC 60943</a> — Guidance concerning the permissible temperature rise for parts of electrical equipment, in particular for terminals.</li>
-      <li><a href="https://webstore.iec.ch/publication/23350" target="_blank" rel="noopener">IEC 61439-1</a> — Low-voltage switchgear and controlgear assemblies — Part 1: General rules (temperature-rise limits for bare conductors in an assembly).</li>
       <li><a href="https://webstore.iec.ch/publication/1418" target="_blank" rel="noopener">IEC 60287-1-1</a> — Electric cables — Calculation of the current rating — Part 1-1: AC resistance / skin and proximity effect provisions, the basis for the skin-depth check in section 3.</li>
       <li><a href="https://webstore.iec.ch/publication/2378" target="_blank" rel="noopener">IEC 60865-1</a> — Short-circuit currents — Calculation of effects — Part 1: Definitions and calculation methods (the adiabatic thermal-withstand method behind section 4).</li>
+      <li><a href="https://webstore.iec.ch/publication/2317" target="_blank" rel="noopener">IEC 60943</a> — Guidance concerning the permissible temperature rise for parts of electrical equipment, in particular for terminals.</li>
+      <li><a href="https://webstore.iec.ch/publication/23350" target="_blank" rel="noopener">IEC 61439-1</a> — Low-voltage switchgear and controlgear assemblies — Part 1: General rules (temperature-rise limits for bare conductors in an assembly).</li>
     </ul>
     <p class="note" style="margin-top:0;">This page uses simplified rules of thumb, not these standards' own
       tables. Conformance- or safety-critical design should go to the full standards directly.</p>
@@ -384,7 +384,7 @@
       <li id="ref7"><a href="https://electrical-engineering-portal.com/calculating-the-short-circuit-heating-of-busbars" target="_blank" rel="noopener">Calculating The Short-Circuit Heating Of Busbars</a> — electrical-engineering-portal.com (adiabatic heating formula; ~200&nbsp;°C short-time temperature limit for bare copper).</li>
       <li id="ref8"><a href="https://industrialmonitordirect.com/blogs/knowledgebase/calculating-copper-busbar-cross-section-for-7000a-peak-and-1600a-continuous" target="_blank" rel="noopener">Copper Busbar Sizing: 7000A Peak and 1600A Continuous Current</a> — industrialmonitordirect.com (worked example: continuous current governs cross-section, peak current checked separately via adiabatic heating since a short pulse doesn't reach thermal equilibrium).</li>
     </ol>
-    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-09-23 &middot; Rev 3.</p>
+    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-12 &middot; Rev 6.</p>
   </div>
 
 </main>
@@ -392,7 +392,7 @@
 <script src="../../data/materials.js"></script>
 <script>
   // ---------- current-density model (this page's own rule of thumb — see refs 1-4) ----------
-  var BASE_DENSITY = { 'copper-alloy': 6, 'aluminum': 1.04 }; // A/mm^2, open air / horizontal reference — copper is an internal design target (see section 1 note), aluminium follows ref 1/2
+  var BASE_DENSITY = { 'copper-alloy': 5, 'aluminum': 1.04 }; // A/mm^2, open air / horizontal reference — copper is an internal design target (see section 1 note), aluminium follows ref 1/2
   var ENV_FACTOR = {
     enclosed: { label: 'Enclosed / poor ventilation', factor: 0.70 },
     open:     { label: 'Open air / naturally ventilated', factor: 1.00 },
@@ -414,6 +414,9 @@
 
   function fmt(n, dp) { return Number(n).toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp }); }
 
+  // Natural (numeric-aware), case-insensitive ascending comparator — house rule: lists sorted alphanumerically.
+  function NAT(a, b) { return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }); }
+
   function conductorMaterials() {
     if (typeof window.MDG_MATERIALS === 'undefined') return [];
     return window.MDG_MATERIALS.grades.filter(function (g) { return typeof g.conductivity_pct_IACS === 'number'; });
@@ -428,7 +431,9 @@
   function populateSelects() {
     var matSel = document.getElementById('material');
     matSel.innerHTML = '';
-    conductorMaterials().forEach(function (g) {
+    conductorMaterials().slice().sort(function (a, b) {
+      return NAT(a.grade + ' (' + a.condition + ')', b.grade + ' (' + b.condition + ')');
+    }).forEach(function (g) {
       var opt = document.createElement('option');
       opt.value = g.id; opt.textContent = g.grade + ' (' + g.condition + ')';
       if (g.id === 'cu-c101-etp') opt.selected = true;
@@ -436,7 +441,7 @@
     });
     var envSel = document.getElementById('environment');
     envSel.innerHTML = '';
-    Object.keys(ENV_FACTOR).forEach(function (id) {
+    Object.keys(ENV_FACTOR).sort(function (a, b) { return NAT(ENV_FACTOR[a].label, ENV_FACTOR[b].label); }).forEach(function (id) {
       var opt = document.createElement('option');
       opt.value = id; opt.textContent = ENV_FACTOR[id].label;
       if (id === 'open') opt.selected = true;
@@ -737,5 +742,6 @@
   });
 })();
 </script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
 </body>
 </html>

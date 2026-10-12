@@ -324,7 +324,7 @@
       <li id="ref2"><a href="https://www.engineeringtoolbox.com/linear-thermal-expansion-d_1379.html" target="_blank" rel="noopener">Linear Thermal Expansion</a> &mdash; engineeringtoolbox.com (dL&nbsp;=&nbsp;L<sub>0</sub>&alpha;(t<sub>1</sub>&nbsp;&minus;&nbsp;t<sub>0</sub>) with worked aluminium example; coefficient varies with temperature, so integrate over smaller spans for wide ranges).</li>
       <li id="ref3">Shared material library, <a href="../materials/material-library.html">data/materials.js</a> &mdash; mean linear CTE per grade (cited per grade on the Material Library page).</li>
     </ol>
-    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-07 &middot; Rev 3</p>
+    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-12 &middot; Rev 4</p>
   </div>
 
 </main>
@@ -340,6 +340,11 @@
   function num(id) { var v = parseFloat(el(id).value); return isNaN(v) ? null : v; }
   function sgn(n, dp) { return (n > 0 ? '+' : '') + fmt(n, dp); }
 
+  // House rule: lists/drop-downs/items within a category are alphanumeric ascending (natural, case-insensitive).
+  function cmp(a, b) { return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }); }
+  function sortedTypes() { return window.MDG_MATERIALS.types.slice().sort(function (a, b) { return cmp(a.title, b.title); }); }
+  function sortedGrades(list) { return list.slice().sort(function (a, b) { return cmp(a.grade + ' ' + a.condition, b.grade + ' ' + b.condition); }); }
+
   function cteGrades() {
     if (typeof window.MDG_MATERIALS === 'undefined') return [];
     return window.MDG_MATERIALS.grades.filter(function (g) { return typeof g.cte_um_per_mK === 'number'; });
@@ -354,8 +359,8 @@
     var sel = el(selId);
     sel.innerHTML = '';
     var grades = cteGrades();
-    window.MDG_MATERIALS.types.forEach(function (t) {
-      var inType = grades.filter(function (g) { return g.type === t.slug; });
+    sortedTypes().forEach(function (t) {
+      var inType = sortedGrades(grades.filter(function (g) { return g.type === t.slug; }));
       if (!inType.length) return;
       var og = document.createElement('optgroup');
       og.label = t.title;
@@ -539,8 +544,8 @@
 
   function buildCteTable() {
     var rows = '';
-    window.MDG_MATERIALS.types.forEach(function (t) {
-      var inType = cteGrades().filter(function (g) { return g.type === t.slug; });
+    sortedTypes().forEach(function (t) {
+      var inType = sortedGrades(cteGrades().filter(function (g) { return g.type === t.slug; }));
       inType.forEach(function (g, i) {
         rows += '<tr><td>' + (i === 0 ? t.title : '') + '</td><td>' + g.grade + '</td><td>' + g.condition +
           '</td><td class="num">' + fmt(g.cte_um_per_mK, 1) + '</td></tr>';

@@ -334,7 +334,7 @@
         short-circuit temperatures: 160&nbsp;°C PVC, 250&nbsp;°C XLPE/EPR).</li>
     </ol>
 
-    <p>Last updated: 2026-09-30 &middot; Rev 4</p>
+    <p>Last updated: 2026-10-12 &middot; Rev 6</p>
   </div>
 
 </main>
@@ -426,6 +426,9 @@
     return n.toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp });
   }
 
+  // Natural (numeric-aware), case-insensitive ascending comparator — house rule: lists sorted alphanumerically.
+  function NAT(a, b) { return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }); }
+
   function populateSelects() {
     var sizeSel = document.getElementById('size');
     SIZES.forEach(function (s) {
@@ -436,7 +439,7 @@
     sizeSel.value = 120;
 
     var methodSel = document.getElementById('installMethod');
-    Object.keys(INSTALLATION_FACTOR).forEach(function (m) {
+    Object.keys(INSTALLATION_FACTOR).sort(NAT).forEach(function (m) {
       var opt = document.createElement('option');
       opt.value = m; opt.textContent = m;
       methodSel.appendChild(opt);
@@ -652,5 +655,6 @@
   });
 })();
 </script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
 </body>
 </html>

@@ -288,18 +288,26 @@
   <div class="mdg-card mdg-footer">
     <p><strong>Applicable design standards</strong></p>
     <ul class="ref-list">
+      <li><strong>DIN 74</strong> — Countersinks for countersunk head screws</li>
+      <li><strong>DIN 974-1</strong> — Counterbore diameters for bolts with cylindrical heads</li>
+      <li><strong>DIN 7984</strong> — Hexagon socket head cap screws with low head</li>
+      <li><strong>ISO 261</strong> — ISO general purpose metric screw threads — General plan</li>
+      <li><strong>ISO 262</strong> — ISO general purpose metric screw threads — Selected sizes for screws, bolts and nuts</li>
+      <li><strong>ISO 273</strong> — Fasteners — Clearance holes for bolts and screws</li>
+      <li><strong>ISO 724</strong> — ISO general-purpose metric screw threads — Basic dimensions</li>
       <li><a href="https://www.iso.org/standard/60610.html">ISO 898-1</a> — Mechanical properties of fasteners made of carbon steel and alloy steel — Part 1: Bolts, screws and studs with specified property classes</li>
       <li><a href="https://www.iso.org/standard/70045.html">ISO 3506-1</a> — Fasteners — Mechanical properties of corrosion-resistant stainless steel fasteners — Part 1: Bolts, screws and studs with specified grades and property classes</li>
-      <li><strong>ISO 261 / ISO 262</strong> — ISO general purpose metric screw threads — General plan / Selected sizes for screws, bolts and nuts</li>
-      <li><strong>ISO 724</strong> — ISO general-purpose metric screw threads — Basic dimensions</li>
-      <li><strong>ISO 4762</strong> — Hexagon socket head cap screws &middot; <strong>ISO 14579</strong> — Hexalobular socket head cap screws</li>
-      <li><strong>ISO 7380-1</strong> — Button head screws — Part 1: Hexagon socket button head screws</li>
-      <li><strong>ISO 10642</strong> — Hexagon socket countersunk head screws &middot; <strong>ISO 14581</strong> — Hexalobular socket countersunk flat head screws</li>
-      <li><strong>DIN 7984</strong> — Hexagon socket head cap screws with low head &middot; <strong>ISO 14580</strong> — Hexalobular socket cheese head screws</li>
-      <li><strong>ISO 4014 / ISO 4017</strong> — Hexagon head bolts / Hexagon head screws — Product grades A and B</li>
+      <li><strong>ISO 4014</strong> — Hexagon head bolts — Product grades A and B</li>
+      <li><strong>ISO 4017</strong> — Hexagon head screws — Product grades A and B</li>
       <li><strong>ISO 4162</strong> — Hexagon flange bolts — Small series</li>
+      <li><strong>ISO 4762</strong> — Hexagon socket head cap screws</li>
+      <li><strong>ISO 7380-1</strong> — Button head screws — Part 1: Hexagon socket button head screws</li>
+      <li><strong>ISO 10642</strong> — Hexagon socket countersunk head screws</li>
       <li><strong>ISO 10664</strong> — Hexalobular internal driving feature for bolts and screws</li>
-      <li><strong>ISO 273</strong> — Fasteners — Clearance holes for bolts and screws &middot; <strong>DIN 974-1</strong> — Counterbore diameters for bolts with cylindrical heads &middot; <strong>DIN 74</strong> — Countersinks for countersunk head screws &middot; <strong>ISO 15065</strong> — Countersinks for countersunk head screws with head configuration in accordance with ISO 7721</li>
+      <li><strong>ISO 14579</strong> — Hexalobular socket head cap screws</li>
+      <li><strong>ISO 14580</strong> — Hexalobular socket cheese head screws</li>
+      <li><strong>ISO 14581</strong> — Hexalobular socket countersunk flat head screws</li>
+      <li><strong>ISO 15065</strong> — Countersinks for countersunk head screws with head configuration in accordance with ISO 7721</li>
     </ul>
     <p>This page does not reproduce any standard's own tables. Its values come from publicly available
       manufacturer and distributor extracts, cross-checked where two sources were available. For
@@ -308,7 +316,7 @@
     <p style="margin-top:0.75rem;"><strong>References</strong></p>
     <ol class="ref-list" id="ref-list"></ol>
 
-    <p>Last updated: 2026-09-29 &middot; Rev 4</p>
+    <p>Last updated: 2026-10-12 &middot; Rev 6</p>
   </div>
 
 </main>
@@ -345,9 +353,12 @@
   function $(id) { return document.getElementById(id); }
   function fx(v, dp) { if (v === null || v === undefined) return '–'; return Number(v).toFixed(dp); }
   function trim(v) { if (v === null || v === undefined) return '–'; return String(+Number(v).toFixed(3)); }
+  // House rule: drop-downs, lists and items within a category are listed alphanumerically ascending.
+  function NAT(a, b) { return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }); }
   var THREADS = F.threads.sizes;
-  var SIZE_ORDER = THREADS.map(function (t) { return t.size; });
+  var SIZE_ORDER = THREADS.map(function (t) { return t.size; }).sort(NAT);
   function thread(size) { return THREADS.filter(function (t) { return t.size === size; })[0]; }
+  function pitchesOf(t) { return [t.coarse].concat(t.fine).sort(function (a, b) { return a - b; }); }  // ascending pitch
   function d2(d, P) { return d - 0.649519 * P; }
   function d3(d, P) { return d - 1.226869 * P; }
   function As(d, P) { var x = d - 0.938194 * P; return Math.PI / 4 * x * x; }
@@ -366,8 +377,8 @@
     { id: 'hex', label: 'Hex socket' },
     { id: 'torx', label: 'Torx' },
     { id: 'ext', label: 'External hex' }
-  ];
-  var CLASS_IDS = F.classes.map(function (c) { return c.id; });
+  ].sort(function (a, b) { return NAT(a.label, b.label); });
+  var CLASS_IDS = F.classes.map(function (c) { return c.id; }).sort(NAT);
 
   var state = { head: 'socket-cap', drive: 'hex', size: 'M6', pitch: 1.0, cls: '8.8' };
 
@@ -404,7 +415,7 @@
     var t = thread(state.size);
     var pitches = [{ p: t.coarse, l: trim(t.coarse) + ' mm — coarse' }].concat(t.fine.map(function (p) {
       return { p: p, l: trim(p) + ' mm — fine (' + t.fineStd + ')' };
-    }));
+    })).sort(function (a, b) { return a.p - b.p; });
     $('pitch-sel').innerHTML = pitches.map(function (o) {
       return '<option value="' + o.p + '"' + (o.p === state.pitch ? ' selected' : '') + '>' + o.l + '</option>';
     }).join('');
@@ -706,12 +717,13 @@
     $('all-sizes').innerHTML = html + '</tbody>';
   }
   function renderStatic() {
-    // thread table
+    // thread table (ascending by size, then pitch)
     var th = '<thead><tr><th>Thread</th><th class="num">P</th><th class="num">d<sub>2</sub></th><th class="num">d<sub>3</sub></th><th class="num">A<sub>s</sub> (mm²)</th><th class="num">Tap drill</th></tr></thead><tbody>';
     THREADS.forEach(function (t) {
-      [t.coarse].concat(t.fine).forEach(function (P, i) {
+      pitchesOf(t).forEach(function (P) {
+        var isCoarse = P === t.coarse;
         var td = tapDrill(t.d, P);
-        th += '<tr><td>' + (i ? t.size + ' × ' + trim(P) : t.size) + '</td><td class="num">' + trim(P) + (i ? '' : ' <span class="flag">coarse</span>') +
+        th += '<tr><td>' + (isCoarse ? t.size : t.size + ' × ' + trim(P)) + '</td><td class="num">' + trim(P) + (isCoarse ? ' <span class="flag">coarse</span>' : '') +
           '</td><td class="num">' + fx(d2(t.d, P), 3) + '</td><td class="num">' + fx(d3(t.d, P), 3) + '</td><td class="num">' + fx(As(t.d, P), 1) +
           '</td><td class="num">' + (td.calc ? '<span class="calc">' + trim(td.v) + '</span>' : trim(td.v)) + '</td></tr>';
       });
@@ -728,7 +740,7 @@
     $('holes-table').innerHTML = hh + '</tbody>';
     // classes
     var ch = '<thead><tr><th>Class</th><th>Standard</th><th>Size range</th><th class="num">R<sub>m</sub> min</th><th class="num">R<sub>p0.2</sub> min</th><th class="num">S<sub>p</sub></th><th class="num">Elong.</th><th>Hardness</th></tr></thead><tbody>';
-    F.classes.forEach(function (c) {
+    F.classes.slice().sort(function (a, b) { return NAT(a.id, b.id); }).forEach(function (c) {
       c.bySize.forEach(function (r, i) {
         var range = c.bySize.length > 1 ? (i === 0 ? '≤ M' + r.maxD : '> M' + c.bySize[i - 1].maxD) : 'all';
         ch += '<tr><td>' + c.id + '</td><td>' + c.std + '</td><td>' + range + '</td><td class="num">' + r.Rm + '</td><td class="num">' + r.Rp +
@@ -738,7 +750,7 @@
     $('class-table').innerHTML = ch + '</tbody>';
     // torx
     var tx = '<thead><tr><th>Size</th><th class="num">A (mm)</th><th class="num">B (mm)</th></tr></thead><tbody>';
-    Object.keys(F.torx.values).forEach(function (k) {
+    Object.keys(F.torx.values).sort(NAT).forEach(function (k) {
       tx += '<tr><td>' + k + '</td><td class="num">' + fx(F.torx.values[k][0], 2) + '</td><td class="num">' + fx(F.torx.values[k][1], 2) + '</td></tr>';
     });
     $('torx-table').innerHTML = tx + '</tbody>';
@@ -848,5 +860,6 @@
   });
 })();
 </script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
 </body>
 </html>

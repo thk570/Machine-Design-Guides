@@ -148,11 +148,11 @@
 
     <p style="margin-top:0.75rem;"><strong>Applicable design standards</strong></p>
     <ul class="ref-list">
+      <li id="ref2"><a href="https://webstore.iec.ch/publication/1191">IEC 60112</a> — Method for the
+        determination of the proof and the comparative tracking indices of solid insulating materials.</li>
       <li id="ref1"><a href="https://www.mmpds.org/">MMPDS</a> — Metallic Materials Properties Development
         and Standardization, the FAA-sponsored handbook of statistically-based design allowables for
         metallic aerospace structures (successor to MIL-HDBK-5).</li>
-      <li id="ref2"><a href="https://webstore.iec.ch/publication/1191">IEC 60112</a> — Method for the
-        determination of the proof and the comparative tracking indices of solid insulating materials.</li>
     </ul>
     <p>For safety-critical or certified structure, allowables should come from MMPDS (or the applicable
       material spec / test programme), not from this page.</p>
@@ -160,7 +160,7 @@
     <p><strong>References</strong> — per-grade sources are listed under each grade below; this page's
       own text cites only the MMPDS and IEC 60112 standards, above.</p>
 
-    <p>Last updated: 2026-09-21 &middot; Rev 1</p>
+    <p>Last updated: 2026-10-12 &middot; Rev 4</p>
   </div>
 
 </main>
@@ -180,10 +180,17 @@
     return (typeof v === 'number') ? v.toFixed(dp) : v;
   }
 
-
+  // House rule: lists/drop-downs/items within a category are alphanumeric ascending (natural, case-insensitive).
+  function cmp(a, b) { return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }); }
+  var TYPES = DATA.types.slice().sort(function (a, b) { return cmp(a.title, b.title); });
+  function gradesOf(slug) {
+    return DATA.grades.filter(function (g) { return g.type === slug; }).sort(function (a, b) {
+      return cmp(a.grade + ' — ' + (a.condition || ''), b.grade + ' — ' + (b.condition || ''));
+    });
+  }
 
   function renderRefs(refs) {
-    return '<ul class="ref-list">' + refs.map(function (r) {
+    return '<ul class="ref-list">' + refs.slice().sort(function (a, b) { return cmp(a.label, b.label); }).map(function (r) {
       var typ = r.typical ? ' <span class="typical">(typical value)</span>' : '';
       return '<li><a href="' + r.url + '" target="_blank" rel="noopener">' + r.label + '</a>' + typ + '</li>';
     }).join('') + '</ul>';
@@ -240,9 +247,9 @@
     var typeFilter = document.getElementById('typeFilter').value;
     var lib = document.getElementById('library');
     lib.innerHTML = '';
-    DATA.types.forEach(function (t) {
+    TYPES.forEach(function (t) {
       if (typeFilter && typeFilter !== t.slug) return;
-      var grades = DATA.grades.filter(function (g) { return g.type === t.slug; });
+      var grades = gradesOf(t.slug);
       if (grades.length === 0) return;
       var section = document.createElement('div');
       section.className = 'type-group';
@@ -251,31 +258,49 @@
     });
   }
 
+  // Grade/designation options follow the Material type filter: one type → that type's grades only;
+  // "All types" → every grade, grouped by type.
+  function buildGradeOptions() {
+    var typeFilter = document.getElementById('typeFilter').value;
+    var searchSel = document.getElementById('search');
+    searchSel.innerHTML = '<option value="">—</option>';
+    TYPES.forEach(function (t) {
+      if (typeFilter && typeFilter !== t.slug) return;
+      var grades = gradesOf(t.slug);
+      if (grades.length === 0) return;
+      var og = document.createElement('optgroup');
+      og.label = t.title;
+      grades.forEach(function (g) {
+        var opt = document.createElement('option');
+        opt.value = g.id; opt.textContent = g.grade + ' — ' + g.condition;
+        og.appendChild(opt);
+      });
+      searchSel.appendChild(og);
+    });
+  }
+
   function populateFilters() {
     var typeSel = document.getElementById('typeFilter');
-    DATA.types.forEach(function (t) {
+    TYPES.forEach(function (t) {
       var opt = document.createElement('option');
       opt.value = t.slug; opt.textContent = t.title;
       typeSel.appendChild(opt);
     });
+    buildGradeOptions();
     var searchSel = document.getElementById('search');
-    DATA.grades.forEach(function (g) {
-      var opt = document.createElement('option');
-      opt.value = g.id; opt.textContent = g.grade + ' — ' + g.condition;
-      searchSel.appendChild(opt);
-    });
     searchSel.addEventListener('change', function () {
       if (!this.value) return;
       var g = DATA.grades.find(function (gr) { return gr.id === searchSel.value; });
       if (!g) return;
-      document.getElementById('typeFilter').value = '';
-      render();
       var target = document.querySelector('[data-search="' + (g.grade + ' ' + g.designation).toLowerCase().replace(/"/g, '') + '"]');
       if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }
 
-  document.getElementById('typeFilter').addEventListener('change', render);
+  document.getElementById('typeFilter').addEventListener('change', function () {
+    buildGradeOptions();
+    render();
+  });
   populateFilters();
   render();
 </script>
@@ -366,5 +391,6 @@
   });
 })();
 </script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
 </body>
 </html>

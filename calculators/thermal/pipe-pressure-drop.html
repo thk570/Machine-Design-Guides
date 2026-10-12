@@ -175,8 +175,8 @@
           temperature-dependent fluid properties<sup><a href="#ref1">1</a></sup>.</p>
         <ul class="method">
           <li>Darcy&ndash;Weisbach &middot; Swamee&ndash;Jain friction factor</li>
-          <li>steady, fully-developed, single-phase liquid</li>
           <li>round pipe only</li>
+          <li>steady, fully-developed, single-phase liquid</li>
         </ul>
       </div>
       <figure class="diagram-wrap">
@@ -339,7 +339,7 @@
       <li id="ref11"><a href="https://www.engineeringtoolbox.com/cubical-expansion-coefficients-d_1262.html" target="_blank" rel="noopener">Volumetric (Cubical) Expansion Coefficients</a> &mdash; engineeringtoolbox.com (oil &beta; &asymp; 0.00070&nbsp;1/K, used for oil density vs temperature).</li>
       <li id="ref12"><a href="https://en.wikipedia.org/wiki/Darcy_friction_factor_formulae" target="_blank" rel="noopener">Darcy friction factor formulae</a> &mdash; Wikipedia (f = 64/Re laminar; Swamee&ndash;Jain, valid 5000 &le; Re &le; 10<sup>8</sup>, 10<sup>&minus;6</sup> &le; &epsilon;/D &le; 0.05; transition Re 2300&ndash;4000).</li>
     </ol>
-    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-07 &middot; Rev 2</p>
+    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-12 &middot; Rev 3</p>
   </div>
 </main>
 
@@ -373,6 +373,10 @@
   function sig(n, s) { if (!isFinite(n)) return '—'; if (n === 0) return '0'; var dp = Math.max(0, s - 1 - Math.floor(Math.log10(Math.abs(n)))); return fmt(n, Math.min(dp, 6)); }
   function sups(arr) { return '<sup>' + arr.map(function (r) { return '<a href="#ref' + r + '">' + r + '</a>'; }).join(',') + '</sup>'; }
 
+  // House rule: lists/drop-downs/items within a category are alphanumeric ascending (natural, case-insensitive).
+  function cmp(a, b) { return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }); }
+  var FLUIDS_SORTED = FLUIDS.slice().sort(function (a, b) { return cmp(a.name, b.name); });
+
   function frictionFactor(Re, rr) {
     function lam(r) { return 64 / r; }
     function sj(r) { var x = Math.log10(rr / 3.7 + 5.74 / Math.pow(r, 0.9)); return 0.25 / (x * x); }
@@ -384,17 +388,18 @@
 
   function populate() {
     var s = el('fluid');
-    FLUIDS.forEach(function (f) { var o = document.createElement('option'); o.value = f.id; o.textContent = f.name; s.appendChild(o); });
+    FLUIDS_SORTED.forEach(function (f) { var o = document.createElement('option'); o.value = f.id; o.textContent = f.name; s.appendChild(o); });
     var c = document.createElement('option'); c.value = CUSTOM; c.textContent = 'Custom (enter ρ and μ)…'; s.appendChild(c);
     s.value = LIB ? 'eg50' : CUSTOM;
     var r = el('rough');
-    ROUGH.forEach(function (x) { var o = document.createElement('option'); o.value = x[0];
+    ROUGH.filter(function (x) { return x[0] !== CUSTOM; }).sort(function (a, b) { return cmp(a[1], b[1]); })
+      .concat(ROUGH.filter(function (x) { return x[0] === CUSTOM; })).forEach(function (x) { var o = document.createElement('option'); o.value = x[0];
       o.textContent = x[1] + (x[2] != null ? ' (' + x[2] + ' mm)' : ''); r.appendChild(o); });
     r.value = 'drawn';
     el('k-table').innerHTML = '<thead><tr><th>Fitting</th><th class="num">K, flanged</th><th class="num">K, threaded</th></tr></thead><tbody>' +
-      KTAB.map(function (k) { return '<tr><td>' + k[0] + '</td><td class="num">' + (k[1] == null ? '–' : k[1]) + '</td><td class="num">' + (k[2] == null ? '–' : k[2]) + '</td></tr>'; }).join('') + '</tbody>';
+      KTAB.slice().sort(function (a, b) { return cmp(a[0], b[0]); }).map(function (k) { return '<tr><td>' + k[0] + '</td><td class="num">' + (k[1] == null ? '–' : k[1]) + '</td><td class="num">' + (k[2] == null ? '–' : k[2]) + '</td></tr>'; }).join('') + '</tbody>';
     var html = '';
-    FLUIDS.forEach(function (f) {
+    FLUIDS_SORTED.forEach(function (f) {
       if (f.model === 'table') {
         html += '<p style="margin:0.6rem 0 0.3rem; font-weight:600; font-size:0.85rem;">' + f.name + sups(REF[f.id] || []) + '</p>' +
           '<table class="mdg-table"><thead><tr><th>Property</th>' + '<th>&deg;C: value</th></tr></thead><tbody>' +
@@ -404,7 +409,7 @@
     });
     html += '<p style="margin:0.9rem 0 0.3rem; font-weight:600; font-size:0.85rem;">Oils &mdash; datasheet points</p>' +
       '<table class="mdg-table"><thead><tr><th>Fluid</th><th class="num">&nu; 40&nbsp;&deg;C (mm&sup2;/s)</th><th class="num">&nu; 100&nbsp;&deg;C (mm&sup2;/s)</th><th class="num">&rho; 15&nbsp;&deg;C (kg/m&sup3;)</th><th class="num">Range (&deg;C)</th></tr></thead><tbody>' +
-      FLUIDS.filter(function (f) { return f.model === 'walther'; }).map(function (f) {
+      FLUIDS_SORTED.filter(function (f) { return f.model === 'walther'; }).map(function (f) {
         return '<tr><td>' + f.name + sups([(REF[f.id] || [])[0]]) + '</td><td class="num">' + f.nu40 + '</td><td class="num">' + f.nu100 + '</td><td class="num">' + f.rho15 + '</td><td class="num">' + f.range_C[0] + '&ndash;' + f.range_C[1] + '</td></tr>';
       }).join('') + '</tbody></table>' +
       '<p class="note">Walther fit reproduces the Tellus 0&nbsp;&deg;C datasheet values within 1&nbsp;%' + sups([7, 8]) + '. ATF and 75W-90 are multigrade, so their range starts at 20&nbsp;&deg;C.</p>';

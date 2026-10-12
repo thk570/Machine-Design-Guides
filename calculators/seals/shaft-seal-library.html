@@ -188,7 +188,7 @@
       <div class="field"><label class="lbl" for="bmax">Width b, max</label>
         <div class="input-row"><input type="number" id="bmax" min="0" step="1"><span class="unit">mm</span></div></div>
       <div class="field"><label class="lbl" for="lip-sel">Lip material</label>
-        <select id="lip-sel"><option value="">Any</option><option>NBR</option><option>FKM</option></select></div>
+        <select id="lip-sel"><option value="">Any</option><option>FKM</option><option>NBR</option></select></div>
     </div>
     <div class="row"><div><span class="lbl">Design</span><div class="seg" id="design-seg"></div></div></div>
     <div class="row">
@@ -230,15 +230,15 @@
   <div class="mdg-card mdg-footer">
     <p><strong>Applicable design standards</strong></p>
     <ul class="ref-list">
-      <li><strong>ISO 6194-1</strong> — Rotary shaft lip-type seals incorporating elastomeric sealing elements — Part 1: Nominal dimensions and tolerances</li>
       <li><strong>DIN 3760</strong> — Rotary shaft lip type seals</li>
+      <li><strong>ISO 6194-1</strong> — Rotary shaft lip-type seals incorporating elastomeric sealing elements — Part 1: Nominal dimensions and tolerances</li>
     </ul>
     <p>This page reproduces SKF catalogue data, not the standards' own tables. Conformance-critical work should refer to the standards and the current SKF page.</p>
 
     <p style="margin-top:0.75rem;"><strong>References</strong></p>
     <ol class="ref-list" id="ref-list"></ol>
 
-    <p>Last updated: 2026-10-07 &middot; Rev 2</p>
+    <p>Last updated: 2026-10-12 &middot; Rev 3</p>
   </div>
 
 </main>
@@ -257,6 +257,7 @@
   function grp(v) { if (v === null || v === undefined) return '–'; return Number(v).toLocaleString('en-GB'); }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
   function num(id) { var v = parseFloat($(id).value); return isNaN(v) ? null : v; }
+  function natCmp(a, b) { return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }); }
   function hdim(x1, x2, y, label) {
     return '<path class="dim" d="M' + x1 + ' ' + y + ' H' + x2 + ' M' + x1 + ' ' + (y - 5) + ' V' + (y + 5) +
       ' M' + x2 + ' ' + (y - 5) + ' V' + (y + 5) + '"/><text class="dimtxt" text-anchor="middle" x="' + ((x1 + x2) / 2) +
@@ -287,7 +288,7 @@
   renderRefs(REF_ORDER, L.sources);
   var C = {}; L.columns.forEach(function (c, i) { C[c] = i; });
   var ROWS = L.seals.map(function (r) { var o = {}; L.columns.forEach(function (c, i) { o[c] = r[i]; }); return o; });
-  var DES = Object.keys(L.designs);
+  var DES = Object.keys(L.designs).sort(natCmp);
   var state = { d: 30, D: '', designs: DES.slice() };
 
   function renderFilter() {
@@ -354,6 +355,7 @@
     var rows = [['Shaft diameter tolerance', 'ISO ' + c.shaftTol], ['Shaft surface hardness', '≥ ' + c.shaftHardness_HRC_min + ' HRC'],
       ['Shaft roundness', 'tolerance class ' + c.shaftRoundness], ['Shaft lead-in', 'chamfer ' + c.shaftChamfer],
       ['Housing bore tolerance', 'ISO ' + c.housingTol], ['Housing bore roughness', 'R<sub>z</sub> ' + c.housingRz_um[0] + '–' + c.housingRz_um[1] + ' µm']];
+    rows.sort(function (a, b) { return natCmp(a[0], b[0]); });
     $('req-body').innerHTML = rows.map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('');
     $('req-note').innerHTML = 'General DIN 3760 installation requirements, from a Freudenberg datasheet' + cite(['fst_wa']) + ' — not SKF data. Shaft finish and lead-in chamfer sizes are not covered by this source.';
     $('designs').innerHTML = '<thead><tr><th>Design</th><th>Construction</th><th class="num">Seals in library</th></tr></thead><tbody>' + DES.map(function (k) {

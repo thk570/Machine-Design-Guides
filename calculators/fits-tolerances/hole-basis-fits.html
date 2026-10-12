@@ -178,9 +178,9 @@
 
     <label>Mode</label>
     <div class="pill-row">
-      <button type="button" class="pill active" data-mode="preferred">Preferred fit</button>
       <button type="button" class="pill" data-mode="custom">Custom</button>
       <button type="button" class="pill" data-mode="dowel">Dowel (ISO 2388)</button>
+      <button type="button" class="pill active" data-mode="preferred">Preferred fit</button>
     </div>
 
     <div id="preferred-panel">
@@ -284,16 +284,16 @@
         <div class="field" style="min-width:170px;">
           <label for="dowelGrade">Dowel grade</label>
           <select id="dowelGrade">
-            <option value="m6">m6 (default)</option>
             <option value="h8">h8</option>
+            <option value="m6" selected>m6 (default)</option>
           </select>
         </div>
         <div class="field" style="min-width:220px;">
           <label for="dowelFit">Fit type</label>
           <select id="dowelFit">
             <option value="clearance">Clearance — assembles by hand</option>
-            <option value="sliding">Sliding — by hand or hand tools</option>
             <option value="press">Press — needs tooling</option>
+            <option value="sliding">Sliding — by hand or hand tools</option>
           </select>
         </div>
       </div>
@@ -468,9 +468,9 @@
   <div class="mdg-card mdg-footer">
     <p><strong>Applicable design standards</strong></p>
     <ul class="ref-list">
+      <li><a href="https://www.beuth.de/en/standard/din-7190-1/236830328">DIN 7190-1:2017</a> — Interference fits — Part 1: Calculation and design rules for cylindrical single joints (governs the press/shrink-fit design in section 3, beyond what ISO 286 itself covers).</li>
       <li><a href="https://www.iso.org/standard/45845.html">ISO 286-1:2010</a> — Geometrical product specifications (GPS) — ISO code system for tolerances on linear sizes — Part 1: Basis of tolerances, deviations and fits.</li>
       <li><a href="https://www.iso.org/standard/45864.html">ISO 286-2:2010</a> — Geometrical product specifications (GPS) — ISO code system for tolerances on linear sizes — Part 2: Tables of standard tolerance classes and limit deviations for holes and shafts.</li>
-      <li><a href="https://www.beuth.de/en/standard/din-7190-1/236830328">DIN 7190-1:2017</a> — Interference fits — Part 1: Calculation and design rules for cylindrical single joints (governs the press/shrink-fit design in section 3, beyond what ISO 286 itself covers).</li>
     </ul>
     <p>This page computes limits from the standards' own formulae and fundamental-deviation tables rather than
       reproducing their tolerance-class tables verbatim; conformance-critical work should refer to the standards
@@ -491,7 +491,7 @@
 
     <p>Materials for the force estimate (E, ν, yield strength) come from the shared library, <code>data/materials.js</code>
       — see the <a href="../materials/material-library.html">Material Library</a> page for per-grade citations.</p>
-    <p>Last updated: 2026-09-22 &middot; Rev 2</p>
+    <p>Last updated: 2026-10-12 &middot; Rev 4</p>
   </div>
 
 </main>
@@ -731,6 +731,10 @@ const PRESETS = [
 // =====================================================================
 // UI wiring
 // =====================================================================
+// House rule: drop-downs/lists are listed alphanumerically ascending (natural/numeric-aware,
+// case-insensitive). Option lists are sorted at render time with this comparator.
+const mdgCmp = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+
 const nominalEl = document.getElementById('nominal');
 let mode = 'preferred';
 
@@ -751,7 +755,7 @@ const dowelFitSel = document.getElementById('dowelFit');
 [dowelGradeSel, dowelFitSel].forEach(el => el.addEventListener('change', recompute));
 
 const presetSel = document.getElementById('presetSel');
-PRESETS.forEach(p=>{
+PRESETS.slice().sort((a, b) => mdgCmp(a.label.replace(/^★\s*/, ''), b.label.replace(/^★\s*/, ''))).forEach(p=>{
   const o = document.createElement('option'); o.value = p.key; o.textContent = p.label;
   presetSel.appendChild(o);
 });
@@ -983,7 +987,7 @@ document.getElementById('materialsMissingMsg').classList.toggle('hidden', MATERI
 // grade list whenever its type changes.
 function populateTypeSelect(sel){
   if (!MATERIALS_OK) return;
-  window.MDG_MATERIALS.types.forEach(t=>{
+  window.MDG_MATERIALS.types.slice().sort((a, b) => mdgCmp(a.title, b.title)).forEach(t=>{
     const o = document.createElement('option'); o.value = t.slug; o.textContent = t.title;
     sel.appendChild(o);
   });
@@ -991,11 +995,14 @@ function populateTypeSelect(sel){
 function populateGradeSelect(sel, typeSlug){
   sel.innerHTML = '';
   if (!MATERIALS_OK) return;
-  window.MDG_MATERIALS.grades.filter(g=>g.type===typeSlug).forEach(g=>{
-    const o = document.createElement('option');
-    o.value = g.id; o.textContent = g.grade + ' (' + g.condition + ')';
-    sel.appendChild(o);
-  });
+  window.MDG_MATERIALS.grades.filter(g=>g.type===typeSlug)
+    .map(g => ({ id: g.id, text: g.grade + ' (' + g.condition + ')' }))
+    .sort((a, b) => mdgCmp(a.text, b.text))
+    .forEach(g=>{
+      const o = document.createElement('option');
+      o.value = g.id; o.textContent = g.text;
+      sel.appendChild(o);
+    });
 }
 function wireMaterialPair(typeId, gradeId, defaultTypeSlug, defaultGradeId){
   const typeSel = document.getElementById(typeId), gradeSel = document.getElementById(gradeId);
@@ -1021,11 +1028,12 @@ const MU_PRESETS = [
   { label:'Dry, worst case', v:0.18 },
   { label:'Custom', v:null }
 ];
+MU_PRESETS.sort((a, b) => mdgCmp(a.label, b.label));
 const muPillsEl = document.getElementById('muPills');
 const muCustomEl = document.getElementById('muCustom');
-let muMode = 1;
+let muMode = MU_PRESETS.findIndex(m => m.label === 'Dry, unlubricated');
 MU_PRESETS.forEach((m,i)=>{
-  const b = document.createElement('button'); b.type='button'; b.className='pill' + (i===1?' active':'');
+  const b = document.createElement('button'); b.type='button'; b.className='pill' + (i===muMode?' active':'');
   b.textContent = m.label;
   b.addEventListener('click', ()=>{
     muPillsEl.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));
@@ -1245,5 +1253,6 @@ recompute();
   });
 })();
 </script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
 </body>
 </html>

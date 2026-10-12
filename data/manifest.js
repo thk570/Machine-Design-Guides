@@ -7,7 +7,7 @@
 // meant to be a short summary, fully visible, not the page's full feature list. Longer detail belongs
 // on the page itself.
 window.MDG_MANIFEST = {
-  "updated": "2026-10-07",
+  "updated": "2026-10-12",
   "categories": [
     {
       "slug": "fits",
@@ -68,7 +68,7 @@ window.MDG_MANIFEST = {
         "copper"
       ],
       "status": "done",
-      "rev": 2
+      "rev": 4
     },
     {
       "id": "o-ring-sizing",
@@ -90,7 +90,7 @@ window.MDG_MANIFEST = {
         "cost"
       ],
       "status": "done",
-      "rev": 6
+      "rev": 8
     },
     {
       "id": "hole-basis-fits",
@@ -110,7 +110,7 @@ window.MDG_MANIFEST = {
         "force estimate"
       ],
       "status": "done",
-      "rev": 3
+      "rev": 4
     },
     {
       "id": "creepage-clearance",
@@ -131,7 +131,7 @@ window.MDG_MANIFEST = {
         "substrate material"
       ],
       "status": "done",
-      "rev": 2
+      "rev": 3
     },
     {
       "id": "keyways",
@@ -153,7 +153,7 @@ window.MDG_MANIFEST = {
         "factor of safety"
       ],
       "status": "done",
-      "rev": 4
+      "rev": 5
     },
     {
       "id": "screw-torque",
@@ -177,10 +177,13 @@ window.MDG_MANIFEST = {
         "pullout",
         "thread stripping",
         "NASA",
-        "fine pitch"
+        "fine pitch",
+        "Stover",
+        "prevailing torque",
+        "all-metal lock nut"
       ],
       "status": "done",
-      "rev": 7
+      "rev": 10
     },
     {
       "id": "fastener-library",
@@ -219,7 +222,7 @@ window.MDG_MANIFEST = {
         "fine pitch"
       ],
       "status": "done",
-      "rev": 5
+      "rev": 6
     },
     {
       "id": "din76-thread-undercuts",
@@ -239,7 +242,7 @@ window.MDG_MANIFEST = {
         "tapped hole"
       ],
       "status": "done",
-      "rev": 3
+      "rev": 4
     },
     {
       "id": "hv-cable-sizing",
@@ -265,7 +268,7 @@ window.MDG_MANIFEST = {
         "IEC 60949"
       ],
       "status": "done",
-      "rev": 5
+      "rev": 6
     },
     {
       "id": "busbar-sizing",
@@ -290,7 +293,7 @@ window.MDG_MANIFEST = {
         "6101"
       ],
       "status": "done",
-      "rev": 5
+      "rev": 6
     },
     {
       "id": "gdt-tightness-guide",
@@ -319,7 +322,7 @@ window.MDG_MANIFEST = {
         "process capability"
       ],
       "status": "done",
-      "rev": 3
+      "rev": 4
     },
     {
       "id": "thermal-expansion",
@@ -339,7 +342,7 @@ window.MDG_MANIFEST = {
         "material comparison"
       ],
       "status": "done",
-      "rev": 3
+      "rev": 4
     },
     {
       "id": "pipe-pressure-drop",
@@ -367,7 +370,7 @@ window.MDG_MANIFEST = {
         "ASTM D341"
       ],
       "status": "done",
-      "rev": 2
+      "rev": 3
     },
     {
       "id": "bearing-library",
@@ -393,7 +396,7 @@ window.MDG_MANIFEST = {
         "COTS"
       ],
       "status": "done",
-      "rev": 3
+      "rev": 4
     },
     {
       "id": "wave-spring-library",
@@ -414,7 +417,7 @@ window.MDG_MANIFEST = {
         "COTS"
       ],
       "status": "done",
-      "rev": 3
+      "rev": 4
     },
     {
       "id": "locknut-library",
@@ -438,7 +441,7 @@ window.MDG_MANIFEST = {
         "COTS"
       ],
       "status": "done",
-      "rev": 2
+      "rev": 3
     },
     {
       "id": "shaft-seal-library",
@@ -464,7 +467,7 @@ window.MDG_MANIFEST = {
         "COTS"
       ],
       "status": "done",
-      "rev": 2
+      "rev": 3
     }
   ]
 };

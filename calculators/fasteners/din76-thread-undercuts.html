@@ -1337,7 +1337,7 @@ c4 -24 -26 -40 -34 -18 -8 21 3 47 19 43 6 -3 13 -14 15 -25z m22 -152 c0 -14
       <li id="ref2"><a href="https://standards.globalspec.com/std/10178616/din-76-1" target="_blank" rel="noopener">DIN 76-1 — Thread run-outs and thread undercuts, Part 1</a> — standards.globalspec.com (scope confirmation: external thread undercuts as Forms A/B, internal as Forms C/D).</li>
       <li id="ref3">Screw Torques page, this suite — <a href="../fasteners/screw-torque.html">calculators/fasteners/screw-torque.html</a> (source of the coarse-pitch-by-size table reused here).</li>
     </ol>
-    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-09-25 &middot; Rev 2</p>
+    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-12 &middot; Rev 4</p>
   </div>
 
 </main>
@@ -1473,18 +1473,22 @@ function populatePitchOptions() {
   const prevValue = pitchSel.value ? parseFloat(pitchSel.value) : null;
   pitchSel.innerHTML = '';
   const options = PITCHES[sizeSel.value];
-  const groups = {};
-  const groupOrder = [];
-  options.forEach(o => {
-    if (!groups[o.label]) { groups[o.label] = document.createElement('optgroup'); groups[o.label].label = o.label; groupOrder.push(o.label); }
-    const opt = document.createElement('option');
-    opt.value = o.p;
-    opt.textContent = `${fmt(o.p, 2)} mm`;
-    groups[o.label].appendChild(opt);
+  const GROUP_ORDER = ['Coarse', 'Extra fine', 'Fine'];   // alphabetical
+  GROUP_ORDER.forEach(label => {
+    const items = options.filter(o => o.label === label).sort((a, b) => a.p - b.p);   // ascending pitch
+    if (!items.length) return;
+    const grp = document.createElement('optgroup');
+    grp.label = label;
+    items.forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = o.p;
+      opt.textContent = `${fmt(o.p, 2)} mm`;
+      grp.appendChild(opt);
+    });
+    pitchSel.appendChild(grp);
   });
-  groupOrder.forEach(label => pitchSel.appendChild(groups[label]));
   const stillHasPrev = prevValue !== null && options.some(o => Math.abs(o.p - prevValue) < 1e-9);
-  pitchSel.value = stillHasPrev ? prevValue : options[0].p;
+  pitchSel.value = stillHasPrev ? prevValue : options.find(o => o.label === 'Coarse').p;
 }
 populatePitchOptions();
 
@@ -1664,5 +1668,6 @@ updateAll();
   });
 })();
 </script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
 </body>
 </html>

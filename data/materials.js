@@ -13,6 +13,10 @@
 // datasheet, cited per-grade in `refs`; values that are typical/generic engineering constants rather
 // than grade-specific test data are marked `"typical": true` in that property's citation.
 //
+// Order: grades are kept sorted alphanumerically within each type (grade, then condition) — pages
+// render in file order, so insert new grades in sequence. Insulating materials stay ordered by CTI
+// group (I → IIIb) instead.
+//
 // `conductivity_pct_IACS` (present on the copper/aluminium conductor grades) is what the Busbar
 // Sizing calculator uses to pick which grades count as "conductor grade" — it filters the material
 // select to grades that have this field rather than hard-coding a grade-id list, so a future grade
@@ -101,26 +105,6 @@ window.MDG_MATERIALS = {
       ]
     },
     {
-      "id": "ss-304-ann",
-      "type": "stainless-steel",
-      "grade": "AISI 304",
-      "condition": "Annealed",
-      "designation": "UNS S30400",
-      "density_kg_m3": 8000,
-      "E_GPa": 193,
-      "G_GPa": 86,
-      "poisson": 0.29,
-      "yield_MPa": 215,
-      "ultimate_MPa": 505,
-      "cte_um_per_mK": 17.3,
-      "k_W_per_mK": 16.2,
-      "melting_C": [1400, 1455],
-      "notes": "",
-      "refs": [
-        { "label": "ASM Material Data Sheet (via matweb.com) — AISI Type 304 Stainless Steel", "url": "https://asm.matweb.com/search/SpecificMaterial.asp?bassnum=mq304a" }
-      ]
-    },
-    {
       "id": "ss-17-4ph-h900",
       "type": "stainless-steel",
       "grade": "17-4PH",
@@ -142,23 +126,109 @@ window.MDG_MATERIALS = {
       ]
     },
     {
-      "id": "ti-6al-4v-ann",
-      "type": "titanium",
-      "grade": "Ti-6Al-4V",
+      "id": "ss-303-ann",
+      "type": "stainless-steel",
+      "grade": "AISI 303",
       "condition": "Annealed",
-      "designation": "UNS R56400 / Grade 5",
-      "density_kg_m3": 4430,
-      "E_GPa": 113.8,
-      "G_GPa": 44,
-      "poisson": 0.342,
-      "yield_MPa": 880,
-      "ultimate_MPa": 950,
-      "cte_um_per_mK": 8.6,
-      "k_W_per_mK": 6.7,
-      "melting_C": [1604, 1660],
-      "notes": "Beta-transus temperature (~980°C) is a more meaningful practical upper limit than the melting range for anything mechanical.",
+      "designation": "UNS S30300",
+      "density_kg_m3": 8000,
+      "E_GPa": 193,
+      "G_GPa": 77.2,
+      "poisson": 0.25,
+      "yield_MPa": 240,
+      "ultimate_MPa": 620,
+      "cte_um_per_mK": 17.2,
+      "k_W_per_mK": 16.2,
+      "melting_C": [1400, 1420],
+      "notes": "Free-machining (sulphur-bearing) grade — lower corrosion resistance and weldability than 304. CTE is the 0–100 °C mean; thermal conductivity is at 100 °C.",
       "refs": [
-        { "label": "ASM Material Data Sheet (via matweb.com) — Titanium Ti-6Al-4V, annealed", "url": "https://asm.matweb.com/search/specificmaterial.asp?bassnum=mtp641" }
+        { "label": "ASM Material Data Sheet (via quickparts.com) — AISI Type 303 Stainless Steel, annealed", "url": "https://quickparts.com/wp-content/uploads/2024/05/303-Stainless-Steel.pdf" }
+      ]
+    },
+    {
+      "id": "ss-304-ann",
+      "type": "stainless-steel",
+      "grade": "AISI 304",
+      "condition": "Annealed",
+      "designation": "UNS S30400",
+      "density_kg_m3": 8000,
+      "E_GPa": 193,
+      "G_GPa": 86,
+      "poisson": 0.29,
+      "yield_MPa": 215,
+      "ultimate_MPa": 505,
+      "cte_um_per_mK": 17.3,
+      "k_W_per_mK": 16.2,
+      "melting_C": [1400, 1455],
+      "notes": "",
+      "refs": [
+        { "label": "ASM Material Data Sheet (via matweb.com) — AISI Type 304 Stainless Steel", "url": "https://asm.matweb.com/search/SpecificMaterial.asp?bassnum=mq304a" }
+      ]
+    },
+    {
+      "id": "ss-304l-ann",
+      "type": "stainless-steel",
+      "grade": "AISI 304L",
+      "condition": "Annealed",
+      "designation": "UNS S30403",
+      "density_kg_m3": 8030,
+      "E_GPa": 193,
+      "G_GPa": 77,
+      "poisson": 0.28,
+      "yield_MPa": 170,
+      "ultimate_MPa": 485,
+      "cte_um_per_mK": 17,
+      "k_W_per_mK": 16.2,
+      "melting_C": [1400, 1450],
+      "notes": "Yield/UTS are specified minimums, not typical values. Shear modulus, Poisson's ratio, CTE and melting range are typical values (MakeItFrom), not given on the Combined Metals sheet.",
+      "refs": [
+        { "label": "Combined Metals — 304L Stainless Steel Alloy Data Sheet (density, min. yield/UTS, elastic modulus, thermal conductivity)", "url": "https://www.combmet.com/wp-content/uploads/2024/01/304L-Stainless-Steel-Alloy-Data-Sheet-2024-01-11.pdf" },
+        { "label": "MakeItFrom.com — Annealed 304L Stainless Steel (shear modulus, Poisson's ratio, CTE, melting range)", "url": "https://makeitfrom.com/material-properties/Annealed-304L-Stainless-Steel", "typical": true }
+      ]
+    },
+    {
+      "id": "al-1350-h19",
+      "type": "aluminum",
+      "grade": "1350",
+      "condition": "H19 (hard drawn)",
+      "designation": "UNS A91350 / EC grade",
+      "density_kg_m3": 2705,
+      "E_GPa": 68.9,
+      "G_GPa": 26,
+      "poisson": 0.33,
+      "yield_MPa": 165,
+      "ultimate_MPa": 186,
+      "cte_um_per_mK": 23.5,
+      "k_W_per_mK": 230,
+      "melting_C": [646, 657],
+      "conductivity_pct_IACS": 61,
+      "specific_heat_J_per_kgK": 900,
+      "notes": "1350 (\"EC grade\", 99.5%+ pure) is the standard electrical-conductor aluminium alloy — H19 (hard-drawn) is the common busbar/wire temper; the softer O temper reaches slightly higher conductivity (61.8% IACS) at much lower strength (~28 MPa yield). Shear modulus, Poisson's ratio, CTE, thermal conductivity and specific heat are typical aluminium values, not measured for this specific temper.",
+      "refs": [
+        { "label": "1350 Aluminium Alloy datasheet (wire/conductor grade) — density, elastic modulus, conductivity, melting range, tensile strength by temper", "url": "https://static1.squarespace.com/static/63741929ecb4563d4b2ef274/t/6418df7bb4c39c620a623dfc/1679351686032/TDS-+Aluminium+Wire+-1350-alloy" },
+        { "label": "HSH Aluminium — 1350 vs 6101 Aluminum for Electrical Conductors (H19 yield/UTS/conductivity cross-check)", "url": "https://www.hshaluc.com/1350-vs-6101-aluminum-for-electrical-conductors.html" },
+        { "label": "Wikipedia — 1350 aluminium alloy (typical thermal conductivity)", "url": "https://en.wikipedia.org/wiki/1350_aluminium_alloy", "typical": true },
+        { "label": "Aluminum-Busbar.com — 6101 Aluminum Properties (typical aluminium specific heat, cross-referenced from the sibling 6101 grade below)", "url": "https://www.aluminum-busbar.com/blog/6101-aluminum-properties/", "typical": true }
+      ]
+    },
+    {
+      "id": "al-2024-t3",
+      "type": "aluminum",
+      "grade": "2024",
+      "condition": "T3",
+      "designation": "UNS A92024",
+      "density_kg_m3": 2780,
+      "E_GPa": 73.1,
+      "G_GPa": 28,
+      "poisson": 0.33,
+      "yield_MPa": 345,
+      "ultimate_MPa": 483,
+      "cte_um_per_mK": 23.2,
+      "k_W_per_mK": 121,
+      "melting_C": [502, 638],
+      "notes": "",
+      "refs": [
+        { "label": "ASM Material Data Sheet (via aerospacemetals.com) — Aluminum 2024-T3", "url": "https://www.aerospacemetals.com/wp-content/uploads/2023/06/Aluminum-2024-T3.pdf" }
       ]
     },
     {
@@ -169,7 +239,7 @@ window.MDG_MATERIALS = {
       "designation": "UNS A96061",
       "density_kg_m3": 2700,
       "E_GPa": 68.9,
-      "G_GPa": 26.0,
+      "G_GPa": 26,
       "poisson": 0.33,
       "yield_MPa": 276,
       "ultimate_MPa": 310,
@@ -179,6 +249,49 @@ window.MDG_MATERIALS = {
       "notes": "",
       "refs": [
         { "label": "ASM Material Data Sheet (via matweb.com) — Aluminum 6061-T6; 6061-T651", "url": "https://www.matweb.com/search/DataSheet.aspx?MatGUID=b8d536e0b9b54bd7b69e4124d8f1d20a" }
+      ]
+    },
+    {
+      "id": "al-6082-t6",
+      "type": "aluminum",
+      "grade": "6082",
+      "condition": "T6",
+      "designation": "UNS A96082 / EN AW-6082",
+      "density_kg_m3": 2700,
+      "E_GPa": 69,
+      "G_GPa": 26,
+      "poisson": 0.33,
+      "yield_MPa": 270,
+      "ultimate_MPa": 330,
+      "cte_um_per_mK": 23,
+      "k_W_per_mK": 160,
+      "melting_C": [580, 650],
+      "notes": "Common UK/EU structural extrusion and plate alloy. T6 strength varies with section thickness — check the mill cert.",
+      "refs": [
+        { "label": "MakeItFrom.com — 6082-T6 Aluminum", "url": "https://makeitfrom.com/material-properties/6082-T6-Aluminum" }
+      ]
+    },
+    {
+      "id": "al-6101-t6",
+      "type": "aluminum",
+      "grade": "6101",
+      "condition": "T6",
+      "designation": "UNS A96101",
+      "density_kg_m3": 2700,
+      "E_GPa": 68,
+      "G_GPa": 26,
+      "poisson": 0.33,
+      "yield_MPa": 170,
+      "ultimate_MPa": 200,
+      "cte_um_per_mK": 23.4,
+      "k_W_per_mK": 218,
+      "melting_C": [620, 655],
+      "conductivity_pct_IACS": 55,
+      "specific_heat_J_per_kgK": 920,
+      "notes": "6101 is the standard heat-treatable busbar/bus-pipe aluminium alloy — T6 trades some conductivity for higher strength than 1350; T61 reaches 57% IACS at lower strength (~100 MPa yield). Reported T6 yield/UTS varies by source and section size (up to ~193 MPa yield elsewhere) — treat as typical and verify against the specific extrusion's mill cert. Shear modulus and Poisson's ratio are typical aluminium values, not measured for this grade.",
+      "refs": [
+        { "label": "Aluminum-Busbar.com — 6101 Aluminum Properties (T6/T61)", "url": "https://www.aluminum-busbar.com/blog/6101-aluminum-properties/" },
+        { "label": "HSH Aluminium — 1350 vs 6101 Aluminum for Electrical Conductors (T6 yield/UTS cross-check)", "url": "https://www.hshaluc.com/1350-vs-6101-aluminum-for-electrical-conductors.html" }
       ]
     },
     {
@@ -202,71 +315,23 @@ window.MDG_MATERIALS = {
       ]
     },
     {
-      "id": "al-2024-t3",
-      "type": "aluminum",
-      "grade": "2024",
-      "condition": "T3",
-      "designation": "UNS A92024",
-      "density_kg_m3": 2780,
-      "E_GPa": 73.1,
-      "G_GPa": 28.0,
-      "poisson": 0.33,
-      "yield_MPa": 345,
-      "ultimate_MPa": 483,
-      "cte_um_per_mK": 23.2,
-      "k_W_per_mK": 121,
-      "melting_C": [502, 638],
-      "notes": "",
+      "id": "ti-6al-4v-ann",
+      "type": "titanium",
+      "grade": "Ti-6Al-4V",
+      "condition": "Annealed",
+      "designation": "UNS R56400 / Grade 5",
+      "density_kg_m3": 4430,
+      "E_GPa": 113.8,
+      "G_GPa": 44,
+      "poisson": 0.342,
+      "yield_MPa": 880,
+      "ultimate_MPa": 950,
+      "cte_um_per_mK": 8.6,
+      "k_W_per_mK": 6.7,
+      "melting_C": [1604, 1660],
+      "notes": "Beta-transus temperature (~980°C) is a more meaningful practical upper limit than the melting range for anything mechanical.",
       "refs": [
-        { "label": "ASM Material Data Sheet (via aerospacemetals.com) — Aluminum 2024-T3", "url": "https://www.aerospacemetals.com/wp-content/uploads/2023/06/Aluminum-2024-T3.pdf" }
-      ]
-    },
-    {
-      "id": "al-1350-h19",
-      "type": "aluminum",
-      "grade": "1350",
-      "condition": "H19 (hard drawn)",
-      "designation": "UNS A91350 / EC grade",
-      "density_kg_m3": 2705,
-      "E_GPa": 68.9,
-      "G_GPa": 26.0,
-      "poisson": 0.33,
-      "yield_MPa": 165,
-      "ultimate_MPa": 186,
-      "cte_um_per_mK": 23.5,
-      "k_W_per_mK": 230,
-      "melting_C": [646, 657],
-      "conductivity_pct_IACS": 61,
-      "specific_heat_J_per_kgK": 900,
-      "notes": "1350 (\"EC grade\", 99.5%+ pure) is the standard electrical-conductor aluminium alloy — H19 (hard-drawn) is the common busbar/wire temper; the softer O temper reaches slightly higher conductivity (61.8% IACS) at much lower strength (~28 MPa yield). Shear modulus, Poisson's ratio, CTE, thermal conductivity and specific heat are typical aluminium values, not measured for this specific temper.",
-      "refs": [
-        { "label": "1350 Aluminium Alloy datasheet (wire/conductor grade) — density, elastic modulus, conductivity, melting range, tensile strength by temper", "url": "https://static1.squarespace.com/static/63741929ecb4563d4b2ef274/t/6418df7bb4c39c620a623dfc/1679351686032/TDS-+Aluminium+Wire+-1350-alloy" },
-        { "label": "HSH Aluminium — 1350 vs 6101 Aluminum for Electrical Conductors (H19 yield/UTS/conductivity cross-check)", "url": "https://www.hshaluc.com/1350-vs-6101-aluminum-for-electrical-conductors.html" },
-        { "label": "Wikipedia — 1350 aluminium alloy (typical thermal conductivity)", "url": "https://en.wikipedia.org/wiki/1350_aluminium_alloy", "typical": true },
-        { "label": "Aluminum-Busbar.com — 6101 Aluminum Properties (typical aluminium specific heat, cross-referenced from the sibling 6101 grade below)", "url": "https://www.aluminum-busbar.com/blog/6101-aluminum-properties/", "typical": true }
-      ]
-    },
-    {
-      "id": "al-6101-t6",
-      "type": "aluminum",
-      "grade": "6101",
-      "condition": "T6",
-      "designation": "UNS A96101",
-      "density_kg_m3": 2700,
-      "E_GPa": 68,
-      "G_GPa": 26.0,
-      "poisson": 0.33,
-      "yield_MPa": 170,
-      "ultimate_MPa": 200,
-      "cte_um_per_mK": 23.4,
-      "k_W_per_mK": 218,
-      "melting_C": [620, 655],
-      "conductivity_pct_IACS": 55,
-      "specific_heat_J_per_kgK": 920,
-      "notes": "6101 is the standard heat-treatable busbar/bus-pipe aluminium alloy — T6 trades some conductivity for higher strength than 1350; T61 reaches 57% IACS at lower strength (~100 MPa yield). Reported T6 yield/UTS varies by source and section size (up to ~193 MPa yield elsewhere) — treat as typical and verify against the specific extrusion's mill cert. Shear modulus and Poisson's ratio are typical aluminium values, not measured for this grade.",
-      "refs": [
-        { "label": "Aluminum-Busbar.com — 6101 Aluminum Properties (T6/T61)", "url": "https://www.aluminum-busbar.com/blog/6101-aluminum-properties/" },
-        { "label": "HSH Aluminium — 1350 vs 6101 Aluminum for Electrical Conductors (T6 yield/UTS cross-check)", "url": "https://www.hshaluc.com/1350-vs-6101-aluminum-for-electrical-conductors.html" }
+        { "label": "ASM Material Data Sheet (via matweb.com) — Titanium Ti-6Al-4V, annealed", "url": "https://asm.matweb.com/search/specificmaterial.asp?bassnum=mtp641" }
       ]
     },
     {

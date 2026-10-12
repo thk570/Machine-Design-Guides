@@ -27,11 +27,14 @@
   header { padding: 1.5rem 1.25rem 1rem; max-width: 1400px; margin: 0 auto; position: relative; }
   header h1 { margin: 0 0 0.25rem; font-size: 1.4rem; }
   header p { margin: 0; color: var(--mdg-text-muted); font-size: 0.95rem; }
+  header p.updated { margin-top: 0.3rem; font-size: 0.78rem; }
   .mdg-theme-toggle { position: absolute; top: 1.5rem; right: 1.25rem;
     border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
     font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
     font-family: var(--mdg-font); }
   .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  .mdg-hub-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 1rem; }
+  .mdg-hub-actions #filter { margin-top: 0; flex: 1 1 220px; }
   #filter { margin-top: 1rem; width: 100%; max-width: 360px; padding: 0.5rem 0.75rem;
     border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
     background: var(--mdg-surface); color: var(--mdg-text); font-size: 0.9rem; }
@@ -57,7 +60,12 @@
   <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
   <h1>Machine Design Guides</h1>
   <p>Quick reference tools and calculators for machine design — dimensions, materials and standards, in one place.</p>
-  <input id="filter" type="text" placeholder="Filter by title or tag…">
+  <p class="updated" id="mdg-updated"></p>
+  <div class="mdg-hub-actions">
+    <input id="filter" type="text" placeholder="Filter by title or tag…">
+    <button type="button" id="mdg-page-request" class="mdg-req-pill" hidden>Page request</button>
+    <a id="mdg-request-log" class="mdg-req-pill" href="#" target="_blank" rel="noopener" hidden>Request log</a>
+  </div>
 </header>
 
 <main id="content">
@@ -66,6 +74,7 @@
 
 <script src="data/manifest.js"></script>
 <script src="assets/js/app.js"></script>
+<script src="assets/js/requests.js" data-mdg-request="page"></script>
 <script>
 (function(){
   var STATES = ['auto','light','dark'];

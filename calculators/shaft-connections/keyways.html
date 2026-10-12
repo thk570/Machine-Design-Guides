@@ -381,8 +381,8 @@
     <p><strong>Applicable design standards</strong></p>
     <ul class="ref-list">
       <li><a href="https://www.beuth.de/en/standard/din-6885-1/346315269">DIN 6885-1:2021</a> — Drive type fastenings without taper action, parallel keys, keyways — Deep pattern — Part 1: Dimensions, tolerances, mass.</li>
-      <li><a href="https://www.iso.org/standard/5056.html">ISO/R 773:1969</a> — Rectangular or square parallel keys and their corresponding keyways (dimensions in millimetres).</li>
       <li><a href="https://webstore.ansi.org/standards/din/din68852021-2487706">DIN 6885-3:2021</a> — Low pattern parallel keys/keyways (shallower t1/t2 for lighter-duty shafts) — not reproduced on this page, which covers deep pattern ("Type A") only.</li>
+      <li><a href="https://www.iso.org/standard/5056.html">ISO/R 773:1969</a> — Rectangular or square parallel keys and their corresponding keyways (dimensions in millimetres).</li>
     </ul>
     <p>Doesn't reproduce the standards' full tolerance tables, fillet radii/chamfers, taper/gib-head/Woodruff
       keys, or splines. Verify safety-critical, high-torque, fatigue or shock-loaded joints against the actual
@@ -397,13 +397,17 @@
       <li id="ref5"><a href="https://www.theworldmaterial.com/astm-sae-aisi-1045-carbon-steel-material/">AISI 1045 Carbon Steel</a> — theworldmaterial.com (1045 as a common key-stock grade; backs the shared material library entry used as this page's default).</li>
     </ol>
 
-    <p>Last updated: 2026-09-29 &middot; Rev 3</p>
+    <p>Last updated: 2026-10-12 &middot; Rev 5</p>
   </div>
 
 </main>
 
 <script src="../../data/materials.js"></script>
 <script>
+// House rule: drop-downs/lists are listed alphanumerically ascending (natural/numeric-aware,
+// case-insensitive). Option lists are sorted at render time with this comparator.
+const mdgCmp = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+
 // ---------- DIN 6885-1 dimension table (Deep Pattern / "Type A") ----------
 // { dMin, dMax, b, h, t1, t2 } — dMin/dMax bound the shaft-diameter band "over dMin up to and
 // including dMax" (first row includes its own dMin). Source: see ref1.
@@ -457,7 +461,7 @@ let fitType = 'normal';
 function renderFitPills() {
   const wrap = document.getElementById('fit-pills');
   wrap.innerHTML = '';
-  Object.entries(FIT_TYPES).forEach(([id, f]) => {
+  Object.entries(FIT_TYPES).sort((a, b) => mdgCmp(a[1].label, b[1].label)).forEach(([id, f]) => {
     const b = document.createElement('div');
     b.className = 'pill' + (id === fitType ? ' active' : '');
     b.textContent = f.label;
@@ -475,7 +479,7 @@ let mode = 'find';
 function renderModePills() {
   const wrap = document.getElementById('mode-pills');
   wrap.innerHTML = '';
-  MODES.forEach(m => {
+  MODES.slice().sort((a, b) => mdgCmp(a.label, b.label)).forEach(m => {
     const b = document.createElement('div');
     b.className = 'pill' + (m.id === mode ? ' active' : '');
     b.textContent = m.label;
@@ -503,15 +507,17 @@ function buildMaterialOptions() {
     sel.appendChild(opt);
     return;
   }
-  window.MDG_MATERIALS.types.forEach(t => {
-    const grades = window.MDG_MATERIALS.grades.filter(g => g.type === t.slug);
+  window.MDG_MATERIALS.types.slice().sort((a, b) => mdgCmp(a.title, b.title)).forEach(t => {
+    const grades = window.MDG_MATERIALS.grades.filter(g => g.type === t.slug)
+      .map(g => ({ id: g.id, text: `${g.grade} (${g.condition})` }))
+      .sort((a, b) => mdgCmp(a.text, b.text));
     if (!grades.length) return;
     const grp = document.createElement('optgroup');
     grp.label = t.title;
     grades.forEach(g => {
       const opt = document.createElement('option');
       opt.value = g.id;
-      opt.textContent = `${g.grade} (${g.condition})`;
+      opt.textContent = g.text;
       if (g.id === 'steel-1045-cd') opt.selected = true;
       grp.appendChild(opt);
     });
@@ -730,5 +736,6 @@ updateAll();
   });
 })();
 </script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
 </body>
 </html>
