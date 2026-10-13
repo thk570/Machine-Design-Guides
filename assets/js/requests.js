@@ -39,8 +39,14 @@
   }
 
   function openForm(type, ctx) {
-    var w = window.open(formUrl(type, ctx), '_blank', 'noopener');
-    if (!w) location.href = formUrl(type, ctx); // popup blocked: open in this tab instead
+    // Temporary link click: opens a new tab only (window.open with 'noopener' returns null even on success).
+    var a = document.createElement('a');
+    a.href = formUrl(type, ctx);
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   }
 
   var css =
