@@ -232,6 +232,27 @@ window.MDG_MATERIALS = {
       ]
     },
     {
+      "id": "al-5083-h111",
+      "type": "aluminum",
+      "grade": "5083",
+      "condition": "H111",
+      "designation": "UNS A95083 / EN AW-5083",
+      "density_kg_m3": 2700,
+      "E_GPa": 68,
+      "G_GPa": 26,
+      "poisson": 0.33,
+      "yield_MPa": 150,
+      "ultimate_MPa": 300,
+      "cte_um_per_mK": 24,
+      "k_W_per_mK": 120,
+      "melting_C": [580, 640],
+      "notes": "Non-heat-treatable Al-Mg marine/welded-structure alloy. Values are single-source typicals; EN 485-2 minimums are lower (proof 110–125 MPa, UTS 260–275 MPa min by thickness), so check the mill cert.",
+      "refs": [
+        { "label": "MakeItFrom.com — 5083-H111 Aluminum", "url": "https://www.makeitfrom.com/material-properties/5083-H111-Aluminum", "typical": true },
+        { "label": "Righton Blackburns — Aluminium Alloy 5083 O/H111 Sheet & Plate (EN 485-2 minimum proof stress/UTS cross-check)", "url": "https://www.rightonblackburns.co.uk/datasheets/view/Righton-Blackburns-Ltd_Aluminium-Alloy-5083-O-H111-Sheet-Plate_149.pdf" }
+      ]
+    },
+    {
       "id": "al-6061-t6",
       "type": "aluminum",
       "grade": "6061",
