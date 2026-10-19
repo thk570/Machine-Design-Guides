@@ -5,6 +5,7 @@
 //
 // Categories and the cards within them are always rendered in alphabetical order (by title),
 // regardless of the order they're listed in manifest.js — that file's ordering doesn't matter.
+// The one exception is the 'libraries' category, which is always pinned last (bottom of the page).
 //
 // The header shows "Last updated: <date>" from manifest.updated (YYYY-MM-DD), set at each export.
 
@@ -51,14 +52,16 @@ function mdgRender(manifest, query) {
     return;
   }
 
-  const sortedCategories = [...manifest.categories].sort((a, b) => a.title.localeCompare(b.title));
+  const PINNED_LAST = 'libraries';
+  const sortedCategories = [...manifest.categories].sort((a, b) =>
+    (a.slug === PINNED_LAST) - (b.slug === PINNED_LAST) || a.title.localeCompare(b.title));
 
   for (const cat of sortedCategories) {
     const pages = byCat[cat.slug];
     if (!pages || pages.length === 0) continue;
     const sortedPages = [...pages].sort((a, b) => a.title.localeCompare(b.title));
     const section = document.createElement('div');
-    section.className = 'category';
+    section.className = 'category' + (cat.slug === PINNED_LAST ? ' libraries' : '');
     section.innerHTML = `<h2><span class="dot" style="background:${cat.color}"></span>${cat.title}</h2>`;
     const cards = document.createElement('div');
     cards.className = 'cards';

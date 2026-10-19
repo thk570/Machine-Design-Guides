@@ -9,8 +9,9 @@
   /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
   :root {
     --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
-    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #7a6a2e;
-    --mdg-accent-soft: rgba(122, 106, 46, 0.10);
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #5b5b5b;
+    --mdg-accent-soft: rgba(91, 91, 91, 0.10);
+    --input-bg: #eeeeec; --input-border: #c9c9c3;
     --mdg-radius: 8px;
     --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
@@ -19,14 +20,16 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
-      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent-soft: rgba(122, 106, 46, 0.26);
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent-soft: rgba(91, 91, 91, 0.26);
       --poor: #e0696d; --good: #5cc28a;
+      --input-bg: #2a2a2d; --input-border: #4a4a4f;
     }
   }
   :root[data-theme="dark"] {
     --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
-    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent-soft: rgba(122, 106, 46, 0.26);
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent-soft: rgba(91, 91, 91, 0.26);
     --poor: #e0696d; --good: #5cc28a;
+    --input-bg: #2a2a2d; --input-border: #4a4a4f;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
@@ -62,7 +65,7 @@
   .note { font-size: 0.8rem; color: var(--mdg-text-muted); margin: 0.6rem 0 0; }
   .lbl { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; }
   select, input[type=number], input[type=text] { font-family: var(--mdg-font); font-size: 0.9rem; padding: 0.4rem 0.55rem;
-    border: 1px solid var(--mdg-border); border-radius: 6px; background: var(--mdg-bg); color: var(--mdg-text); }
+    border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); color: var(--mdg-text); }
   input[type=number] { width: 6.5rem; }
   .field { display: flex; flex-direction: column; }
   .input-row { display: flex; align-items: center; gap: 0.4rem; }
@@ -264,7 +267,7 @@
     <p style="margin-top:0.75rem;"><strong>References</strong></p>
     <ol class="ref-list" id="ref-list"></ol>
 
-    <p>Last updated: 2026-10-12 &middot; Rev 4</p>
+    <p>Last updated: 2026-10-16 &middot; Rev 5</p>
   </div>
 
 </main>

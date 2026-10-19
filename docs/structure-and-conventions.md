@@ -75,10 +75,9 @@ the hub doesn't fragment into a long list of near-empty groups as pages are adde
 
 - `fits` — Fits (ISO 286 hole-basis fits/tolerances, and shaft-connection topics like keyways/splines — anything about how two mating parts locate or transmit load relative to each other)
 - `fasteners` — Fasteners & Torque (screw torques, thread standards, washers)
-- `seals` — Seals & O-Rings (sizing, material/compound selection, groove design, rotary shaft seals)
+- `seals` — Seals & O-Rings (sizing, material/compound selection, groove design)
 - `electrical` — Electrical (creepage/clearance per IEC 60664, HV/LV cable sizing and current rating, and future electrical topics — busbars, connectors, etc.)
-- `materials` — Materials reference (properties, equivalence tables)
-- `components` — Components (bought-in COTS parts selected from supplier catalogues: bearings, wave springs, lock nuts; later the Bearing Selector and Shaft Design Guide). Colour `#7a6a2e`, folder `calculators/components/`. Shaft seals stay under `seals`.
+- `libraries` — Libraries (browsable reference libraries backed by shared data: Material, Fastener, Bearing, Wave Spring, Lock Nut, Shaft Seal). Colour `#5b5b5b` (the Material Library grey), always the last section on the home page. Page files stay in their existing folders (`calculators/materials/`, `calculators/components/`, `calculators/fasteners/`, `calculators/seals/`). Replaces the former `materials` and `components` categories (retired 2026-10-16).
 - `thermal` — Thermal & Fluids (thermal expansion, pipe/coolant flow and pressure drop, and future heat-transfer topics). Colour `#2b8799`, folder `calculators/thermal/`. Added 2026-10-07; Thermal Expansion moved here from `materials`.
 
 New categories get added to this list in this doc (and mirrored in `style.css` if they carry a colour tag) before the first page in them is built, so the taxonomy stays a deliberate decision rather than drifting. Prefer folding a new narrow topic into an existing general category over minting a new one, unless it's genuinely a different subject area.
@@ -118,9 +117,10 @@ The small `<p class="note">` under each section explains the figures above it �
 - **Input box colour**: user input boxes (`input[type=number]`, `select`) take a light tint of the page's category colour via `--input-bg` / `--input-border` (with matching dark-mode values), and an accent border on focus — e.g. Keyways (fits blue), Pipe Pressure Drop (thermal teal). This marks what the user can change versus computed output.
 - **Theme**: light and dark variants using CSS custom properties (tokens defined once in `assets/css/style.css`), so pages behave in either without per-page work. See "Dark mode toggle" below for how the user actually switches between them.
 - **Diagrams**: draw them as inline SVG using the shared CSS tokens (`var(--mdg-text)`, `var(--mdg-accent)`, etc.), never as an embedded base64 raster image. See "Diagrams: inline SVG, not embedded raster" below.
-- **Colour by category**: each category in the taxonomy gets one accent colour, used consistently for its tag/badge across the hub and its pages, so the eye learns "this colour = fasteners" etc.
+- **Colour by category**: each category in the taxonomy gets one accent colour, used consistently for its tag/badge across the hub and its pages, so the eye learns "this colour = fasteners" etc. All libraries share one grey (`#5b5b5b`) accent and a neutral input tint (`--input-bg` `#eeeeec` / `--input-border` `#c9c9c3`; dark `#2a2a2d` / `#4a4a4f`).
 - **Typography**: one system font stack, no per-page font choices.
 - **Print-friendly**: pages should print sensibly (results table visible, nav/chrome hidden) since these often get printed and pinned up or dropped into a drawing pack. See also "Save as PDF" below for the dedicated one-click export.
+- **Libraries**: any new library page must be registered under the `libraries` category so it appears in the Libraries section at the bottom of the home page (that section is pinned last, whatever the alphabetical order).
 - **Drop-downs, lists**: all drop-downs, lists, and items within a category shall be listed alphanumerically in ascending order.
 
 ## Shared material library (`data/materials.js`)
@@ -372,7 +372,7 @@ Users suggest changes to a page ("Change request", in every page header before S
 
 ## The hub (`index.html`)
 
-Reads `window.MDG_MANIFEST`, groups entries by category, and renders a card/list per category with links to each page. Includes a simple text filter across title/tags. This is the "select a topic or standard, land on the right page" entry point the project brief asks for.
+Reads `window.MDG_MANIFEST`, groups entries by category, and renders a card/list per category with links to each page. Sections are alphabetical, except Libraries, which is always pinned to the bottom. Includes a simple text filter across title/tags. This is the "select a topic or standard, land on the right page" entry point the project brief asks for.
 
 The manifest is deliberately `data/manifest.js` (loaded via `<script src="data/manifest.js">`) rather than `data/manifest.json` (loaded via `fetch()`), specifically so `index.html` works by double-clicking it straight off the filesystem — a `<script src>` tag isn't subject to the same same-origin/CORS block that `fetch()` hits under `file://`. Don't reintroduce a `fetch()`-based JSON load for the manifest; it would bring that failure back. (A future app/Electron wrapper can still read `data/manifest.js` just as easily — this isn't a workaround that needs undoing later.)
 

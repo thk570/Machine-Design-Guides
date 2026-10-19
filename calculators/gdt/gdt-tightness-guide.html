@@ -142,6 +142,51 @@
   .gdt-icon-cell svg { width: 1rem; height: 1rem; flex: none; color: var(--mdg-text-muted); }
   .type-intro .type-name { font-size: 1.1rem; font-weight: 700; }
 
+  /* ---- GD&T dictionary ---- */
+  :root { --dict-part: #e9edf2; --dict-zone: rgba(59,110,165,0.16); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --dict-part: #2a2e34; --dict-zone: rgba(91,155,217,0.22); } }
+  :root[data-theme="dark"] { --dict-part: #2a2e34; --dict-zone: rgba(91,155,217,0.22); }
+  .type-intro .def-link { font-size: 0.78rem; color: var(--mdg-accent); text-decoration: none; margin-left: auto; }
+  .type-intro .def-link:hover { text-decoration: underline; }
+  .dict-chips { display: flex; gap: 0.35rem; flex-wrap: wrap; margin: 0.25rem 0 0.75rem; }
+  .dict-chip { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.25rem 0.75rem; font-size: 0.78rem;
+    cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .dict-chip[aria-pressed="true"] { background: var(--mdg-accent); border-color: var(--mdg-accent); color: #fff; }
+  .dict-chip:focus-visible, .dict-check:focus-visible { outline: 2px solid var(--mdg-accent); outline-offset: 2px; }
+  .dict-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 0.7rem; }
+  .dict-card { border: 1px solid var(--mdg-border); border-radius: 6px; background: var(--mdg-bg);
+    padding: 0.7rem 0.8rem; display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; scroll-margin-top: 1rem; }
+  .dict-card.current { border-color: var(--mdg-accent); box-shadow: inset 0 0 0 1px var(--mdg-accent); }
+  .dict-head { display: flex; align-items: center; gap: 0.5rem; }
+  .dict-head .sym { display: inline-flex; width: 1.9rem; height: 1.9rem; align-items: center; justify-content: center; flex: none;
+    border: 1px solid var(--mdg-border); border-radius: 5px; background: var(--mdg-surface); color: var(--mdg-accent); }
+  .dict-head .sym svg { width: 1.3rem; height: 1.3rem; }
+  .dict-head .nm { font-weight: 700; font-size: 0.92rem; }
+  .dict-head .grp { margin-left: auto; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--mdg-text-muted); }
+  .dict-fig { background: var(--mdg-surface); border: 1px solid var(--mdg-border); border-radius: 5px; }
+  .dict-fig svg { display: block; width: 100%; height: auto; }
+  .dict-fig .part { fill: var(--dict-part); stroke: var(--mdg-text); stroke-width: 1.2; stroke-linejoin: round; }
+  .dict-fig .ln { fill: none; stroke: var(--mdg-text); stroke-width: 1.2; }
+  .dict-fig .zone { fill: var(--dict-zone); stroke: none; }
+  .dict-fig .zl { fill: none; stroke: var(--mdg-accent); stroke-width: 1.1; stroke-dasharray: 4 3; }
+  .dict-fig .ax { fill: none; stroke: var(--mdg-text-muted); stroke-width: 0.9; stroke-dasharray: 10 3 2 3; }
+  .dict-fig .dim { fill: none; stroke: var(--mdg-text-muted); stroke-width: 0.8; }
+  .dict-fig .ink { fill: var(--mdg-text); stroke: none; }
+  .dict-fig .acc { fill: var(--mdg-accent); stroke: none; }
+  .dict-fig text { font-family: var(--mdg-font); font-size: 9px; fill: var(--mdg-text-muted); }
+  .dict-fig text.t { fill: var(--mdg-accent); font-weight: 700; font-style: italic; }
+  .dict-fig text.dl { fill: var(--mdg-text); font-weight: 700; }
+  .dict-fig .box { fill: var(--mdg-surface); stroke: var(--mdg-text); stroke-width: 0.9; }
+  .dict-controls { font-size: 0.82rem; line-height: 1.4; margin: 0; }
+  .dict-dl { display: grid; grid-template-columns: auto 1fr; gap: 0.2rem 0.6rem; font-size: 0.76rem; margin: 0; }
+  .dict-dl dt { color: var(--mdg-text-muted); }
+  .dict-dl dd { margin: 0; }
+  .dict-note { font-size: 0.74rem; color: var(--mdg-text-muted); margin: 0; }
+  .dict-note.warn-note { color: var(--poor); }
+  .dict-check { align-self: flex-start; margin-top: auto; border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.25rem 0.6rem;
+    font-size: 0.74rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-accent); font-family: var(--mdg-font); }
+  .dict-check:hover { border-color: var(--mdg-accent); }
+
   @media print { .mdg-header, .mdg-no-print { display: none !important; } }
 
   /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). Forces a light,
@@ -193,7 +238,8 @@
   <div class="mdg-card">
     <p>How tight is tight? Pick a geometric characteristic, then enter a tolerance value to see where it sits
       on the scale from ordinary shop capability to metrology-grade — with the processes typically needed to
-      hold it and a rough sense of the cost step-up. All 14 ASME Y14.5 characteristics are here now. Band
+      hold it and a rough sense of the cost step-up. Covers the 12 ASME Y14.5-2018 characteristics, plus
+      concentricity and symmetry (deleted in 2018, still in ISO 1101). Band
       boundaries have been checked against real process-capability figures where they exist<sup><a href="#ref1">1</a>,<a href="#ref2">2</a>,<a href="#ref3">3</a></sup> —
       see "Where these numbers came from" at the bottom for exactly which ones, and which are still engineering-judgement
       placeholders. This is a first-pass guide for sizing tolerances on an initial drawing draft, not a detailed
@@ -212,6 +258,7 @@
     <div class="type-intro">
       <span class="type-symbol" id="type-symbol"></span>
       <span class="type-name" id="type-name"></span>
+      <a class="def-link mdg-no-print" id="def-link" href="#gdt-dictionary">Definition &darr;</a>
     </div>
     <p class="note" id="type-def"></p>
   </div>
@@ -279,6 +326,20 @@
     </details>
   </div>
 
+  <!-- ============ 4. GD&T DICTIONARY ============ -->
+  <div class="mdg-card" id="gdt-dictionary">
+    <h2>4. GD&amp;T dictionary</h2>
+    <details class="mdg-collapsible" id="dict-details">
+      <summary>What each characteristic controls <span class="hint">zone, datum and modifier rules, with a schematic</span></summary>
+      <div class="mdg-collapsible-body">
+        <div class="dict-chips" id="dict-chips" role="group" aria-label="Filter by group"></div>
+        <div class="dict-grid" id="dict-grid"></div>
+        <p class="note">Groups and datum use<sup><a href="#ref5">5</a></sup>, zone shapes<sup><a href="#ref6">6</a></sup>,
+          MMC/LMC applicability<sup><a href="#ref7">7</a></sup>. Schematics are this page's own, not to scale.</p>
+      </div>
+    </details>
+  </div>
+
   <div class="mdg-card mdg-footer">
     <p><strong>Where these numbers came from</strong></p>
     <p>Directly grounded in the sources below: the Position bands' four boundaries (0.25&nbsp;mm, 0.1&nbsp;mm, 0.0127&nbsp;mm)
@@ -309,18 +370,17 @@
       <li id="ref2"><a href="https://www.eng-tips.com/threads/lets-have-a-discussion-on-position-tolerance-of-dowel-pins.331679/">Let's have a discussion on position tolerance of dowel pins</a> — eng-tips.com (Ø0.010″ called a reasonable machining tolerance for hole location; Ø0.001″ reasonable for standard machining; Ø0.0005″ "way too tight" for conventional/CNC milling; Ø0.00025″ impractical).</li>
       <li id="ref3"><a href="https://www.criterionprecision.com/feeds/blog/tight-tolerance-jig-bore-machining">Tight-Tolerance Jig Bore Machining</a> — criterionprecision.com (jig-boring hole location within 1–5&nbsp;µm of datum, ultra-precision work to 1–2&nbsp;µm; bore diameter ±0.0002″; roundness/perpendicularity/straightness under 5&nbsp;µm for mold-base work).</li>
       <li id="ref4"><a href="https://fractory.com/concentricity-gdt-explained/">Concentricity (GD&amp;T) Explained</a> — fractory.com (concentricity described as difficult to achieve and measure; runout ≈ circularity + concentricity when a part is round; recommends runout, position or profile as the practical substitute).</li>
+      <li id="ref5"><a href="https://www.wevolver.com/article/gdt-explained-symbols-datums-and-tolerances">GD&amp;T Explained: Symbols, Datums and Tolerances</a> — wevolver.com (characteristic groups; datum required for orientation, location and runout, optional for profile, none for form; equal-bilateral profile default).</li>
+      <li id="ref6"><a href="https://download.gdandtbasics.com/hubfs/Charts/GD%26T_Reference_Chart.pdf">GD&amp;T Reference Chart</a> — gdandtbasics.com (tolerance zone shapes: parallel planes, concentric circles, coaxial cylinders, 2D/3D profile boundaries, cylindrical axis zones).</li>
+      <li id="ref7"><a href="https://www.inspectionxpert.com/gdt/geometric-dimensioning-and-tolerancing">Geometric Dimensioning and Tolerancing</a> — inspectionxpert.com (MMC/LMC applies to straightness, angularity, perpendicularity, parallelism and position on a feature of size only).</li>
+      <li id="ref8"><a href="https://gdtseminars.com/2019/05/24/the-new-asme-y14-5-2018-standard/">The New ASME Y14.5-2018 Standard</a> — gdtseminars.com (concentricity and symmetry deleted; position, profile or runout used instead).</li>
     </ol>
-    <p>Last updated: 2026-10-12 &middot; Rev 4</p>
+    <p>Last updated: 2026-10-16 &middot; Rev 5</p>
   </div>
 
 </main>
 
 <script>
-// House rule: drop-downs/lists are listed alphanumerically ascending (natural/numeric-aware,
-// case-insensitive). Option lists and named-item tables are sorted at render time with this
-// comparator; the band/tier scale itself keeps its logical loose -> tight order.
-const mdgCmp = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
-
 // ---------------------------------------------------------------------------
 // Default (researched) GD&T achievability data. Bands are contiguous, ordered
 // loose -> tight, each { max, min } in the type's stated unit. See the page's
@@ -329,6 +389,11 @@ const mdgCmp = (a, b) => String(a).localeCompare(String(b), undefined, { numeric
 // default" restores. The live, possibly user-edited copy lives in TYPES,
 // optionally seeded from this browser's local storage (see LS_KEY below).
 // ---------------------------------------------------------------------------
+// House rule: drop-downs/lists are listed alphanumerically ascending (natural/numeric-aware,
+// case-insensitive). Option lists and named-item tables are sorted at render time with this
+// comparator; the band/tier scale itself keeps its logical loose -> tight order.
+const mdgCmp = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+
 const BAND_META = [
   { name: 'Commercial',      cost: 1, color: 'var(--band-0)' },
   { name: 'General',         cost: 2, color: 'var(--band-1)' },
@@ -755,6 +820,7 @@ function updateAll() {
   renderBandCards(currentType, idx);
   document.getElementById('edit-hint').style.display = editMode ? '' : 'none';
   updateSaveStatus();
+  highlightDict();
 }
 
 document.getElementById('tol-value').addEventListener('input', updateAll);
@@ -785,6 +851,247 @@ document.getElementById('save-btn').addEventListener('click', () => {
     status.className = 'save-status dirty';
   }
 });
+
+// ---------------------------------------------------------------------------
+// Section 4 — GD&T dictionary. One entry per characteristic id (same ids as
+// DEFAULT_TYPES). Schematics are this page's own inline SVGs (viewBox 200x125),
+// styled by the .dict-fig classes so they re-theme with the page.
+// ---------------------------------------------------------------------------
+const F = {
+  head(x, y, ux, uy, cls) { // arrowhead with tip at (x,y), pointing along (ux,uy)
+    const bx = x - ux * 4.5, by = y - uy * 4.5, px = -uy * 2, py = ux * 2;
+    return `<polygon class="${cls || 'acc'}" points="${x},${y} ${bx + px},${by + py} ${bx - px},${by - py}"/>`;
+  },
+  tV(x, y1, y2) { // vertical "t" between two zone lines, arrows pointing in
+    return `<line class="dim" x1="${x}" y1="${y1 - 11}" x2="${x}" y2="${y1}"/>${F.head(x, y1, 0, 1)}` +
+      `<line class="dim" x1="${x}" y1="${y2 + 11}" x2="${x}" y2="${y2}"/>${F.head(x, y2, 0, -1)}` +
+      `<text class="t" x="${x + 4}" y="${(y1 + y2) / 2 + 3}">t</text>`;
+  },
+  tH(x1, x2, y, lx, ly) { // horizontal "t", arrows pointing in
+    return `<line class="dim" x1="${x1 - 11}" y1="${y}" x2="${x1}" y2="${y}"/>${F.head(x1, y, 1, 0)}` +
+      `<line class="dim" x1="${x2 + 11}" y1="${y}" x2="${x2}" y2="${y}"/>${F.head(x2, y, -1, 0)}` +
+      `<text class="t" x="${lx}" y="${ly}">t</text>`;
+  },
+  datum(x, y, dir, L) { // datum feature symbol: triangle on the surface, stem, boxed letter
+    if (dir === 'down') return `<polygon class="ink" points="${x - 5},${y} ${x + 5},${y} ${x},${y + 7}"/>` +
+      `<line class="ln" x1="${x}" y1="${y + 7}" x2="${x}" y2="${y + 12}"/><rect class="box" x="${x - 7}" y="${y + 12}" width="14" height="13"/>` +
+      `<text class="dl" x="${x}" y="${y + 22}" text-anchor="middle">${L}</text>`;
+    if (dir === 'up') return `<polygon class="ink" points="${x - 5},${y} ${x + 5},${y} ${x},${y - 7}"/>` +
+      `<line class="ln" x1="${x}" y1="${y - 7}" x2="${x}" y2="${y - 12}"/><rect class="box" x="${x - 7}" y="${y - 25}" width="14" height="13"/>` +
+      `<text class="dl" x="${x}" y="${y - 15.5}" text-anchor="middle">${L}</text>`;
+    return `<polygon class="ink" points="${x},${y - 5} ${x},${y + 5} ${x - 7},${y}"/>` + // left
+      `<line class="ln" x1="${x - 7}" y1="${y}" x2="${x - 12}" y2="${y}"/><rect class="box" x="${x - 26}" y="${y - 6.5}" width="14" height="13"/>` +
+      `<text class="dl" x="${x - 19}" y="${y + 3.5}" text-anchor="middle">${L}</text>`;
+  },
+  basic(x, y, v) { // boxed basic dimension
+    const w = 6 + v.length * 5.2;
+    return `<rect class="box" x="${x - w / 2}" y="${y - 6.5}" width="${w}" height="13"/><text class="dl" x="${x}" y="${y + 3}" text-anchor="middle">${v}</text>`;
+  },
+  pts(a) { return a.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '); },
+  curve(P0, P1, P2, off, wob) { // quadratic Bézier sampled, offset along its normal (+ optional wobble)
+    const out = [];
+    for (let i = 0; i <= 40; i++) {
+      const s = i / 40, a = 1 - s;
+      const x = a * a * P0[0] + 2 * a * s * P1[0] + s * s * P2[0];
+      const y = a * a * P0[1] + 2 * a * s * P1[1] + s * s * P2[1];
+      let dx = 2 * a * (P1[0] - P0[0]) + 2 * s * (P2[0] - P1[0]);
+      let dy = 2 * a * (P1[1] - P0[1]) + 2 * s * (P2[1] - P1[1]);
+      const m = Math.hypot(dx, dy); dx /= m; dy /= m;
+      const d = off + (wob ? wob * Math.sin(s * 17) * Math.cos(s * 5) : 0);
+      out.push([x + dy * d, y - dx * d]);
+    }
+    return out;
+  },
+  shaft(extra) { // shared runout part: datum journal + toleranced diameter
+    return `<rect class="part" x="15" y="44" width="50" height="36"/><rect class="part" x="65" y="34" width="115" height="56"/>` +
+      `<line class="ax" x1="6" y1="62" x2="192" y2="62"/>` +
+      `<path class="ln" d="M22 38 A14 5 0 1 1 50 38"/>${F.head(50, 38, 0.35, 0.94, 'ink')}` + extra + F.datum(40, 80, 'down', 'A');
+  },
+  gauge(x, ghost) {
+    const c = ghost ? 'dim' : 'ln';
+    return `<line class="${c}" x1="${x}" y1="34" x2="${x}" y2="21"/><circle class="${ghost ? 'dim' : 'part'}" cx="${x}" cy="13" r="8"/>` +
+      (ghost ? '' : `<line class="ln" x1="${x}" y1="13" x2="${x + 4}" y2="8"/>`);
+  },
+};
+
+const DICT_FIG = {
+  'straightness': () =>
+    `<rect class="zone" x="15" y="48" width="170" height="14"/><line class="zl" x1="12" y1="48" x2="188" y2="48"/>` +
+    `<path class="part" d="M20 100 L20 56 C50 50 70 60 100 54 S150 50 180 57 L180 100 Z"/>` +
+    `<line class="zl" x1="12" y1="62" x2="188" y2="62"/>` + F.tV(192, 48, 62) +
+    `<text x="20" y="114">each line element of the surface</text>`,
+  'flatness': () =>
+    `<polygon class="part" points="30,64 140,64 140,92 30,92"/><polygon class="part" points="140,64 175,40 175,68 140,92"/>` +
+    `<path class="part" d="M30 64 C60 60 90 68 140 63 L175 39 C150 42 110 36 65 40 Z"/>` +
+    `<polygon class="zone" points="30,57 140,57 175,33 65,33"/>` +
+    `<polygon class="zl" points="30,57 140,57 175,33 65,33"/><polygon class="zl" points="30,70 140,70 175,46 65,46"/>` +
+    F.tV(184, 33, 46) + `<text x="30" y="110">whole surface, two parallel planes</text>`,
+  'circularity': () => {
+    const c = [75, 60], pts = [];
+    for (let i = 0; i < 72; i++) { const a = i / 72 * 2 * Math.PI, r = 30 + 2.2 * Math.sin(5 * a) + 1.3 * Math.cos(3 * a); pts.push([c[0] + r * Math.cos(a), c[1] + r * Math.sin(a)]); }
+    return `<path class="zone" fill-rule="evenodd" d="M${c[0] + 34} ${c[1]} A34 34 0 1 0 ${c[0] - 34} ${c[1]} A34 34 0 1 0 ${c[0] + 34} ${c[1]} Z M${c[0] + 26} ${c[1]} A26 26 0 1 0 ${c[0] - 26} ${c[1]} A26 26 0 1 0 ${c[0] + 26} ${c[1]} Z"/>` +
+      `<polygon class="part" points="${F.pts(pts)}"/><circle class="zl" cx="75" cy="60" r="34"/><circle class="zl" cx="75" cy="60" r="26"/>` +
+      `<line class="ax" x1="35" y1="60" x2="115" y2="60"/><line class="ax" x1="75" y1="20" x2="75" y2="100"/>` +
+      `<text class="t" x="99" y="32">t</text><line class="dim" x1="101" y1="34" x2="104" y2="40"/>` +
+      `<rect class="part" x="135" y="48" width="52" height="24" rx="3"/><line class="zl" x1="161" y1="40" x2="161" y2="80"/>` +
+      `<text x="140" y="94">any section</text>`;
+  },
+  'cylindricity': () =>
+    `<rect class="zone" x="35" y="28" width="130" height="8"/><rect class="zone" x="35" y="74" width="130" height="8"/>` +
+    `<path class="part" d="M35 32 C70 29 100 35 165 31 L165 78 C120 81 80 75 35 79 Z"/><ellipse class="part" cx="165" cy="55" rx="6" ry="23.5"/>` +
+    `<line class="zl" x1="30" y1="28" x2="170" y2="28"/><line class="zl" x1="30" y1="36" x2="170" y2="36"/>` +
+    `<line class="zl" x1="30" y1="74" x2="170" y2="74"/><line class="zl" x1="30" y1="82" x2="170" y2="82"/>` +
+    `<line class="ax" x1="22" y1="55" x2="180" y2="55"/>` + F.tV(184, 28, 36) +
+    `<text x="35" y="104">two coaxial cylinders, full length</text>`,
+  'profile-line': () => {
+    const P = [[20, 90], [100, 14], [180, 90]];
+    const up = F.curve(...P, 6), dn = F.curve(...P, -6), act = F.curve(...P, 0, 3.6);
+    return `<polygon class="zone" points="${F.pts(up.concat(dn.slice().reverse()))}"/>` +
+      `<polygon class="part" points="${F.pts(act.concat([[180, 108], [20, 108]]))}"/>` +
+      `<polyline class="zl" points="${F.pts(up)}"/><polyline class="zl" points="${F.pts(dn)}"/>` +
+      `<polyline class="ax" points="${F.pts(F.curve(...P, 0))}"/>` + F.tV(100, 46, 58) +
+      `<text x="128" y="118">one 2D section</text>`;
+  },
+  'profile-surface': () => {
+    const P = [[20, 96], [90, 30], [160, 96]], B = P.map(p => [p[0] + 26, p[1] - 18]);
+    const up = F.curve(...P, 6), dn = F.curve(...P, -6), act = F.curve(...P, 0, 3.4), back = F.curve(...B, 0, 3);
+    return `<polygon class="part" points="${F.pts(act.concat(back.slice().reverse()))}"/>` +
+      `<polygon class="zone" points="${F.pts(up.concat(dn.slice().reverse()))}"/>` +
+      `<polygon class="part" points="${F.pts(act.concat([[160, 112], [20, 112]]))}"/>` +
+      `<polyline class="zl" points="${F.pts(up)}"/><polyline class="zl" points="${F.pts(dn)}"/>` +
+      `<polyline class="zl" points="${F.pts(F.curve(...B, 6))}"/>` + F.tV(90, 57, 69) +
+      `<text x="120" y="122">whole 3D surface</text>`;
+  },
+  'angularity': () => {
+    const k = 5 / Math.SQRT2, e = 12 / Math.SQRT2;
+    const a1 = [40 - e, 88 + e], a2 = [98 + e, 30 - e];
+    const L = (s) => [[a1[0] + s, a1[1] + s], [a2[0] + s, a2[1] + s]];
+    const o = L(-k), i = L(k);
+    return `<polygon class="part" points="40,88 180,88 180,30 98,30"/>` +
+      `<polygon class="zone" points="${F.pts([o[0], o[1], i[1], i[0]])}"/>` +
+      `<line class="zl" x1="${o[0][0]}" y1="${o[0][1]}" x2="${o[1][0]}" y2="${o[1][1]}"/>` +
+      `<line class="zl" x1="${i[0][0]}" y1="${i[0][1]}" x2="${i[1][0]}" y2="${i[1][1]}"/>` +
+      `<path class="dim" d="M64 88 A24 24 0 0 0 57 71"/>` + F.basic(80, 76, '45°') +
+      `<text class="t" x="55" y="52">t</text>` + F.datum(140, 88, 'down', 'A');
+  },
+  'perpendicularity': () =>
+    `<polygon class="part" points="20,88 180,88 180,70 112,70 110,22 90,22 90,70 20,70"/>` +
+    `<rect class="zone" x="105" y="14" width="12" height="56"/><line class="zl" x1="105" y1="12" x2="105" y2="70"/><line class="zl" x1="117" y1="12" x2="117" y2="70"/>` +
+    `<path class="dim" d="M117 62 L125 62 L125 70"/>` + F.tH(105, 117, 9, 108, 4.5 + 2) + F.datum(55, 88, 'down', 'A'),
+  'parallelism': () =>
+    `<rect class="zone" x="15" y="47" width="170" height="16"/><line class="zl" x1="12" y1="47" x2="188" y2="47"/>` +
+    `<path class="part" d="M20 92 L20 56 C50 51 80 60 110 54 S160 51 180 58 L180 92 Z"/>` +
+    `<line class="zl" x1="12" y1="63" x2="188" y2="63"/>` + F.tV(192, 47, 63) +
+    F.datum(100, 92, 'down', 'A') + `<text x="20" y="22">planes parallel to datum A</text>`,
+  'position': () =>
+    `<rect class="part" x="40" y="18" width="145" height="76"/>` +
+    `<circle cx="114.5" cy="56" r="12" fill="var(--mdg-surface)" class="ln"/>` +
+    `<line class="ax" x1="92" y1="58" x2="134" y2="58"/><line class="ax" x1="112" y1="36" x2="112" y2="80"/>` +
+    `<circle class="zone" cx="112" cy="58" r="5"/><circle class="zl" cx="112" cy="58" r="5"/><circle class="acc" cx="114.5" cy="56" r="1.6"/>` +
+    `<line class="dim" x1="40" y1="16" x2="40" y2="5"/><line class="dim" x1="112" y1="36" x2="112" y2="5"/><line class="dim" x1="40" y1="9" x2="112" y2="9"/>` +
+    F.head(40, 9, -1, 0, 'ink') + F.head(112, 9, 1, 0, 'ink') + F.basic(76, 9, '70') +
+    `<text class="t" x="134" y="44">Ø t</text>` + F.datum(40, 70, 'left', 'B') + F.datum(150, 94, 'down', 'C') +
+    `<text x="140" y="85">true position</text>`,
+  'concentricity': () => {
+    const dots = Array.from({ length: 8 }, (_, i) => `<circle class="acc" cx="${88 + i * 12}" cy="${58 + 2.6 * Math.sin(i * 1.7)}" r="1.5"/>`).join('');
+    return `<rect class="part" x="15" y="36" width="65" height="44"/><rect class="part" x="80" y="44" width="105" height="28"/>` +
+      `<rect class="zone" x="80" y="54" width="105" height="8"/><line class="zl" x1="80" y1="54" x2="188" y2="54"/><line class="zl" x1="80" y1="62" x2="188" y2="62"/>` +
+      `<line class="ax" x1="6" y1="58" x2="194" y2="58"/>` + dots + F.datum(47, 36, 'up', 'A') + F.tV(192, 54, 62) +
+      `<text x="80" y="96">median points within Ø t</text>`;
+  },
+  'symmetry': () => {
+    const dots = Array.from({ length: 5 }, (_, i) => `<circle class="acc" cx="${101.5 + 1.2 * Math.sin(i * 2.1)}" cy="${30 + i * 8}" r="1.5"/>`).join('');
+    return `<polygon class="part" points="20,22 84,22 84,66 120,66 120,22 180,22 180,90 20,90"/>` +
+      `<rect class="zone" x="96" y="16" width="8" height="54"/><line class="zl" x1="96" y1="14" x2="96" y2="72"/><line class="zl" x1="104" y1="14" x2="104" y2="72"/>` +
+      `<line class="ax" x1="100" y1="8" x2="100" y2="98"/>` + dots +
+      `<line class="dim" x1="20" y1="100" x2="180" y2="100"/>` + F.head(20, 100, -1, 0, 'ink') + F.head(180, 100, 1, 0, 'ink') +
+      F.datum(150, 100, 'down', 'A') + `<text class="t" x="107" y="14">t</text>`;
+  },
+  'runout-circular': () =>
+    F.shaft(`<rect class="zone" x="122" y="31" width="16" height="6"/><line class="zl" x1="118" y1="31" x2="142" y2="31"/><line class="zl" x1="118" y1="37" x2="142" y2="37"/>` +
+      F.gauge(130) + `<text x="142" y="20">one section</text>`),
+  'runout-total': () =>
+    F.shaft(`<rect class="zone" x="65" y="31" width="115" height="6"/><line class="zl" x1="62" y1="31" x2="184" y2="31"/><line class="zl" x1="62" y1="37" x2="184" y2="37"/>` +
+      F.gauge(92, true) + F.gauge(168, true) + F.gauge(130) +
+      `<line class="dim" x1="80" y1="2" x2="178" y2="2"/>` + F.head(76, 2, -1, 0, 'ink') + F.head(182, 2, 1, 0, 'ink') +
+      `<text x="90" y="112">indicator sweeps full length</text>`),
+};
+
+const DICT = {
+  'angularity':       { controls: 'Orientation of a surface, axis or median plane at a basic angle (not 0° or 90°) to a datum.',
+                        zone: 'Two parallel planes at the basic angle; a cylinder if Ø is used', datum: 'Required', mod: 'MMC / LMC on a feature of size' },
+  'concentricity':    { controls: 'Median points of a round feature lie within a cylinder about the datum axis.',
+                        zone: 'Cylinder Ø t, coaxial with the datum axis', datum: 'Required', mod: 'No', iso: 'Concentricity (points) / coaxiality (axis)',
+                        warn: 'Deleted from ASME Y14.5-2018<sup><a href="#ref8">8</a></sup> — use position, runout or profile. Still in ISO 1101.' },
+  'cylindricity':     { controls: 'Whole cylindrical surface — roundness, straightness and taper in one control.',
+                        zone: 'Two coaxial cylinders, radially t apart', datum: 'None', mod: 'No' },
+  'circularity':      { controls: 'Each cross-section of a round feature is round, independent of any datum.',
+                        zone: 'Two concentric circles, radially t apart, per section', datum: 'None', mod: 'No', iso: 'Roundness' },
+  'flatness':         { controls: 'A single surface lies between two parallel planes.',
+                        zone: 'Two parallel planes t apart', datum: 'None', mod: 'No' },
+  'parallelism':      { controls: 'A surface or axis is parallel to a datum. Also limits that surface\'s flatness.',
+                        zone: 'Two planes parallel to the datum; a cylinder if Ø is used', datum: 'Required', mod: 'MMC / LMC on a feature of size' },
+  'perpendicularity': { controls: 'A surface, axis or median plane is at 90° to a datum.',
+                        zone: 'Two planes at 90° to the datum; a cylinder if Ø is used', datum: 'Required', mod: 'MMC / LMC on a feature of size' },
+  'position':         { controls: 'Location of a feature of size (axis or median plane) from its true position, set by basic dimensions from datums.',
+                        zone: 'Cylinder Ø t at true position; two planes for a width', datum: 'Required', mod: 'MMC / LMC — bonus tolerance as the feature departs from MMC' },
+  'profile-line':     { controls: 'Each 2D cross-section of a surface sits in a band about the true profile.',
+                        zone: 'Two curves t apart, equally either side of the true profile by default', datum: 'Optional — with datums it also locates', mod: 'No', iso: 'Line profile' },
+  'profile-surface':  { controls: 'The whole surface sits in a band about the true surface — can control form, orientation and location at once.',
+                        zone: 'Two offset surfaces t apart, equally either side by default', datum: 'Optional — with datums it also locates', mod: 'No', iso: 'Surface profile' },
+  'runout-circular':  { controls: 'Variation of each circular section as the part rotates on the datum axis (FIM).',
+                        zone: 'Two concentric circles per section, on the datum axis', datum: 'Required (axis)', mod: 'No', iso: 'Circular run-out' },
+  'runout-total':     { controls: 'Variation of the whole surface as the part rotates and the indicator traverses its length (FIM).',
+                        zone: 'Two coaxial cylinders on the datum axis', datum: 'Required (axis)', mod: 'No', iso: 'Total run-out' },
+  'straightness':     { controls: 'A line element of a surface, or a derived axis, is straight.',
+                        zone: 'Two parallel lines t apart; a cylinder Ø t for an axis', datum: 'None', mod: 'MMC / LMC when applied to an axis' },
+  'symmetry':         { controls: 'Median points of a feature lie between two planes about a datum centre plane.',
+                        zone: 'Two parallel planes t apart, centred on the datum plane', datum: 'Required', mod: 'No',
+                        warn: 'Deleted from ASME Y14.5-2018<sup><a href="#ref8">8</a></sup> — use position or profile. Still in ISO 1101.' },
+};
+
+let dictFilter = 'All';
+
+function renderDict() {
+  const chips = document.getElementById('dict-chips');
+  const groups = ['All'].concat(groupsInOrder());
+  chips.innerHTML = groups.map(g => `<button type="button" class="dict-chip" data-g="${g}" aria-pressed="${g === dictFilter}">${g}</button>`).join('');
+  chips.querySelectorAll('.dict-chip').forEach(b => b.addEventListener('click', () => { dictFilter = b.dataset.g; renderDict(); highlightDict(); }));
+
+  const grid = document.getElementById('dict-grid');
+  grid.innerHTML = DEFAULT_TYPES.slice().sort((a, b) => mdgCmp(a.label, b.label))
+    .filter(t => dictFilter === 'All' || t.group === dictFilter)
+    .map(t => {
+      const d = DICT[t.id];
+      return `<article class="dict-card" id="dict-${t.id}">
+        <div class="dict-head"><span class="sym">${iconSVG(t.id)}</span><span class="nm">${t.label}</span><span class="grp">${t.group}</span></div>
+        <div class="dict-fig"><svg viewBox="0 0 200 125" role="img" aria-label="${t.label} tolerance zone schematic">${DICT_FIG[t.id]()}</svg></div>
+        <p class="dict-controls">${d.controls}</p>
+        <dl class="dict-dl"><dt>Zone</dt><dd>${d.zone}</dd><dt>Datum</dt><dd>${d.datum}</dd><dt>MMC / LMC</dt><dd>${d.mod}</dd>${d.iso ? `<dt>ISO 1101</dt><dd>${d.iso}</dd>` : ''}</dl>
+        ${d.warn ? `<p class="dict-note warn-note">${d.warn}</p>` : ''}
+        <button type="button" class="dict-check mdg-no-print" data-id="${t.id}">Check tightness &uarr;</button>
+      </article>`;
+    }).join('');
+  grid.querySelectorAll('.dict-check').forEach(b => b.addEventListener('click', () => {
+    currentType = TYPES.find(t => t.id === b.dataset.id) || TYPES[0];
+    document.getElementById('tol-value').value = currentType.default;
+    updateAll();
+    document.getElementById('type-select').closest('.mdg-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }));
+}
+
+function highlightDict() {
+  document.querySelectorAll('.dict-card').forEach(c => c.classList.toggle('current', c.id === 'dict-' + currentType.id));
+}
+
+document.getElementById('def-link').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('dict-details').open = true;
+  if (!document.getElementById('dict-' + currentType.id)) { dictFilter = 'All'; renderDict(); highlightDict(); }
+  document.getElementById('dict-' + currentType.id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+renderDict();
 
 document.getElementById('tol-value').value = currentType.default;
 renderCompareTable();

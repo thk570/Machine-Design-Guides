@@ -424,7 +424,7 @@
       risk — see warning above), stainless lubricated (anti-seize) K&thinsp;=&thinsp;0.20<sup><a href="#ref8">8</a></sup>.
       Real friction varies with plating, surface finish and reuse, so K can easily be &plusmn;30&percnt; off a
       generic table for a specific batch of fasteners<sup><a href="#ref2">2</a></sup>. Figures include the edge
-      knockdown above, applied per size using its own 2&times;d limit. With a Stover nut, torque includes its
+      knockdown above, applied per size using its own 2&times;d limit. With a Stover or Nyloc nut, torque includes its
       prevailing torque; * = not listed, seating torque only.</p>
     <p class="note" id="table-note-pem" style="display:none;">Every part in the selected PEM series, at the selected
       screw class<sup><a href="#ref11">11</a></sup>; all sizes listed, including those outside this page's M3–M24 range.</p>
@@ -446,6 +446,7 @@
       <li><a href="https://www.iso.org/standard/70046.html">ISO 3506-2:2020</a> — Fasteners — Mechanical properties of corrosion-resistant stainless steel fasteners — Part 2: Nuts.</li>
       <li><a href="https://www.iso.org/standard/61367.html">ISO 7719</a> — Prevailing torque type all-metal hexagon regular nuts — Property classes 5, 8 and 10 (Stover / DIN 980-type nuts; 2012 edition superseded by ISO 7719:2025).</li>
       <li><a href="https://www.iso.org/standard/61369.html">ISO 10511:2012</a> — Prevailing torque type hexagon thin nuts (with non-metallic insert) — governs nyloc-type lock nuts; rivnuts/threaded inserts and self-clinching nuts are manufacturer-specific parts without a single governing ISO standard (PEM values here come from PEM's own data).</li>
+      <li><a href="https://www.iso.org/standard/61175.html">ISO 2320:2015</a> — Fasteners — Prevailing torque steel nuts — Functional properties (first-installation maximum prevailing torque; non-metallic insert nuts limited to 50% of the all-metal value).</li>
       <li><a href="https://www.vdi.de/en/home/vdi-standards/details/vdi-2230-blatt-1-systematic-calculation-of-highly-stressed-bolted-joints-joints-with-one-cylindrical-bolt">VDI 2230 Blatt 1</a> — Systematic calculation of highly stressed bolted joints — Joints with one cylindrical bolt (the rigorous basis for preload/embedding/torque scatter that this page simplifies).</li>
     </ul>
     <p>This page does not reproduce the full ISO 898-1/-2 / ISO 3506-1/-2 property-class tables, VDI 2230's joint-diagram
@@ -470,9 +471,10 @@
       <li id="ref11">Axial Strength and Mating Screw Recommended Tightening Torque for PEM&reg; Brand Self-clinching Nuts — Metric (updated 10/28/21) — PennEngineering, user-supplied PDF (all PEM mating-screw torques and min. axial strengths, via data/clinch-nuts_pem.js; K&nbsp;=&nbsp;0.20, RT nuts K&nbsp;=&nbsp;0.25).</li>
       <li id="ref12">Shared fastener library, this suite — data/fasteners.js (ISO 261/262 coarse and fine pitch per size, and the M8×1 lower limit of ISO 898-1/3506-1 fine-thread scope).</li>
       <li id="ref13"><a href="https://www.crestindustrial.com/prevailing-torque-lock-nut-values---metric.html">Prevailing Torque Lock Nut Values — Metric</a> — crestindustrial.com (all-metal lock nut first-installation max prevailing torque, classes 5/8 and 10/12, M4–M24; waxed-nut K&nbsp;0.10–0.125).</li>
+      <li id="ref14"><a href="https://cdn.standards.iteh.ai/samples/61175/2853a9f105a143848badc377786b7ddf/ISO-2320-2015.pdf">ISO 2320:2015 (preview)</a> — iteh.ai (clause 8 tables, footnote e: for non-metallic insert prevailing torque nuts the maximum prevailing torque is 50% of the all-metal first-installation value; class 5 values M5–M24 match the all-metal table in ref 13).</li>
     </ol>
 
-    <p>Last updated: 2026-10-12 &middot; Rev 10</p>
+    <p>Last updated: 2026-10-16 &middot; Rev 11</p>
   </div>
 
 </main>
@@ -616,32 +618,36 @@ const SCREW_LIMIT_FRACTION = 0.9;
 // Tapped-hole engagement is capped at this multiple of d — longer engagement adds no torque.
 const ENGAGEMENT_CAP_D = 2;
 
-// ================= STOVER (all-metal prevailing-torque) NUTS =================
-// First-installation max prevailing torque (N·m), steel nuts, coarse thread — crestindustrial.com
-// (ref 13). Columns: nut classes 5/8, nut classes 10/12. Sizes not listed (M3, M22) return null.
+// ================= PREVAILING-TORQUE NUTS (Stover all-metal, Nyloc non-metallic insert) =================
+// First-installation max prevailing torque (N·m), steel nuts, coarse thread — all-metal values from
+// crestindustrial.com (ref 13). Columns: nut classes 5/8, nut classes 10/12. Sizes not listed (M3, M22) return null.
 const STOVER_PREVAIL = {
   'M4': [0.9, 1.2],  'M5': [1.6, 2.1],  'M6': [3.0, 4],   'M8': [6.0, 8],   'M10': [10.5, 14],
   'M12': [15.5, 21], 'M14': [24, 31],   'M16': [32, 42],  'M18': [42, 56],  'M20': [54, 72],
   'M24': [80, 106],
 };
+// ISO 2320:2015 footnote e (ref 14): non-metallic insert (Nyloc) nuts — max prevailing torque is 50% of the all-metal value.
+const NYLOC_FRACTION = 0.5;
 // Bolt class → table column (via its ISO 898-2 nut class). Stainless/aluminium: not listed.
 function stoverColumn(classKey) {
   if (['4.6', '5.6', '8.8', '9.8'].includes(classKey)) return 0;
   if (['10.9', '12.9'].includes(classKey)) return 1;
   return null;
 }
-function stoverPrevail(sizeKey, classKey) {
+// retention: 'stover' → all-metal table value; 'nyloc' → 50% of it.
+function prevailTorque(retention, sizeKey, classKey) {
   const col = stoverColumn(classKey);
   const row = STOVER_PREVAIL[sizeKey];
-  return (col === null || !row) ? null : row[col];
+  if (col === null || !row) return null;
+  return retention === 'nyloc' ? row[col] * NYLOC_FRACTION : row[col];
 }
 
 // ================= BOLTED MODE =================
 const RETENTION_NOTES = {
   standard: '',
-  nyloc: 'A nylon-insert lock nut (ISO 10511-type) adds prevailing torque from the nylon collar on top of the ' +
-    'seating torque above — add the nut manufacturer\'s rated prevailing-on torque to reach the actual ' +
-    'installation torque; it is not computed here.',
+  nyloc: 'Tightening torque = seating torque + the nut\'s first-installation max prevailing torque, taken as 50% of the ' +
+    'all-metal value per ISO 2320<sup><a href="#ref14">14</a></sup> (all-metal table: <sup><a href="#ref13">13</a></sup>). ' +
+    'Check the supplier\'s datasheet for a specific part.',
   rivnut: 'A rivnut / threaded insert\'s installation torque is usually capped by its own pull-out or spin-out ' +
     'rating in the parent sheet, which depends on sheet thickness, material and the specific insert — use the ' +
     'insert manufacturer\'s stated maximum installation torque, which is often lower than the bolt-based figure ' +
@@ -905,25 +911,26 @@ function updateBolted() {
     return;
   }
 
-  const stover = retention === 'stover';
-  const Tp = stover ? stoverPrevail(thread.sizeKey, classKey) : null;
-  if (stover) {
+  const prevail = retention === 'stover' || retention === 'nyloc';
+  const nutName = retention === 'nyloc' ? 'Nyloc' : 'Stover';
+  const Tp = prevail ? prevailTorque(retention, thread.sizeKey, classKey) : null;
+  if (prevail) {
     if (Tp === null) {
       const why = stoverColumn(classKey) === null ? `class ${classKey}` : thread.sizeKey;
-      retentionHtml += `<div class="warn">No prevailing torque listed for ${why} (steel classes, M4–M20 and M24 only) — ` +
+      retentionHtml += `<div class="warn">No ${nutName} prevailing torque listed for ${why} (steel classes, M4–M20 and M24 only) — ` +
         `seating torque shown alone; use the nut supplier's value.</div>`;
     } else if (thread.series === 'fine') {
       retentionHtml += '<div class="note">Prevailing torque taken from the coarse-thread value for this size.</div>';
     }
   }
-  document.getElementById('seat-box').style.display = stover ? '' : 'none';
-  document.getElementById('prevail-box').style.display = stover ? '' : 'none';
+  document.getElementById('seat-box').style.display = prevail ? '' : 'none';
+  document.getElementById('prevail-box').style.display = prevail ? '' : 'none';
   document.getElementById('out-prevail').textContent = Tp === null ? 'not listed' : `${fmtT(Tp)} N·m`;
-  document.getElementById('prevail-box').classList.toggle('flag', stover && Tp === null);
+  document.getElementById('prevail-box').classList.toggle('flag', prevail && Tp === null);
 
   noteEl.innerHTML = retentionHtml;
   document.getElementById('k-preload').textContent = 'Target preload, F';
-  document.getElementById('k-torque').textContent = stover ? 'Tightening torque, T (seat + prevailing)' : 'Tightening torque, T';
+  document.getElementById('k-torque').textContent = prevail ? 'Tightening torque, T (seat + prevailing)' : 'Tightening torque, T';
   torqueBox.classList.remove('flag');
   const sp = cls.sp(thread.d);
 
@@ -954,9 +961,9 @@ function updateBolted() {
       const AsRow = stressArea(th.d, th.p);
       const CeRow = edgeFactor(e, th.d);
       const F = (util / 100) * spRow * AsRow * CeRow;
-      const TpRow = stover ? stoverPrevail(sizeKey, classKey) : null;
+      const TpRow = prevail ? prevailTorque(retention, sizeKey, classKey) : null;
       const T = K * F * th.d / 1000 + (TpRow || 0);
-      const mark = (stover && TpRow === null) ? ' *' : '';
+      const mark = (prevail && TpRow === null) ? ' *' : '';
       tr.innerHTML = `<td>${sizeKey}</td><td>${pitchLabel(th.p, th.series)}</td><td>${fmt(AsRow, 2)}</td>` +
         `<td>${fmt(F / 1000, 2)}</td><td>${fmtT(T)}${mark}</td>`;
     }

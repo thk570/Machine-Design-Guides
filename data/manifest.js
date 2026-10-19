@@ -7,7 +7,7 @@
 // meant to be a short summary, fully visible, not the page's full feature list. Longer detail belongs
 // on the page itself.
 window.MDG_MANIFEST = {
-  "updated": "2026-10-12",
+  "updated": "2026-10-16",
   "categories": [
     {
       "slug": "fits",
@@ -30,14 +30,9 @@ window.MDG_MANIFEST = {
       "color": "#a53b8f"
     },
     {
-      "slug": "materials",
-      "title": "Materials",
+      "slug": "libraries",
+      "title": "Libraries",
       "color": "#5b5b5b"
-    },
-    {
-      "slug": "components",
-      "title": "Components",
-      "color": "#7a6a2e"
     },
     {
       "slug": "thermal",
@@ -49,7 +44,7 @@ window.MDG_MANIFEST = {
     {
       "id": "material-library",
       "title": "Material Library",
-      "category": "materials",
+      "category": "libraries",
       "path": "calculators/materials/material-library.html",
       "standard": "MMPDS-style (not MMPDS data)",
       "description": "Density, modulus, strength, CTE and thermal conductivity by material type and grade — the shared library other calculators pull from.",
@@ -68,7 +63,7 @@ window.MDG_MANIFEST = {
         "copper"
       ],
       "status": "done",
-      "rev": 4
+      "rev": 5
     },
     {
       "id": "o-ring-sizing",
@@ -183,12 +178,12 @@ window.MDG_MANIFEST = {
         "all-metal lock nut"
       ],
       "status": "done",
-      "rev": 10
+      "rev": 11
     },
     {
       "id": "fastener-library",
       "title": "Fastener Library",
-      "category": "fasteners",
+      "category": "libraries",
       "path": "calculators/fasteners/fastener-library.html",
       "standard": "ISO 898-1 / ISO 3506-1 / ISO 4762 / ISO 7380-1 / ISO 10642 / ISO 10664",
       "description": "Metric screw reference, M3–M30: head/drive dimensions, thread geometry, tap drills, clearance holes and strengths.",
@@ -222,7 +217,7 @@ window.MDG_MANIFEST = {
         "fine pitch"
       ],
       "status": "done",
-      "rev": 6
+      "rev": 7
     },
     {
       "id": "din76-thread-undercuts",
@@ -301,7 +296,7 @@ window.MDG_MANIFEST = {
       "category": "fits",
       "path": "calculators/gdt/gdt-tightness-guide.html",
       "standard": "ASME Y14.5-2018 / ISO 1101:2017",
-      "description": "Achievability of each GD&T characteristic — enter a tolerance to see its band, typical processes and relative cost.",
+      "description": "Achievability of each GD&T characteristic — tolerance band, typical processes and relative cost — plus a characteristic dictionary.",
       "tags": [
         "GD&T",
         "geometric tolerancing",
@@ -319,10 +314,14 @@ window.MDG_MANIFEST = {
         "symmetry",
         "runout",
         "achievability",
-        "process capability"
+        "process capability",
+        "dictionary",
+        "tolerance zone",
+        "datum",
+        "MMC"
       ],
       "status": "done",
-      "rev": 4
+      "rev": 5
     },
     {
       "id": "thermal-expansion",
@@ -342,7 +341,7 @@ window.MDG_MANIFEST = {
         "material comparison"
       ],
       "status": "done",
-      "rev": 4
+      "rev": 5
     },
     {
       "id": "pipe-pressure-drop",
@@ -375,7 +374,7 @@ window.MDG_MANIFEST = {
     {
       "id": "bearing-library",
       "title": "Bearing Library",
-      "category": "components",
+      "category": "libraries",
       "path": "calculators/components/bearing-library.html",
       "standard": "SKF catalogue data · ISO 15 / ISO 104 / ISO 281",
       "description": "SKF bearings d 10–130 mm: deep groove, cylindrical roller, angular contact, four-point and thrust — dimensions, ratings, speeds.",
@@ -396,12 +395,12 @@ window.MDG_MANIFEST = {
         "COTS"
       ],
       "status": "done",
-      "rev": 4
+      "rev": 5
     },
     {
       "id": "wave-spring-library",
       "title": "Wave Spring Library",
-      "category": "components",
+      "category": "libraries",
       "path": "calculators/components/wave-spring-library.html",
       "standard": "Smalley catalogue data",
       "description": "Smalley metric wave springs by housing bore, with load at your installed height range and a linear-range check.",
@@ -417,12 +416,12 @@ window.MDG_MANIFEST = {
         "COTS"
       ],
       "status": "done",
-      "rev": 4
+      "rev": 5
     },
     {
       "id": "locknut-library",
       "title": "Lock Nut Library",
-      "category": "components",
+      "category": "libraries",
       "path": "calculators/components/locknut-library.html",
       "standard": "SKF catalogue data · ISO 2982-2 / DIN 981",
       "description": "SKF KM, KMFE and KMT lock nuts M10–M60 with MB lock washers, shaft-slot size and axial load capacity.",
@@ -441,12 +440,12 @@ window.MDG_MANIFEST = {
         "COTS"
       ],
       "status": "done",
-      "rev": 3
+      "rev": 4
     },
     {
       "id": "shaft-seal-library",
       "title": "Shaft Seal Library",
-      "category": "seals",
+      "category": "libraries",
       "path": "calculators/seals/shaft-seal-library.html",
       "standard": "SKF catalogue data · ISO 6194-1 / DIN 3760",
       "description": "SKF radial shaft seals for 10–60 mm shafts, filtered by size, design, lip material, temperature and lip speed.",
@@ -467,7 +466,7 @@ window.MDG_MANIFEST = {
         "COTS"
       ],
       "status": "done",
-      "rev": 3
+      "rev": 4
     }
   ]
 };
