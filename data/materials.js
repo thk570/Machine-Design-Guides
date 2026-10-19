@@ -7,11 +7,25 @@
 // straight off the filesystem. See docs/00-structure-and-conventions.md ("Shared material library")
 // for the convention this file follows and how a page should consume it.
 //
-// Arranged MMPDS-style: material type (class) -> grade/condition. This is a small starting set, not
-// a reproduction of MMPDS itself (MMPDS is a paywalled, statistically-derived allowables handbook —
-// see the citation on the material-library page). Every numeric value here traces to a real
-// datasheet, cited per-grade in `refs`; values that are typical/generic engineering constants rather
-// than grade-specific test data are marked `"typical": true` in that property's citation.
+// Arranged MMPDS-style: material type (class) -> grade/condition. Not a reproduction of MMPDS itself
+// (a paywalled, statistically-derived allowables handbook). Rows with basis "MMPDS S-basis" / "A-basis"
+// / "B-basis" were re-keyed by hand from MMPDS-14 design tables (cited per row in `refs`), converted to
+// metric, L (longitudinal) direction unless the notes say otherwise; the handbook's full allowables are
+// not reproduced. The other rows trace to a datasheet (`basis`: "Datasheet", "Spec min" for a specification
+// minimum, "Typical" for a generic or single-source typical value), cited per grade in `refs`.
+//
+// `typical` (optional array of property names, e.g. ["G_GPa","poisson"]) lists the values on a grade that
+// are generic family constants rather than that grade's own data; the page shows them in italics. Properties
+// MMPDS prints only as graphs (mostly CTE, k, melting range) are either omitted or filled from the library's
+// existing entry for the same alloy and listed in `typical`.
+//
+// Optional per-grade fields: `basis` (see above), `aka` (same material under another designation or trade
+// name), `similar` (closest equivalent only, not interchangeable), and a cost band: `cost_band` 1-5 is the
+// approximate GBP/kg of a small-lot stock piece, ex VAT, form and supply counted (1 under 6, 2 6-12,
+// 3 12-30, 4 30-70, 5 over 70); `cost_est` true marks an estimate with no source price; `cost_note` says how
+// it was set; `cost_ref` is the price source. Cost bands are not live and need re-checking from time to time.
+// Pages must tolerate any optional field being absent. A grade with no published yield strength (hardened
+// M2) has `"yield_MPa": null`; consumers must treat null as "N/A", never as zero.
 //
 // Order: grades are kept sorted alphanumerically within each type (grade, then condition) — pages
 // render in file order, so insert new grades in sequence. Insulating materials stay ordered by CTI
@@ -37,18 +51,181 @@ window.MDG_MATERIALS = {
   "types": [
     { "slug": "steel-carbon-alloy", "title": "Steel (Carbon & Alloy)" },
     { "slug": "stainless-steel", "title": "Stainless Steel" },
+    { "slug": "tool-steel", "title": "Tool Steels" },
     { "slug": "aluminum", "title": "Aluminum Alloys" },
+    { "slug": "magnesium", "title": "Magnesium Alloys" },
     { "slug": "titanium", "title": "Titanium Alloys" },
     { "slug": "copper-alloy", "title": "Copper Alloys" },
     { "slug": "insulating-materials", "title": "Insulating Materials (CTI)" }
   ],
   "grades": [
     {
+      "id": "steel-5crmov-240",
+      "type": "steel-carbon-alloy",
+      "grade": "5Cr-Mo-V",
+      "condition": "Quenched and tempered, 240 ksi level (AMS 6487)",
+      "designation": "UNS T20811",
+      "basis": "MMPDS S-basis",
+      "aka": "AMS 6485 / 6487 / 6488; AISI H11 / 1.2343; UNS T20811",
+      "density_kg_m3": 7780,
+      "E_GPa": 206.8,
+      "G_GPa": 75.8,
+      "poisson": 0.36,
+      "yield_MPa": 1379,
+      "ultimate_MPa": 1655,
+      "cte_um_per_mK": 12.6,
+      "k_W_per_mK": 25,
+      "melting_C": [1420, 1460],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 3,
+      "cost_est": true,
+      "cost_note": "Estimate. Aerospace bar, about £15 to 30/kg.",
+      "notes": "Bar and forging; transverse (T) values, no L printed. CTE and k are typical H13 values (Uddeholm); melting range is typical for steel.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.4.1.0(c)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "steel-5crmov-260",
+      "type": "steel-carbon-alloy",
+      "grade": "5Cr-Mo-V",
+      "condition": "Quenched and tempered, 260 ksi level (AMS 6487)",
+      "designation": "UNS T20811",
+      "basis": "MMPDS S-basis",
+      "aka": "AMS 6485 / 6487 / 6488; AISI H11 / 1.2343; UNS T20811",
+      "density_kg_m3": 7780,
+      "E_GPa": 206.8,
+      "G_GPa": 75.8,
+      "poisson": 0.36,
+      "yield_MPa": 1482,
+      "ultimate_MPa": 1793,
+      "cte_um_per_mK": 12.6,
+      "k_W_per_mK": 25,
+      "melting_C": [1420, 1460],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 3,
+      "cost_est": true,
+      "cost_note": "Estimate. Aerospace bar, about £15 to 30/kg.",
+      "notes": "Bar and forging; L and T equal (L for area up to 161 cm²). CTE and k are typical H13 values (Uddeholm); melting range is typical for steel.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.4.1.0(c)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "steel-5crmov-280",
+      "type": "steel-carbon-alloy",
+      "grade": "5Cr-Mo-V",
+      "condition": "Quenched and tempered, 280 ksi level (AMS 6487)",
+      "designation": "UNS T20811",
+      "basis": "MMPDS S-basis",
+      "aka": "AMS 6485 / 6487 / 6488; AISI H11 / 1.2343; UNS T20811",
+      "density_kg_m3": 7780,
+      "E_GPa": 206.8,
+      "G_GPa": 75.8,
+      "poisson": 0.36,
+      "yield_MPa": 1655,
+      "ultimate_MPa": 1931,
+      "cte_um_per_mK": 12.6,
+      "k_W_per_mK": 25,
+      "melting_C": [1420, 1460],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 3,
+      "cost_est": true,
+      "cost_note": "Estimate. Aerospace bar, about £15 to 30/kg.",
+      "notes": "Bar and forging; transverse (T) values. CTE and k are typical H13 values (Uddeholm); melting range is typical for steel.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.4.1.0(c)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "steel-300m-ht270",
+      "type": "steel-carbon-alloy",
+      "grade": "300M (0.40C)",
+      "condition": "Quenched and tempered HT-270, AMS 6417",
+      "designation": "UNS K44220",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS K44220; AMS 6417 / 6419; 4340 Mod",
+      "similar": "4340 / EN24 (300M adds Si 1.45 to 1.80%, V 0.05 to 0.10%)",
+      "density_kg_m3": 7835,
+      "E_GPa": 200,
+      "G_GPa": 75.8,
+      "poisson": 0.32,
+      "yield_MPa": 1517,
+      "ultimate_MPa": 1862,
+      "cte_um_per_mK": 12.3,
+      "k_W_per_mK": 44.5,
+      "melting_C": [1420, 1460],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 4,
+      "cost_est": true,
+      "cost_note": "Estimate. Vacuum-melted aerospace bar, about £30 to 60/kg.",
+      "notes": "Vacuum-melted only; section to 127 mm oil quench. CTE, k and melting range are typical values from the library's AISI 4340 normalized entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.3.1.0(f1)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "steel-300m-ht280",
+      "type": "steel-carbon-alloy",
+      "grade": "300M (0.42C)",
+      "condition": "Quenched and tempered HT-280, AMS 6419",
+      "designation": "UNS K44220",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS K44220; AMS 6417 / 6419; 4340 Mod",
+      "similar": "4340 / EN24 (300M adds Si 1.45 to 1.80%, V 0.05 to 0.10%)",
+      "density_kg_m3": 7835,
+      "E_GPa": 200,
+      "G_GPa": 75.8,
+      "poisson": 0.32,
+      "yield_MPa": 1586,
+      "ultimate_MPa": 1931,
+      "cte_um_per_mK": 12.3,
+      "k_W_per_mK": 44.5,
+      "melting_C": [1420, 1460],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 4,
+      "cost_est": true,
+      "cost_note": "Estimate. Vacuum-melted aerospace bar, about £30 to 60/kg.",
+      "notes": "Vacuum-melted only; section to 127 mm oil quench. CTE, k and melting range are typical values from the library's AISI 4340 normalized entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.3.1.0(f1)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "steel-1025-norm",
+      "type": "steel-carbon-alloy",
+      "grade": "AISI 1025",
+      "condition": "Normalized, tube (AMS 5075)",
+      "designation": "UNS G10250",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS G10250",
+      "similar": "C25E / 1.1158 (Ck25, old DIN); S25C (JIS)",
+      "density_kg_m3": 7860,
+      "E_GPa": 200,
+      "G_GPa": 75.8,
+      "poisson": 0.32,
+      "yield_MPa": 248,
+      "ultimate_MPa": 379,
+      "k_W_per_mK": 51.9,
+      "melting_C": [1420, 1460],
+      "typical": ["melting_C"],
+      "cost_band": 1,
+      "cost_est": true,
+      "cost_note": "Estimate, about £4 to 6/kg tube.",
+      "notes": "Tube only; the tube spec is inactive for new design. k at 0 °C from the MMPDS table. Melting range is a typical steel value.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.2.1.0(b)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
       "id": "steel-1045-cd",
       "type": "steel-carbon-alloy",
       "grade": "AISI 1045",
       "condition": "Cold drawn",
       "designation": "UNS G10450",
+      "basis": "Datasheet",
+      "aka": "UNS G10450; C45 / 1.0503 (EN 10083-2); Ck45 / C45E / 1.1191; S45C (JIS); 080M46 (old BS)",
+      "similar": "EN8 / 080M40 (nearer C40)",
       "density_kg_m3": 7850,
       "E_GPa": 205,
       "G_GPa": 80,
@@ -58,10 +235,39 @@ window.MDG_MATERIALS = {
       "cte_um_per_mK": 13.4,
       "k_W_per_mK": 50.8,
       "melting_C": [1420, 1460],
+      "cost_band": 1,
+      "cost_est": true,
+      "cost_note": "Estimate, about £3 to 5/kg bar.",
       "notes": "Elastic constants (E, G, ν) are typical carbon-steel values, not measured for this specific grade/condition — they vary little (a few percent) across plain carbon and low-alloy steel grades and tempers.",
       "refs": [
-        { "label": "theworldmaterial.com — AISI 1045 mechanical/thermal properties", "url": "https://www.theworldmaterial.com/astm-sae-aisi-1045-carbon-steel-material/" },
-        { "label": "Engineering ToolBox — typical elastic modulus/Poisson's ratio for carbon steel", "url": "https://www.engineeringtoolbox.com/young-modulus-d_417.html", "typical": true }
+        {"label": "theworldmaterial.com — AISI 1045 mechanical/thermal properties", "url": "https://www.theworldmaterial.com/astm-sae-aisi-1045-carbon-steel-material/"},
+        {"label": "Engineering ToolBox — typical elastic modulus/Poisson's ratio for carbon steel", "url": "https://www.engineeringtoolbox.com/young-modulus-d_417.html", "typical": true}
+      ]
+    },
+    {
+      "id": "steel-4130-nt-ht95",
+      "type": "steel-carbon-alloy",
+      "grade": "AISI 4130",
+      "condition": "Normalized and tempered HT-95, tube (AMS 6374)",
+      "designation": "UNS G41300",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS G41300; 25CrMo4 / 1.7218; 708A25 / 708M25 (BS 970); SCM430 (JIS)",
+      "density_kg_m3": 7835,
+      "E_GPa": 200,
+      "G_GPa": 75.8,
+      "poisson": 0.32,
+      "yield_MPa": 517,
+      "ultimate_MPa": 655,
+      "cte_um_per_mK": 12.2,
+      "k_W_per_mK": 42.7,
+      "melting_C": [1420, 1460],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, aerospace tube about £6 to 12/kg.",
+      "notes": "L, tube and sheet to 4.8 mm. CTE, k and melting range are typical values from the library's AISI 4130 normalized entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.3.1.0(c1)", "url": "https://www.mmpds.org/"}
       ]
     },
     {
@@ -70,6 +276,8 @@ window.MDG_MATERIALS = {
       "grade": "AISI 4130",
       "condition": "Normalized at 870°C",
       "designation": "UNS G41300",
+      "basis": "Datasheet",
+      "aka": "UNS G41300; 25CrMo4 / 1.7218; 708A25 / 708M25 (BS 970); SCM430 (JIS)",
       "density_kg_m3": 7850,
       "E_GPa": 205,
       "G_GPa": 80,
@@ -79,9 +287,116 @@ window.MDG_MATERIALS = {
       "cte_um_per_mK": 12.2,
       "k_W_per_mK": 42.7,
       "melting_C": [1420, 1460],
+      "cost_band": 1,
+      "cost_est": true,
+      "cost_note": "Estimate, about £4 to 6/kg bar.",
       "notes": "CTE and melting range are typical low-alloy-steel values (not given on the source datasheet for this specific grade).",
       "refs": [
-        { "label": "ASM Material Data Sheet (via quickparts.com) — AISI 4130 Steel, normalized 870°C", "url": "https://quickparts.com/wp-content/uploads/2024/05/Steel-4130.pdf" }
+        {"label": "ASM Material Data Sheet (via quickparts.com) — AISI 4130 Steel, normalized 870°C", "url": "https://quickparts.com/wp-content/uploads/2024/05/Steel-4130.pdf"}
+      ]
+    },
+    {
+      "id": "steel-4130-qt-ht125",
+      "type": "steel-carbon-alloy",
+      "grade": "AISI 4130",
+      "condition": "Quenched and tempered HT-125, tube (AMS 6361)",
+      "designation": "UNS G41300",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS G41300; 25CrMo4 / 1.7218; 708A25 / 708M25 (BS 970); SCM430 (JIS)",
+      "density_kg_m3": 7835,
+      "E_GPa": 200,
+      "G_GPa": 75.8,
+      "poisson": 0.32,
+      "yield_MPa": 689,
+      "ultimate_MPa": 862,
+      "cte_um_per_mK": 12.2,
+      "k_W_per_mK": 42.7,
+      "melting_C": [1420, 1460],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, aerospace tube about £6 to 12/kg.",
+      "notes": "Tube wall to 4.8 mm. CTE, k and melting range are typical values from the library's AISI 4130 normalized entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.3.1.0(c2)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "steel-4130-qt-ht150",
+      "type": "steel-carbon-alloy",
+      "grade": "AISI 4130",
+      "condition": "Quenched and tempered HT-150, tube (AMS 6362)",
+      "designation": "UNS G41300",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS G41300; 25CrMo4 / 1.7218; 708A25 / 708M25 (BS 970); SCM430 (JIS)",
+      "density_kg_m3": 7835,
+      "E_GPa": 200,
+      "G_GPa": 75.8,
+      "poisson": 0.32,
+      "yield_MPa": 931,
+      "ultimate_MPa": 1034,
+      "cte_um_per_mK": 12.2,
+      "k_W_per_mK": 42.7,
+      "melting_C": [1420, 1460],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, aerospace tube about £6 to 12/kg.",
+      "notes": "Tube wall to 4.8 mm. CTE, k and melting range are typical values from the library's AISI 4130 normalized entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.3.1.0(c2)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "steel-4140-qt-ht150",
+      "type": "steel-carbon-alloy",
+      "grade": "AISI 4140",
+      "condition": "Quenched and tempered HT-150",
+      "designation": "UNS G41400",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS G41400; 42CrMo4 / 1.7225; SCM440 (JIS); EN19 / 709M40 (708M40 is the older BS name)",
+      "density_kg_m3": 7835,
+      "E_GPa": 200,
+      "G_GPa": 75.8,
+      "poisson": 0.32,
+      "yield_MPa": 910,
+      "ultimate_MPa": 1034,
+      "cte_um_per_mK": 12.3,
+      "k_W_per_mK": 44.5,
+      "melting_C": [1420, 1460],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 1,
+      "cost_est": true,
+      "cost_note": "Estimate, about £4 to 6/kg bar.",
+      "notes": "Generic strength-level column: printed S-basis, but MMPDS gives no statistical basis (valid only for tensile-verified parts heat treated per AMS 2759). Section to 25 mm. CTE, k and melting range are typical values from the library's AISI 4340 normalized entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.3.1.0(g2)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "steel-4140-qt-ht180",
+      "type": "steel-carbon-alloy",
+      "grade": "AISI 4140",
+      "condition": "Quenched and tempered HT-180",
+      "designation": "UNS G41400",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS G41400; 42CrMo4 / 1.7225; SCM440 (JIS); EN19 / 709M40 (708M40 is the older BS name)",
+      "density_kg_m3": 7835,
+      "E_GPa": 200,
+      "G_GPa": 75.8,
+      "poisson": 0.32,
+      "yield_MPa": 1124,
+      "ultimate_MPa": 1241,
+      "cte_um_per_mK": 12.3,
+      "k_W_per_mK": 44.5,
+      "melting_C": [1420, 1460],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 1,
+      "cost_est": true,
+      "cost_note": "Estimate, about £4 to 6/kg bar.",
+      "notes": "Generic strength-level column: printed S-basis, but MMPDS gives no statistical basis (valid only for tensile-verified parts heat treated per AMS 2759). Section to 25 mm. CTE, k and melting range are typical values from the library's AISI 4340 normalized entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.3.1.0(g2)", "url": "https://www.mmpds.org/"}
       ]
     },
     {
@@ -90,6 +405,8 @@ window.MDG_MATERIALS = {
       "grade": "AISI 4340",
       "condition": "Normalized, 25mm round",
       "designation": "UNS G43400",
+      "basis": "Datasheet",
+      "aka": "UNS G43400; 34CrNiMo6 / 1.6582; EN24 / 817M40; SNCM439 (JIS, closest; SNCM447 also listed)",
       "density_kg_m3": 7850,
       "E_GPa": 200,
       "G_GPa": 78,
@@ -99,9 +416,145 @@ window.MDG_MATERIALS = {
       "cte_um_per_mK": 12.3,
       "k_W_per_mK": 44.5,
       "melting_C": [1420, 1460],
+      "cost_band": 1,
+      "cost_est": true,
+      "cost_note": "Estimate, about £4 to 6/kg bar.",
       "notes": "This is the normalized condition — 4340 is commonly used oil-quenched and tempered to much higher strength (Ftu approaching 1900 MPa); pick a condition to match the actual heat treatment on the drawing.",
       "refs": [
-        { "label": "ASM Material Data Sheet (via quickparts.com) — AISI 4340 Steel, normalized, 25mm round", "url": "https://quickparts.com/wp-content/uploads/2024/05/Steel-4340.pdf" }
+        {"label": "ASM Material Data Sheet (via quickparts.com) — AISI 4340 Steel, normalized, 25mm round", "url": "https://quickparts.com/wp-content/uploads/2024/05/Steel-4340.pdf"}
+      ]
+    },
+    {
+      "id": "steel-4340-qt-ht180",
+      "type": "steel-carbon-alloy",
+      "grade": "AISI 4340",
+      "condition": "Quenched and tempered HT-180",
+      "designation": "UNS G43400",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS G43400; 34CrNiMo6 / 1.6582; EN24 / 817M40; SNCM439 (JIS, closest; SNCM447 also listed)",
+      "density_kg_m3": 7835,
+      "E_GPa": 200,
+      "G_GPa": 75.8,
+      "poisson": 0.32,
+      "yield_MPa": 1124,
+      "ultimate_MPa": 1241,
+      "cte_um_per_mK": 12.3,
+      "k_W_per_mK": 44.5,
+      "melting_C": [1420, 1460],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 1,
+      "cost_est": true,
+      "cost_note": "Estimate, about £4 to 6/kg bar.",
+      "notes": "Generic strength-level column: printed S-basis, but MMPDS gives no statistical basis (valid only for tensile-verified parts heat treated per AMS 2759). Section to 43 mm martempered, 64 mm oil, 89 mm water quench. CTE, k and melting range are typical values from the library's AISI 4340 normalized entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.3.1.0(g2)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "steel-4340-qt-ht200",
+      "type": "steel-carbon-alloy",
+      "grade": "AISI 4340",
+      "condition": "Quenched and tempered HT-200",
+      "designation": "UNS G43400",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS G43400; 34CrNiMo6 / 1.6582; EN24 / 817M40; SNCM439 (JIS, closest; SNCM447 also listed)",
+      "density_kg_m3": 7835,
+      "E_GPa": 200,
+      "G_GPa": 75.8,
+      "poisson": 0.32,
+      "yield_MPa": 1213,
+      "ultimate_MPa": 1379,
+      "cte_um_per_mK": 12.3,
+      "k_W_per_mK": 44.5,
+      "melting_C": [1420, 1460],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 1,
+      "cost_est": true,
+      "cost_note": "Estimate, about £4 to 6/kg bar.",
+      "notes": "Generic strength-level column: printed S-basis, but MMPDS gives no statistical basis (valid only for tensile-verified parts heat treated per AMS 2759). Same section limits as HT-180. CTE, k and melting range are typical values from the library's AISI 4340 normalized entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.3.1.0(g2)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "steel-4340-qt-ht260",
+      "type": "steel-carbon-alloy",
+      "grade": "AISI 4340",
+      "condition": "Quenched and tempered HT-260, AMS 6414",
+      "designation": "UNS G43400",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS G43400; 34CrNiMo6 / 1.6582; EN24 / 817M40; SNCM439 (JIS, closest; SNCM447 also listed)",
+      "density_kg_m3": 7835,
+      "E_GPa": 200,
+      "G_GPa": 75.8,
+      "poisson": 0.32,
+      "yield_MPa": 1496,
+      "ultimate_MPa": 1793,
+      "cte_um_per_mK": 12.3,
+      "k_W_per_mK": 44.5,
+      "melting_C": [1420, 1460],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 4,
+      "cost_est": true,
+      "cost_note": "Estimate. Vacuum-melted aerospace bar, about £30 to 60/kg.",
+      "notes": "Vacuum-melted only; section to 89 mm water quench. CTE, k and melting range are typical values from the library's AISI 4340 normalized entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.3.1.0(f1)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "steel-en24t",
+      "type": "steel-carbon-alloy",
+      "grade": "EN24T / 817M40T",
+      "condition": "T, hardened and tempered",
+      "designation": "BS 970 817M40, condition T",
+      "basis": "Spec min",
+      "aka": "34CrNiMo6 / 1.6582; AISI 4340; EN24T = BS 970:1955; 817M40T = BS 970:1991",
+      "similar": "SNCM439 (closest JIS); 816M40T (older BS name on some charts)",
+      "density_kg_m3": 7850,
+      "E_GPa": 200,
+      "G_GPa": 78,
+      "poisson": 0.29,
+      "yield_MPa": 650,
+      "ultimate_MPa": 850,
+      "cte_um_per_mK": 12.3,
+      "k_W_per_mK": 44.5,
+      "melting_C": [1420, 1460],
+      "typical": ["E_GPa", "G_GPa", "poisson", "density_kg_m3", "cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 1,
+      "cost_est": true,
+      "cost_note": "Estimate, about £4 to 6/kg bar. No UK shop price found.",
+      "notes": "Strength is the minimum for condition T; ruling section not stated on the sources. Physical values are the library 4340 values.",
+      "refs": [
+        {"label": "Smiths Metal Centres, EN24", "url": "https://www.smithmetal.com/pdf/engineering/en24.pdf"},
+        {"label": "West Yorkshire Steel, 817M40", "url": "https://www.westyorkssteel.com/steel-specifications/bs-steel/bs970/817m40/"}
+      ]
+    },
+    {
+      "id": "ss-15-5ph-h1025",
+      "type": "stainless-steel",
+      "grade": "15-5PH",
+      "condition": "H1025",
+      "designation": "UNS S15500",
+      "basis": "MMPDS A-basis",
+      "aka": "UNS S15500; XM-12 (ASTM designation); 1.4545",
+      "similar": "17-4PH",
+      "density_kg_m3": 7835,
+      "E_GPa": 196.5,
+      "G_GPa": 77.2,
+      "poisson": 0.27,
+      "yield_MPa": 1000,
+      "ultimate_MPa": 1069,
+      "cte_um_per_mK": 11.3,
+      "k_W_per_mK": 18.3,
+      "melting_C": [1404, 1440],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 3,
+      "cost_est": true,
+      "cost_note": "Estimate, about £12 to 20/kg bar.",
+      "notes": "A-basis for sections to 254 mm (S-basis is identical to 305 mm). L and T equal. CTE, k and melting range are typical values from the library's 17-4PH entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.6.7.0(b)", "url": "https://www.mmpds.org/"}
       ]
     },
     {
@@ -110,6 +563,8 @@ window.MDG_MATERIALS = {
       "grade": "17-4PH",
       "condition": "H900 (aged 482°C/1hr)",
       "designation": "UNS S17400",
+      "basis": "Datasheet",
+      "aka": "UNS S17400; AISI 630; 1.4542 (X5CrNiCuNb16-4); SUS630",
       "density_kg_m3": 7750,
       "E_GPa": 196,
       "G_GPa": 77,
@@ -119,10 +574,87 @@ window.MDG_MATERIALS = {
       "cte_um_per_mK": 11.3,
       "k_W_per_mK": 18.3,
       "melting_C": [1404, 1440],
+      "cost_band": 3,
+      "cost_est": true,
+      "cost_note": "Estimate, about £12 to 20/kg bar.",
       "notes": "Strength falls off above ~315°C service — don't use H900 room-temperature allowables for a hot application. Shear modulus and Poisson's ratio are typical precipitation-hardening-stainless values, not measured for this grade.",
       "refs": [
-        { "label": "Sandmeyer Steel — 17-4PH (UNS S17400) spec sheet", "url": "https://www.sandmeyersteel.com/wp-content/uploads/17-4PH-Spec-Sheet.pdf" },
-        { "label": "Nifty Alloys — 17-4PH properties overview (H900 yield/UTS cross-check)", "url": "https://niftyalloys.com/blogs/17-4ph" }
+        {"label": "Sandmeyer Steel — 17-4PH (UNS S17400) spec sheet", "url": "https://www.sandmeyersteel.com/wp-content/uploads/17-4PH-Spec-Sheet.pdf"},
+        {"label": "Nifty Alloys — 17-4PH properties overview (H900 yield/UTS cross-check)", "url": "https://niftyalloys.com/blogs/17-4ph"}
+      ]
+    },
+    {
+      "id": "ss-17-4ph-h1025",
+      "type": "stainless-steel",
+      "grade": "17-4PH",
+      "condition": "H1025 (AMS 5643)",
+      "designation": "UNS S17400",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS S17400; AISI 630; 1.4542 (X5CrNiCuNb16-4); SUS630",
+      "density_kg_m3": 7835,
+      "E_GPa": 196.5,
+      "G_GPa": 77.2,
+      "poisson": 0.27,
+      "yield_MPa": 1000,
+      "ultimate_MPa": 1069,
+      "cte_um_per_mK": 11.3,
+      "k_W_per_mK": 18.3,
+      "melting_C": [1404, 1440],
+      "typical": ["density_kg_m3", "cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 3,
+      "cost_est": true,
+      "cost_note": "Estimate, about £12 to 20/kg bar.",
+      "notes": "Bar to 203 mm, L only. Density interpolated (MMPDS lists H900, H1075, H1150 only). CTE, k and melting range are from the library's H900 entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.6.9.0(e)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "ss-17-4ph-h1150",
+      "type": "stainless-steel",
+      "grade": "17-4PH",
+      "condition": "H1150 (AMS 5643)",
+      "designation": "UNS S17400",
+      "basis": "MMPDS B-basis",
+      "aka": "UNS S17400; AISI 630; 1.4542 (X5CrNiCuNb16-4); SUS630",
+      "density_kg_m3": 7860,
+      "E_GPa": 196.5,
+      "G_GPa": 77.2,
+      "poisson": 0.27,
+      "yield_MPa": 793,
+      "ultimate_MPa": 924,
+      "cte_um_per_mK": 11.3,
+      "k_W_per_mK": 18.3,
+      "melting_C": [1404, 1440],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 3,
+      "cost_est": true,
+      "cost_note": "Estimate, about £12 to 20/kg bar.",
+      "notes": "No S-basis in MMPDS; B-basis shown (A-basis is yield 689, UTS 862). Bar to 203 mm, L only; valid only if heat treated per AMS-H-6875. CTE, k and melting range are from the library's H900 entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.6.9.0(e)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "ss-17-7ph-th1050",
+      "type": "stainless-steel",
+      "grade": "17-7PH",
+      "condition": "TH1050 (AMS 5528)",
+      "designation": "UNS S17700",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS S17700; AISI 631; 1.4568 (X7CrNiAl17-7); BS S528 / S529 (aerospace)",
+      "density_kg_m3": 7640,
+      "E_GPa": 200,
+      "G_GPa": 79.3,
+      "poisson": 0.28,
+      "yield_MPa": 1034,
+      "ultimate_MPa": 1241,
+      "cost_band": 4,
+      "cost_est": true,
+      "cost_note": "Estimate, about £30 to 50/kg sheet.",
+      "notes": "S-basis for plate 4.8 to 25 mm, LT direction. Thin sheet A-basis is yield 1034, UTS 1220 (LT).",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.6.10.0(b)", "url": "https://www.mmpds.org/"}
       ]
     },
     {
@@ -131,6 +663,8 @@ window.MDG_MATERIALS = {
       "grade": "AISI 303",
       "condition": "Annealed",
       "designation": "UNS S30300",
+      "basis": "Datasheet",
+      "aka": "UNS S30300; 1.4305 (X8CrNiS18-9); 303S31 (EN58M); SUS303",
       "density_kg_m3": 8000,
       "E_GPa": 193,
       "G_GPa": 77.2,
@@ -140,9 +674,12 @@ window.MDG_MATERIALS = {
       "cte_um_per_mK": 17.2,
       "k_W_per_mK": 16.2,
       "melting_C": [1400, 1420],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £6 to 9/kg bar.",
       "notes": "Free-machining (sulphur-bearing) grade — lower corrosion resistance and weldability than 304. CTE is the 0–100 °C mean; thermal conductivity is at 100 °C.",
       "refs": [
-        { "label": "ASM Material Data Sheet (via quickparts.com) — AISI Type 303 Stainless Steel, annealed", "url": "https://quickparts.com/wp-content/uploads/2024/05/303-Stainless-Steel.pdf" }
+        {"label": "ASM Material Data Sheet (via quickparts.com) — AISI Type 303 Stainless Steel, annealed", "url": "https://quickparts.com/wp-content/uploads/2024/05/303-Stainless-Steel.pdf"}
       ]
     },
     {
@@ -151,6 +688,9 @@ window.MDG_MATERIALS = {
       "grade": "AISI 304",
       "condition": "Annealed",
       "designation": "UNS S30400",
+      "basis": "Datasheet",
+      "aka": "UNS S30400; 1.4301 (X5CrNi18-10); SUS304",
+      "similar": "304S31 (EN58E); 304S15 (BS sources differ)",
       "density_kg_m3": 8000,
       "E_GPa": 193,
       "G_GPa": 86,
@@ -160,9 +700,12 @@ window.MDG_MATERIALS = {
       "cte_um_per_mK": 17.3,
       "k_W_per_mK": 16.2,
       "melting_C": [1400, 1455],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £6 to 9/kg bar.",
       "notes": "",
       "refs": [
-        { "label": "ASM Material Data Sheet (via matweb.com) — AISI Type 304 Stainless Steel", "url": "https://asm.matweb.com/search/SpecificMaterial.asp?bassnum=mq304a" }
+        {"label": "ASM Material Data Sheet (via matweb.com) — AISI Type 304 Stainless Steel", "url": "https://asm.matweb.com/search/SpecificMaterial.asp?bassnum=mq304a"}
       ]
     },
     {
@@ -171,6 +714,9 @@ window.MDG_MATERIALS = {
       "grade": "AISI 304L",
       "condition": "Annealed",
       "designation": "UNS S30403",
+      "basis": "Spec min",
+      "aka": "UNS S30403; 1.4307 (X2CrNi18-9); 304S11; SUS304L",
+      "similar": "1.4306 (X2CrNi19-11)",
       "density_kg_m3": 8030,
       "E_GPa": 193,
       "G_GPa": 77,
@@ -180,10 +726,258 @@ window.MDG_MATERIALS = {
       "cte_um_per_mK": 17,
       "k_W_per_mK": 16.2,
       "melting_C": [1400, 1450],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £6 to 9/kg bar.",
       "notes": "Yield/UTS are specified minimums, not typical values. Shear modulus, Poisson's ratio, CTE and melting range are typical values (MakeItFrom), not given on the Combined Metals sheet.",
       "refs": [
-        { "label": "Combined Metals — 304L Stainless Steel Alloy Data Sheet (density, min. yield/UTS, elastic modulus, thermal conductivity)", "url": "https://www.combmet.com/wp-content/uploads/2024/01/304L-Stainless-Steel-Alloy-Data-Sheet-2024-01-11.pdf" },
-        { "label": "MakeItFrom.com — Annealed 304L Stainless Steel (shear modulus, Poisson's ratio, CTE, melting range)", "url": "https://makeitfrom.com/material-properties/Annealed-304L-Stainless-Steel", "typical": true }
+        {"label": "Combined Metals — 304L Stainless Steel Alloy Data Sheet (density, min. yield/UTS, elastic modulus, thermal conductivity)", "url": "https://www.combmet.com/wp-content/uploads/2024/01/304L-Stainless-Steel-Alloy-Data-Sheet-2024-01-11.pdf"},
+        {"label": "MakeItFrom.com — Annealed 304L Stainless Steel (shear modulus, Poisson's ratio, CTE, melting range)", "url": "https://makeitfrom.com/material-properties/Annealed-304L-Stainless-Steel", "typical": true}
+      ]
+    },
+    {
+      "id": "ss-316-ann",
+      "type": "stainless-steel",
+      "grade": "AISI 316",
+      "condition": "Solution treated, sheet/strip/plate (AMS 5524)",
+      "designation": "UNS S31600",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS S31600; 1.4401 (X5CrNiMo17-12-2); 316S31 (EN58J); 316S12; SUS316",
+      "density_kg_m3": 7915,
+      "E_GPa": 200,
+      "G_GPa": 77,
+      "poisson": 0.28,
+      "yield_MPa": 179,
+      "ultimate_MPa": 503,
+      "typical": ["G_GPa", "poisson"],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £7 to 10/kg sheet.",
+      "notes": "L direction (LT: yield 207, UTS 517). MMPDS prints no G or ν; both are typical values from the library's 304L entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 2.7.1.0(b4)", "url": "https://www.mmpds.org/"},
+        {"label": "MakeItFrom, annealed 304L (typical G, ν, via the library 304L entry)", "url": "https://makeitfrom.com/material-properties/Annealed-304L-Stainless-Steel", "typical": true}
+      ]
+    },
+    {
+      "id": "tool-d2-ann",
+      "type": "tool-steel",
+      "grade": "D2",
+      "condition": "Annealed",
+      "designation": "UNS T30402",
+      "basis": "Typical",
+      "aka": "UNS T30402; 1.2379 (X153CrMoV12); SKD11 (JIS); BD2 (old BS)",
+      "similar": "Sverker 21 (Uddeholm, proprietary D2)",
+      "density_kg_m3": 7700,
+      "E_GPa": 190,
+      "G_GPa": 75,
+      "poisson": 0.28,
+      "yield_MPa": 470,
+      "ultimate_MPa": 760,
+      "cte_um_per_mK": 11,
+      "k_W_per_mK": 31,
+      "melting_C": [1390, 1440],
+      "specific_heat_J_per_kgK": 480,
+      "typical": ["E_GPa", "G_GPa", "poisson", "density_kg_m3", "cte_um_per_mK", "k_W_per_mK", "melting_C", "yield_MPa", "ultimate_MPa"],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £6 to 10/kg bar.",
+      "notes": "MakeItFrom typical values for annealed D2. Uddeholm Sverker 21 gives CTE 11.2 to 12.3 and k 20 to 23 for the hardened D2-type.",
+      "refs": [
+        {"label": "MakeItFrom, annealed D2", "url": "https://www.makeitfrom.com/material-properties/Annealed-D2-Tool-Steel", "typical": true},
+        {"label": "Uddeholm Sverker 21 datasheet", "url": "https://uddeholm.com/app/uploads/sites/247/2024/09/Tech-Uddeholm-Sverker-21-EN.pdf", "typical": true}
+      ]
+    },
+    {
+      "id": "tool-d2-62",
+      "type": "tool-steel",
+      "grade": "D2",
+      "condition": "Hardened, 62 HRC",
+      "designation": "UNS T30402",
+      "basis": "Typical",
+      "aka": "UNS T30402; 1.2379 (X153CrMoV12); SKD11 (JIS); BD2 (old BS)",
+      "similar": "Sverker 21 (Uddeholm, proprietary D2)",
+      "density_kg_m3": 7700,
+      "E_GPa": 190,
+      "G_GPa": 75,
+      "poisson": 0.28,
+      "yield_MPa": 1510,
+      "ultimate_MPa": 2000,
+      "cte_um_per_mK": 11,
+      "k_W_per_mK": 31,
+      "melting_C": [1390, 1440],
+      "specific_heat_J_per_kgK": 480,
+      "typical": ["E_GPa", "G_GPa", "poisson", "density_kg_m3", "cte_um_per_mK", "k_W_per_mK", "melting_C", "yield_MPa", "ultimate_MPa"],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £6 to 10/kg bar (hardened bar costs more).",
+      "notes": "Strength from MakeItFrom hardened D2; other properties as annealed (CTE and k vary with hardness and temperature).",
+      "refs": [
+        {"label": "MakeItFrom, hardened D2", "url": "https://www.makeitfrom.com/material-properties/Hardened-D2-Tool-Steel", "typical": true},
+        {"label": "Uddeholm Sverker 21 datasheet", "url": "https://uddeholm.com/app/uploads/sites/247/2024/09/Tech-Uddeholm-Sverker-21-EN.pdf", "typical": true}
+      ]
+    },
+    {
+      "id": "tool-h13-ann",
+      "type": "tool-steel",
+      "grade": "H13",
+      "condition": "Annealed",
+      "designation": "UNS T20813",
+      "basis": "Typical",
+      "aka": "UNS T20813; 1.2344 (X40CrMoV5-1); SKD61 (JIS); W302 (Böhler); Orvar Supreme (Uddeholm, premium ESR grade)",
+      "density_kg_m3": 7800,
+      "E_GPa": 190,
+      "G_GPa": 74,
+      "poisson": 0.29,
+      "yield_MPa": 330,
+      "ultimate_MPa": 690,
+      "cte_um_per_mK": 10,
+      "k_W_per_mK": 29,
+      "melting_C": [1420, 1460],
+      "specific_heat_J_per_kgK": 470,
+      "typical": ["E_GPa", "G_GPa", "poisson", "density_kg_m3", "cte_um_per_mK", "k_W_per_mK", "melting_C", "yield_MPa", "ultimate_MPa"],
+      "cost_band": 2,
+      "cost_note": "About £11 to 12/kg for H11 round at 50 to 60 mm (EUR price, VAT status not stated); H13 is priced similarly. Proxy, not H13 itself.",
+      "cost_ref": {"label": "Premium Steel, H11 round (EUR per piece)", "url": "https://shop.premium-steel.eu/en_it/tool-steel-ii/h11/prs-ba-round-500-mm.html"},
+      "notes": "MakeItFrom typical values for annealed H13.",
+      "refs": [
+        {"label": "MakeItFrom, annealed H13", "url": "https://www.makeitfrom.com/material-properties/Annealed-H13-Tool-Steel", "typical": true}
+      ]
+    },
+    {
+      "id": "tool-h13-45",
+      "type": "tool-steel",
+      "grade": "H13",
+      "condition": "Hardened, 45 HRC",
+      "designation": "UNS T20813",
+      "basis": "Typical",
+      "aka": "UNS T20813; 1.2344 (X40CrMoV5-1); SKD61 (JIS); W302 (Böhler); Orvar Supreme (Uddeholm, premium ESR grade)",
+      "density_kg_m3": 7800,
+      "E_GPa": 210,
+      "G_GPa": 74,
+      "poisson": 0.29,
+      "yield_MPa": 1280,
+      "ultimate_MPa": 1420,
+      "cte_um_per_mK": 12.6,
+      "k_W_per_mK": 25,
+      "melting_C": [1420, 1460],
+      "typical": ["G_GPa", "poisson", "density_kg_m3", "melting_C"],
+      "cost_band": 2,
+      "cost_note": "About £11 to 12/kg for H11 round at 50 to 60 mm (EUR price, VAT status not stated); H13 is priced similarly. Proxy, not H13 itself.",
+      "cost_ref": {"label": "Premium Steel, H11 round (EUR per piece)", "url": "https://shop.premium-steel.eu/en_it/tool-steel-ii/h11/prs-ba-round-500-mm.html"},
+      "notes": "Uddeholm Orvar Supreme at 20 °C. CTE is the mean 20 to 400 °C. G, ν, density and melting from MakeItFrom.",
+      "refs": [
+        {"label": "Uddeholm Orvar Supreme datasheet", "url": "https://uddeholm.com/app/uploads/sites/230/2024/05/Tech-Uddeholm-Orvar-Supreme-EN-1.pdf"},
+        {"label": "MakeItFrom, annealed H13", "url": "https://www.makeitfrom.com/material-properties/Annealed-H13-Tool-Steel", "typical": true}
+      ]
+    },
+    {
+      "id": "tool-h13-52",
+      "type": "tool-steel",
+      "grade": "H13",
+      "condition": "Hardened, 52 HRC",
+      "designation": "UNS T20813",
+      "basis": "Typical",
+      "aka": "UNS T20813; 1.2344 (X40CrMoV5-1); SKD61 (JIS); W302 (Böhler); Orvar Supreme (Uddeholm, premium ESR grade)",
+      "density_kg_m3": 7800,
+      "E_GPa": 210,
+      "G_GPa": 74,
+      "poisson": 0.29,
+      "yield_MPa": 1520,
+      "ultimate_MPa": 1820,
+      "cte_um_per_mK": 12.6,
+      "k_W_per_mK": 25,
+      "melting_C": [1420, 1460],
+      "typical": ["G_GPa", "poisson", "density_kg_m3", "melting_C"],
+      "cost_band": 2,
+      "cost_note": "About £11 to 12/kg for H11 round at 50 to 60 mm (EUR price, VAT status not stated); H13 is priced similarly. Proxy, not H13 itself.",
+      "cost_ref": {"label": "Premium Steel, H11 round (EUR per piece)", "url": "https://shop.premium-steel.eu/en_it/tool-steel-ii/h11/prs-ba-round-500-mm.html"},
+      "notes": "Uddeholm Orvar Supreme at 20 °C. CTE is the mean 20 to 400 °C. G, ν, density and melting from MakeItFrom.",
+      "refs": [
+        {"label": "Uddeholm Orvar Supreme datasheet", "url": "https://uddeholm.com/app/uploads/sites/230/2024/05/Tech-Uddeholm-Orvar-Supreme-EN-1.pdf"},
+        {"label": "MakeItFrom, annealed H13", "url": "https://www.makeitfrom.com/material-properties/Annealed-H13-Tool-Steel", "typical": true}
+      ]
+    },
+    {
+      "id": "tool-m2-ann",
+      "type": "tool-steel",
+      "grade": "M2 high-speed steel",
+      "condition": "Annealed",
+      "designation": "UNS T11302",
+      "basis": "Typical",
+      "aka": "UNS T11302; 1.3343 (HS6-5-2C); SKH51 (JIS); BM2 (old BS)",
+      "density_kg_m3": 8400,
+      "E_GPa": 200,
+      "G_GPa": 77,
+      "poisson": 0.29,
+      "yield_MPa": null,
+      "ultimate_MPa": 760,
+      "cte_um_per_mK": 10,
+      "k_W_per_mK": 22,
+      "melting_C": [1570, 1610],
+      "specific_heat_J_per_kgK": 440,
+      "typical": ["E_GPa", "G_GPa", "poisson", "density_kg_m3", "cte_um_per_mK", "k_W_per_mK", "melting_C", "ultimate_MPa"],
+      "cost_band": 4,
+      "cost_note": "About £60 to 65/kg at 12.7 mm round (EUR price); more per kg for thinner bar.",
+      "cost_ref": {"label": "Premium Steel, M2 round (EUR per piece)", "url": "https://shop.premium-steel.eu/en_eu/high-speed-steel/m2/prs-round-1000-mm.html"},
+      "notes": "No yield published. Crucible Rex M2 gives E 207 GPa, density 8144 kg/m³ and CTE 11.5 to 12.1 (21 to 540 °C).",
+      "refs": [
+        {"label": "MakeItFrom, annealed M2", "url": "https://www.makeitfrom.com/material-properties/Annealed-M2-Tool-Steel", "typical": true},
+        {"label": "Crucible Rex M2", "url": "https://www.crucible.com/eselector/prodbyapp/tooldie/rexm2st.html", "typical": true}
+      ]
+    },
+    {
+      "id": "tool-m2-66",
+      "type": "tool-steel",
+      "grade": "M2 high-speed steel",
+      "condition": "Hardened, 66 HRC",
+      "designation": "UNS T11302",
+      "basis": "Typical",
+      "aka": "UNS T11302; 1.3343 (HS6-5-2C); SKH51 (JIS); BM2 (old BS)",
+      "density_kg_m3": 8400,
+      "E_GPa": 200,
+      "G_GPa": 77,
+      "poisson": 0.29,
+      "yield_MPa": null,
+      "ultimate_MPa": 2150,
+      "cte_um_per_mK": 10,
+      "k_W_per_mK": 22,
+      "melting_C": [1570, 1610],
+      "specific_heat_J_per_kgK": 440,
+      "cost_band": 4,
+      "cost_note": "About £60 to 65/kg at 12.7 mm round (EUR price); more per kg for thinner bar.",
+      "cost_ref": {"label": "Premium Steel, M2 round (EUR per piece)", "url": "https://shop.premium-steel.eu/en_eu/high-speed-steel/m2/prs-round-1000-mm.html"},
+      "notes": "No yield published for hardened M2. Ultimate compressive strength is 2300 to 2500 MPa.",
+      "refs": [
+        {"label": "MakeItFrom, hardened M2", "url": "https://www.makeitfrom.com/material-properties/Hardened-M2-Tool-Steel", "typical": true},
+        {"label": "Crucible Rex M2", "url": "https://www.crucible.com/eselector/prodbyapp/tooldie/rexm2st.html", "typical": true}
+      ]
+    },
+    {
+      "id": "tool-toolox44",
+      "type": "tool-steel",
+      "grade": "Toolox 44",
+      "condition": "Quenched and tempered, 410 to 475 HBW",
+      "designation": "Proprietary (SSAB)",
+      "basis": "Spec min",
+      "density_kg_m3": 7850,
+      "E_GPa": 200,
+      "G_GPa": 78,
+      "poisson": 0.29,
+      "yield_MPa": 1150,
+      "ultimate_MPa": 1300,
+      "cte_um_per_mK": 11.04,
+      "k_W_per_mK": 28,
+      "melting_C": [1420, 1460],
+      "specific_heat_J_per_kgK": 460,
+      "typical": ["E_GPa", "G_GPa", "poisson", "density_kg_m3", "melting_C"],
+      "cost_band": 3,
+      "cost_note": "About £22/kg as round bar, 20 to 60 mm (premium-steel.eu); plate is likely cheaper per kg.",
+      "cost_ref": {"label": "Premium Steel, Toolox 44 round (GBP per piece)", "url": "https://shop.premium-steel.eu/en_gb/catalog/category/view/id/220"},
+      "notes": "SSAB minimum for plate 6 to 130 mm (bar 21 to 141 mm: yield 1100, UTS 1250). CTE and k at 20 °C. Stocked by Carrs as \"44 HRC\".",
+      "refs": [
+        {"label": "SSAB Toolox 44", "url": "https://www.ssab.com/en/brands-and-products/toolox/product-offer/toolox-44"},
+        {"label": "SSAB typical values sheet", "url": "https://www.ssab.com/-/media/files/en/toolox/607entooloxtypical-valuesv3proof220261001.pdf?m=20261002062157"}
       ]
     },
     {
@@ -192,6 +986,8 @@ window.MDG_MATERIALS = {
       "grade": "1350",
       "condition": "H19 (hard drawn)",
       "designation": "UNS A91350 / EC grade",
+      "basis": "Datasheet",
+      "aka": "UNS A91350; EN AW-1350; E-Al99.5 / 3.0257; BS 1E; EC grade (discouraged)",
       "density_kg_m3": 2705,
       "E_GPa": 68.9,
       "G_GPa": 26,
@@ -203,12 +999,15 @@ window.MDG_MATERIALS = {
       "melting_C": [646, 657],
       "conductivity_pct_IACS": 61,
       "specific_heat_J_per_kgK": 900,
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £6 to 10/kg flat bar.",
       "notes": "1350 (\"EC grade\", 99.5%+ pure) is the standard electrical-conductor aluminium alloy — H19 (hard-drawn) is the common busbar/wire temper; the softer O temper reaches slightly higher conductivity (61.8% IACS) at much lower strength (~28 MPa yield). Shear modulus, Poisson's ratio, CTE, thermal conductivity and specific heat are typical aluminium values, not measured for this specific temper.",
       "refs": [
-        { "label": "1350 Aluminium Alloy datasheet (wire/conductor grade) — density, elastic modulus, conductivity, melting range, tensile strength by temper", "url": "https://static1.squarespace.com/static/63741929ecb4563d4b2ef274/t/6418df7bb4c39c620a623dfc/1679351686032/TDS-+Aluminium+Wire+-1350-alloy" },
-        { "label": "HSH Aluminium — 1350 vs 6101 Aluminum for Electrical Conductors (H19 yield/UTS/conductivity cross-check)", "url": "https://www.hshaluc.com/1350-vs-6101-aluminum-for-electrical-conductors.html" },
-        { "label": "Wikipedia — 1350 aluminium alloy (typical thermal conductivity)", "url": "https://en.wikipedia.org/wiki/1350_aluminium_alloy", "typical": true },
-        { "label": "Aluminum-Busbar.com — 6101 Aluminum Properties (typical aluminium specific heat, cross-referenced from the sibling 6101 grade below)", "url": "https://www.aluminum-busbar.com/blog/6101-aluminum-properties/", "typical": true }
+        {"label": "1350 Aluminium Alloy datasheet (wire/conductor grade) — density, elastic modulus, conductivity, melting range, tensile strength by temper", "url": "https://static1.squarespace.com/static/63741929ecb4563d4b2ef274/t/6418df7bb4c39c620a623dfc/1679351686032/TDS-+Aluminium+Wire+-1350-alloy"},
+        {"label": "HSH Aluminium — 1350 vs 6101 Aluminum for Electrical Conductors (H19 yield/UTS/conductivity cross-check)", "url": "https://www.hshaluc.com/1350-vs-6101-aluminum-for-electrical-conductors.html"},
+        {"label": "Wikipedia — 1350 aluminium alloy (typical thermal conductivity)", "url": "https://en.wikipedia.org/wiki/1350_aluminium_alloy", "typical": true},
+        {"label": "Aluminum-Busbar.com — 6101 Aluminum Properties (typical aluminium specific heat, cross-referenced from the sibling 6101 grade below)", "url": "https://www.aluminum-busbar.com/blog/6101-aluminum-properties/", "typical": true}
       ]
     },
     {
@@ -217,6 +1016,8 @@ window.MDG_MATERIALS = {
       "grade": "2024",
       "condition": "T3",
       "designation": "UNS A92024",
+      "basis": "Datasheet",
+      "aka": "UNS A92024; EN AW-2024 / AlCu4Mg1 / 3.1355; BS 2L97",
       "density_kg_m3": 2780,
       "E_GPa": 73.1,
       "G_GPa": 28,
@@ -226,9 +1027,34 @@ window.MDG_MATERIALS = {
       "cte_um_per_mK": 23.2,
       "k_W_per_mK": 121,
       "melting_C": [502, 638],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £8 to 12/kg.",
       "notes": "",
       "refs": [
-        { "label": "ASM Material Data Sheet (via aerospacemetals.com) — Aluminum 2024-T3", "url": "https://www.aerospacemetals.com/wp-content/uploads/2023/06/Aluminum-2024-T3.pdf" }
+        {"label": "ASM Material Data Sheet (via aerospacemetals.com) — Aluminum 2024-T3", "url": "https://www.aerospacemetals.com/wp-content/uploads/2023/06/Aluminum-2024-T3.pdf"}
+      ]
+    },
+    {
+      "id": "al-2219-t87",
+      "type": "aluminum",
+      "grade": "2219",
+      "condition": "T87 plate (AMS 4613)",
+      "designation": "UNS A92219",
+      "basis": "MMPDS A-basis",
+      "aka": "UNS A92219; EN AW-2219 / AlCu6Mn / 3.1304",
+      "density_kg_m3": 2850,
+      "E_GPa": 72.4,
+      "G_GPa": 27.6,
+      "poisson": 0.33,
+      "yield_MPa": 345,
+      "ultimate_MPa": 434,
+      "cost_band": 3,
+      "cost_est": true,
+      "cost_note": "Estimate, about £12 to 20/kg plate.",
+      "notes": "A-basis (no S-basis), plate 6.4 to 25 mm, L; unchanged to 76 mm. Good weldability and elevated-temperature strength.",
+      "refs": [
+        {"label": "MMPDS-14 Table 3.2.19.0(b3)", "url": "https://www.mmpds.org/"}
       ]
     },
     {
@@ -237,6 +1063,8 @@ window.MDG_MATERIALS = {
       "grade": "5083",
       "condition": "H111",
       "designation": "UNS A95083 / EN AW-5083",
+      "basis": "Typical",
+      "aka": "UNS A95083; EN AW-5083 / AlMg4.5Mn0.7 / 3.3547; BS N8",
       "density_kg_m3": 2700,
       "E_GPa": 68,
       "G_GPa": 26,
@@ -246,10 +1074,64 @@ window.MDG_MATERIALS = {
       "cte_um_per_mK": 24,
       "k_W_per_mK": 120,
       "melting_C": [580, 640],
+      "cost_band": 1,
+      "cost_est": true,
+      "cost_note": "Estimate, about £4 to 6/kg plate.",
       "notes": "Non-heat-treatable Al-Mg marine/welded-structure alloy. Values are single-source typicals; EN 485-2 minimums are lower (proof 110–125 MPa, UTS 260–275 MPa min by thickness), so check the mill cert.",
       "refs": [
-        { "label": "MakeItFrom.com — 5083-H111 Aluminum", "url": "https://www.makeitfrom.com/material-properties/5083-H111-Aluminum", "typical": true },
-        { "label": "Righton Blackburns — Aluminium Alloy 5083 O/H111 Sheet & Plate (EN 485-2 minimum proof stress/UTS cross-check)", "url": "https://www.rightonblackburns.co.uk/datasheets/view/Righton-Blackburns-Ltd_Aluminium-Alloy-5083-O-H111-Sheet-Plate_149.pdf" }
+        {"label": "MakeItFrom.com — 5083-H111 Aluminum", "url": "https://www.makeitfrom.com/material-properties/5083-H111-Aluminum", "typical": true},
+        {"label": "Righton Blackburns — Aluminium Alloy 5083 O/H111 Sheet & Plate (EN 485-2 minimum proof stress/UTS cross-check)", "url": "https://www.rightonblackburns.co.uk/datasheets/view/Righton-Blackburns-Ltd_Aluminium-Alloy-5083-O-H111-Sheet-Plate_149.pdf"}
+      ]
+    },
+    {
+      "id": "al-5086-h32",
+      "type": "aluminum",
+      "grade": "5086",
+      "condition": "H32 sheet and plate (ASTM B209)",
+      "designation": "UNS A95086",
+      "basis": "MMPDS A-basis",
+      "aka": "UNS A95086; EN AW-5086 / AlMg4 / 3.3545",
+      "similar": "5083",
+      "density_kg_m3": 2655,
+      "E_GPa": 70.3,
+      "G_GPa": 26.5,
+      "poisson": 0.33,
+      "yield_MPa": 193,
+      "ultimate_MPa": 276,
+      "cte_um_per_mK": 23.8,
+      "k_W_per_mK": 124.6,
+      "cost_band": 1,
+      "cost_est": true,
+      "cost_note": "Estimate, about £4 to 6/kg plate.",
+      "notes": "A-basis (no S-basis; B-basis yield 207, UTS 283), 0.5 to 51 mm. CTE 20 to 100 °C, k at 25 °C, both from the MMPDS table.",
+      "refs": [
+        {"label": "MMPDS-14 Table 3.5.3.0(b)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "al-6061-t4-sheet",
+      "type": "aluminum",
+      "grade": "6061",
+      "condition": "T4 sheet (AMS 4026)",
+      "designation": "UNS A96061",
+      "basis": "MMPDS A-basis",
+      "aka": "UNS A96061; EN AW-6061 / AlMg1SiCu / 3.3211; H20 (old BS); A-G1SUC (AFNOR)",
+      "density_kg_m3": 2715,
+      "E_GPa": 68.3,
+      "G_GPa": 26.2,
+      "poisson": 0.33,
+      "yield_MPa": 110,
+      "ultimate_MPa": 207,
+      "cte_um_per_mK": 23.6,
+      "k_W_per_mK": 167,
+      "melting_C": [582, 652],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £6 to 9/kg sheet.",
+      "notes": "A-basis, LT direction (no L printed), sheet 0.25 to 6.3 mm. CTE, k and melting range are from the library's 6061-T6 entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 3.6.2.0(b1)", "url": "https://www.mmpds.org/"}
       ]
     },
     {
@@ -258,6 +1140,8 @@ window.MDG_MATERIALS = {
       "grade": "6061",
       "condition": "T6",
       "designation": "UNS A96061",
+      "basis": "Datasheet",
+      "aka": "UNS A96061; EN AW-6061 / AlMg1SiCu / 3.3211; H20 (old BS); A-G1SUC (AFNOR)",
       "density_kg_m3": 2700,
       "E_GPa": 68.9,
       "G_GPa": 26,
@@ -267,9 +1151,38 @@ window.MDG_MATERIALS = {
       "cte_um_per_mK": 23.6,
       "k_W_per_mK": 167,
       "melting_C": [582, 652],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £6 to 9/kg cut bar or plate.",
       "notes": "",
       "refs": [
-        { "label": "ASM Material Data Sheet (via matweb.com) — Aluminum 6061-T6; 6061-T651", "url": "https://www.matweb.com/search/DataSheet.aspx?MatGUID=b8d536e0b9b54bd7b69e4124d8f1d20a" }
+        {"label": "ASM Material Data Sheet (via matweb.com) — Aluminum 6061-T6; 6061-T651", "url": "https://www.matweb.com/search/DataSheet.aspx?MatGUID=b8d536e0b9b54bd7b69e4124d8f1d20a"}
+      ]
+    },
+    {
+      "id": "al-6061-t651",
+      "type": "aluminum",
+      "grade": "6061",
+      "condition": "T651 plate (AMS 4027)",
+      "designation": "UNS A96061",
+      "basis": "MMPDS A-basis",
+      "aka": "UNS A96061; EN AW-6061 / AlMg1SiCu / 3.3211; H20 (old BS); A-G1SUC (AFNOR)",
+      "density_kg_m3": 2715,
+      "E_GPa": 68.3,
+      "G_GPa": 26.2,
+      "poisson": 0.33,
+      "yield_MPa": 248,
+      "ultimate_MPa": 290,
+      "cte_um_per_mK": 23.6,
+      "k_W_per_mK": 167,
+      "melting_C": [582, 652],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £6 to 9/kg cut plate.",
+      "notes": "A-basis, plate 6.4 to 51 mm, L (B-basis yield 262, UTS 296). Strength falls in thicker plate. CTE, k and melting range are from the library's 6061-T6 entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 3.6.2.0(b2)", "url": "https://www.mmpds.org/"}
       ]
     },
     {
@@ -278,6 +1191,9 @@ window.MDG_MATERIALS = {
       "grade": "6082",
       "condition": "T6",
       "designation": "UNS A96082 / EN AW-6082",
+      "basis": "Typical",
+      "aka": "UNS A96082; EN AW-6082 / AlSi1MgMn / 3.2315; HE30 (also H30, old BS); A-SGM0.7 (AFNOR)",
+      "similar": "6061 (not interchangeable)",
       "density_kg_m3": 2700,
       "E_GPa": 69,
       "G_GPa": 26,
@@ -287,9 +1203,12 @@ window.MDG_MATERIALS = {
       "cte_um_per_mK": 23,
       "k_W_per_mK": 160,
       "melting_C": [580, 650],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £6 to 9/kg cut bar or plate.",
       "notes": "Common UK/EU structural extrusion and plate alloy. T6 strength varies with section thickness — check the mill cert.",
       "refs": [
-        { "label": "MakeItFrom.com — 6082-T6 Aluminum", "url": "https://makeitfrom.com/material-properties/6082-T6-Aluminum" }
+        {"label": "MakeItFrom.com — 6082-T6 Aluminum", "url": "https://makeitfrom.com/material-properties/6082-T6-Aluminum"}
       ]
     },
     {
@@ -298,6 +1217,9 @@ window.MDG_MATERIALS = {
       "grade": "6101",
       "condition": "T6",
       "designation": "UNS A96101",
+      "basis": "Typical",
+      "aka": "UNS A96101; E-AlMgSi; BS 91E",
+      "similar": "EN AW-6101A / 6101B (different composition limits)",
       "density_kg_m3": 2700,
       "E_GPa": 68,
       "G_GPa": 26,
@@ -309,10 +1231,13 @@ window.MDG_MATERIALS = {
       "melting_C": [620, 655],
       "conductivity_pct_IACS": 55,
       "specific_heat_J_per_kgK": 920,
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £6 to 10/kg busbar extrusion.",
       "notes": "6101 is the standard heat-treatable busbar/bus-pipe aluminium alloy — T6 trades some conductivity for higher strength than 1350; T61 reaches 57% IACS at lower strength (~100 MPa yield). Reported T6 yield/UTS varies by source and section size (up to ~193 MPa yield elsewhere) — treat as typical and verify against the specific extrusion's mill cert. Shear modulus and Poisson's ratio are typical aluminium values, not measured for this grade.",
       "refs": [
-        { "label": "Aluminum-Busbar.com — 6101 Aluminum Properties (T6/T61)", "url": "https://www.aluminum-busbar.com/blog/6101-aluminum-properties/" },
-        { "label": "HSH Aluminium — 1350 vs 6101 Aluminum for Electrical Conductors (T6 yield/UTS cross-check)", "url": "https://www.hshaluc.com/1350-vs-6101-aluminum-for-electrical-conductors.html" }
+        {"label": "Aluminum-Busbar.com — 6101 Aluminum Properties (T6/T61)", "url": "https://www.aluminum-busbar.com/blog/6101-aluminum-properties/"},
+        {"label": "HSH Aluminium — 1350 vs 6101 Aluminum for Electrical Conductors (T6 yield/UTS cross-check)", "url": "https://www.hshaluc.com/1350-vs-6101-aluminum-for-electrical-conductors.html"}
       ]
     },
     {
@@ -321,6 +1246,8 @@ window.MDG_MATERIALS = {
       "grade": "7075",
       "condition": "T6",
       "designation": "UNS A97075",
+      "basis": "Datasheet",
+      "aka": "UNS A97075; EN AW-7075 / AlZn5.5MgCu / 3.4365; AlZnMgCu1.5 (DIN)",
       "density_kg_m3": 2810,
       "E_GPa": 71.7,
       "G_GPa": 26.9,
@@ -330,9 +1257,140 @@ window.MDG_MATERIALS = {
       "cte_um_per_mK": 23.6,
       "k_W_per_mK": 130,
       "melting_C": [477, 635],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £8 to 14/kg cut bar.",
       "notes": "",
       "refs": [
-        { "label": "ASM Material Data Sheet (via matweb.com) — Aluminum 7075-T6", "url": "https://asm.matweb.com/search/specificmaterial.asp?bassnum=ma7075t6" }
+        {"label": "ASM Material Data Sheet (via matweb.com) — Aluminum 7075-T6", "url": "https://asm.matweb.com/search/specificmaterial.asp?bassnum=ma7075t6"}
+      ]
+    },
+    {
+      "id": "al-7075-t73",
+      "type": "aluminum",
+      "grade": "7075",
+      "condition": "T73 / T7351 bar, rod, shapes (AMS 4124)",
+      "designation": "UNS A97075",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS A97075; EN AW-7075 / AlZn5.5MgCu / 3.4365; AlZnMgCu1.5 (DIN)",
+      "density_kg_m3": 2796,
+      "E_GPa": 71.0,
+      "G_GPa": 26.9,
+      "poisson": 0.33,
+      "yield_MPa": 386,
+      "ultimate_MPa": 469,
+      "cte_um_per_mK": 23.6,
+      "k_W_per_mK": 130,
+      "melting_C": [477, 635],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £8 to 14/kg cut bar. No UK shop price found.",
+      "notes": "L, 9.5 to 51 mm. Short-transverse values are lower. CTE, k and melting range are from the library's 7075-T6 entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 3.7.10.0(d)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "al-a356-t6",
+      "type": "aluminum",
+      "grade": "A356.0",
+      "condition": "T6, sand and permanent-mould casting (AMS 4218)",
+      "designation": "UNS A13560",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS A13560; AlSi7Mg0.3; EN AC-42100; A-S7G (AFNOR)",
+      "similar": "LM25",
+      "density_kg_m3": 2685,
+      "E_GPa": 71.7,
+      "G_GPa": 26.9,
+      "poisson": 0.33,
+      "yield_MPa": 152,
+      "ultimate_MPa": 221,
+      "k_W_per_mK": 152,
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate. Ingot is cheap; a finished casting costs more per kg once pattern, melt, heat treatment and radiography are included.",
+      "notes": "Any location in the casting; holds only with AMS 4218 radiographic quality control. k at 25 °C; CTE is a figure only.",
+      "refs": [
+        {"label": "MMPDS-14 Table 3.9.4.0(b)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "al-a357-t6",
+      "type": "aluminum",
+      "grade": "A357.0",
+      "condition": "T6 casting (AMS 4219 / 4289)",
+      "designation": "UNS A13570",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS A13570",
+      "similar": "EN AC-42200 / AlSi7Mg0.6 (close, not identical limits); A356.0 / LM25 (lower Mg and strength)",
+      "density_kg_m3": 2685,
+      "E_GPa": 71.7,
+      "G_GPa": 26.9,
+      "poisson": 0.33,
+      "yield_MPa": 207,
+      "ultimate_MPa": 262,
+      "cte_um_per_mK": 21.6,
+      "k_W_per_mK": 152,
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate. As A356; a finished casting costs more per kg than ingot.",
+      "notes": "Needs the AMS 4289 quality provisions. CTE 20 to 100 °C and k at 25 °C from the MMPDS table.",
+      "refs": [
+        {"label": "MMPDS-14 Table 3.9.5.0(b)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "al-lm25-tf",
+      "type": "aluminum",
+      "grade": "LM25",
+      "condition": "TF, sand cast",
+      "designation": "BS 1490:1988 LM25",
+      "basis": "Typical",
+      "aka": "EN AC-42000 / AlSi7Mg; G-AlSi7Mg / 3.2371 (DIN 1725-2)",
+      "similar": "EN AC-42100 / AlSi7Mg0.3; A356.0",
+      "density_kg_m3": 2680,
+      "E_GPa": 71,
+      "G_GPa": 26.9,
+      "poisson": 0.33,
+      "yield_MPa": 200,
+      "ultimate_MPa": 230,
+      "cte_um_per_mK": 22,
+      "k_W_per_mK": 151,
+      "melting_C": [550, 615],
+      "typical": ["G_GPa", "poisson"],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, as A356. Ingot is cheap; a finished casting costs more per kg.",
+      "notes": "Low end of the typical sand-cast range, not a standard minimum; gravity die is higher. Melting shows the freezing range. G and ν are typical aluminium values. Conductivity 39% IACS (not a busbar conductor grade).",
+      "refs": [
+        {"label": "MRT Castings, LM25", "url": "https://www.mrt-castings.co.uk/aluminium-alloy-lm25.html"},
+        {"label": "Castech, LM25 vs A356", "url": "https://castech.co.uk/aluminium-strength/"}
+      ]
+    },
+    {
+      "id": "mg-az91c-t6",
+      "type": "magnesium",
+      "grade": "AZ91C",
+      "condition": "T6, sand and investment casting",
+      "designation": "UNS M11914",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS M11914; Mg-9Al-1Zn (AZ91E = UNS M11919)",
+      "similar": "AZ91D (UNS M11916, die-casting grade)",
+      "density_kg_m3": 1805,
+      "E_GPa": 44.8,
+      "G_GPa": 16.5,
+      "poisson": 0.35,
+      "yield_MPa": 83,
+      "ultimate_MPa": 117,
+      "cte_um_per_mK": 25.2,
+      "k_W_per_mK": 71,
+      "cost_band": 3,
+      "cost_est": true,
+      "cost_note": "Estimate. Ingot is cheap; a finished casting costs more per kg.",
+      "notes": "Table has only T6. Strength must be verified on cast-cut specimens when the drawing specifies it. CTE 20 to 100 °C, k at 100 to 300 °C from the MMPDS table.",
+      "refs": [
+        {"label": "MMPDS-14 Table 4.3.2.0(b)", "url": "https://www.mmpds.org/"}
       ]
     },
     {
@@ -341,6 +1399,8 @@ window.MDG_MATERIALS = {
       "grade": "Ti-6Al-4V",
       "condition": "Annealed",
       "designation": "UNS R56400 / Grade 5",
+      "basis": "Datasheet",
+      "aka": "UNS R56400; Grade 5; 3.7165",
       "density_kg_m3": 4430,
       "E_GPa": 113.8,
       "G_GPa": 44,
@@ -350,9 +1410,38 @@ window.MDG_MATERIALS = {
       "cte_um_per_mK": 8.6,
       "k_W_per_mK": 6.7,
       "melting_C": [1604, 1660],
+      "cost_band": 5,
+      "cost_est": true,
+      "cost_note": "Estimate, about £70 to 120/kg bar or plate.",
       "notes": "Beta-transus temperature (~980°C) is a more meaningful practical upper limit than the melting range for anything mechanical.",
       "refs": [
-        { "label": "ASM Material Data Sheet (via matweb.com) — Titanium Ti-6Al-4V, annealed", "url": "https://asm.matweb.com/search/specificmaterial.asp?bassnum=mtp641" }
+        {"label": "ASM Material Data Sheet (via matweb.com) — Titanium Ti-6Al-4V, annealed", "url": "https://asm.matweb.com/search/specificmaterial.asp?bassnum=mtp641"}
+      ]
+    },
+    {
+      "id": "ti-6al-4v-sta",
+      "type": "titanium",
+      "grade": "Ti-6Al-4V",
+      "condition": "Solution treated and aged, sheet/strip/plate (AMS 4904)",
+      "designation": "UNS R56400 / Grade 5",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS R56400; Grade 5; 3.7165",
+      "density_kg_m3": 4430,
+      "E_GPa": 110.3,
+      "G_GPa": 42.7,
+      "poisson": 0.31,
+      "yield_MPa": 931,
+      "ultimate_MPa": 1000,
+      "cte_um_per_mK": 8.6,
+      "k_W_per_mK": 6.7,
+      "melting_C": [1604, 1660],
+      "typical": ["cte_um_per_mK", "k_W_per_mK", "melting_C"],
+      "cost_band": 5,
+      "cost_est": true,
+      "cost_note": "Estimate, about £70 to 120/kg plate.",
+      "notes": "L, 25 to 51 mm (thinner sections: yield 1000, UTS 1103). MMPDS marks E and G as historical values. CTE, k and melting range are from the library's annealed entry.",
+      "refs": [
+        {"label": "MMPDS-14 Table 5.4.1.0(b1)", "url": "https://www.mmpds.org/"}
       ]
     },
     {
@@ -361,6 +1450,9 @@ window.MDG_MATERIALS = {
       "grade": "C101 (ETP copper)",
       "condition": "As supplied (properties independent of temper except strength)",
       "designation": "BS EN 1978 C101 / CW004A — equivalent to UNS C11000 (ETP copper)",
+      "basis": "Datasheet",
+      "aka": "CW004A / Cu-ETP; BS C101",
+      "similar": "UNS C11000 (close match only)",
       "density_kg_m3": 8940,
       "E_GPa": 118,
       "G_GPa": 44,
@@ -372,10 +1464,13 @@ window.MDG_MATERIALS = {
       "melting_C": [1083, 1083],
       "conductivity_pct_IACS": 100,
       "specific_heat_J_per_kgK": 385,
+      "cost_band": 3,
+      "cost_est": true,
+      "cost_note": "Estimate, about £12 to 16/kg bar; tracks the copper price.",
       "notes": "C101/CW004A is the UK/BS designation for electrolytic tough pitch (ETP) copper — materially the same alloy as UNS C11000 already in this library (see that entry), added here under its UK designation as the default busbar-calculator grade since Equipmake drawings commonly reference C101. Yield/UTS reused from the C11000 soft/annealed entry since the C101 datasheet used here doesn't break out mechanical properties by temper; shear modulus and Poisson's ratio are typical copper values.",
       "refs": [
-        { "label": "Metelec — Data Sheet ETP Copper C101/CW004A (density, elastic modulus, conductivity, resistivity, thermal conductivity, specific heat, CTE, melting point)", "url": "https://www.metelec.com/wp-content/uploads/2023/05/Metelec_Data_Sheet_C101_CW004A_1.pdf" },
-        { "label": "Copper Development Association — Alloy C11000 (soft/annealed yield/UTS cross-reference)", "url": "https://alloys.copper.org/alloy/C11000" }
+        {"label": "Metelec — Data Sheet ETP Copper C101/CW004A (density, elastic modulus, conductivity, resistivity, thermal conductivity, specific heat, CTE, melting point)", "url": "https://www.metelec.com/wp-content/uploads/2023/05/Metelec_Data_Sheet_C101_CW004A_1.pdf"},
+        {"label": "Copper Development Association — Alloy C11000 (soft/annealed yield/UTS cross-reference)", "url": "https://alloys.copper.org/alloy/C11000"}
       ]
     },
     {
@@ -384,6 +1479,8 @@ window.MDG_MATERIALS = {
       "grade": "C11000 (ETP copper)",
       "condition": "Soft/annealed",
       "designation": "UNS C11000",
+      "basis": "Datasheet",
+      "aka": "UNS C11000; Cu-ETP / CW004A; BS C101; SAE CA110; AFNOR Cu-a1",
       "density_kg_m3": 8910,
       "E_GPa": 117,
       "G_GPa": 44,
@@ -395,10 +1492,82 @@ window.MDG_MATERIALS = {
       "melting_C": [1065, 1083],
       "conductivity_pct_IACS": 101,
       "specific_heat_J_per_kgK": 385,
+      "cost_band": 3,
+      "cost_est": true,
+      "cost_note": "Estimate, about £12 to 16/kg; tracks the copper price.",
       "notes": "Yield/UTS are for the soft (annealed) temper — the condition relevant to flexible cable conductors; C11000 is also supplied hard-drawn at 2-3x this strength. Poisson's ratio is a typical copper value, not measured for this grade. Specific heat is cross-referenced from the C101/CW004A entry above (the same base metal under its UK designation).",
       "refs": [
-        { "label": "Copper Development Association — Alloy C11000 (mechanical/physical/electrical properties)", "url": "https://alloys.copper.org/alloy/C11000" },
-        { "label": "Metelec — Data Sheet ETP Copper C101/CW004A (specific heat, same base metal)", "url": "https://www.metelec.com/wp-content/uploads/2023/05/Metelec_Data_Sheet_C101_CW004A_1.pdf", "typical": true }
+        {"label": "Copper Development Association — Alloy C11000 (mechanical/physical/electrical properties)", "url": "https://alloys.copper.org/alloy/C11000"},
+        {"label": "Metelec — Data Sheet ETP Copper C101/CW004A (specific heat, same base metal)", "url": "https://www.metelec.com/wp-content/uploads/2023/05/Metelec_Data_Sheet_C101_CW004A_1.pdf", "typical": true}
+      ]
+    },
+    {
+      "id": "cu-c17200-tf00",
+      "type": "copper-alloy",
+      "grade": "C17200 beryllium copper",
+      "condition": "TF00 rod and bar, to 38 mm (AMS 4650)",
+      "designation": "UNS C17200",
+      "basis": "MMPDS S-basis",
+      "aka": "CuBe2 / CW101C / 2.1247; Alloy 25; CDA 172",
+      "similar": "CW102C / CuBeM25 / 2.1248",
+      "density_kg_m3": 8250,
+      "E_GPa": 127.5,
+      "G_GPa": 50.3,
+      "poisson": 0.27,
+      "yield_MPa": 965,
+      "ultimate_MPa": 1138,
+      "cost_band": 5,
+      "cost_est": true,
+      "cost_note": "Estimate, about £90 to 150/kg rod.",
+      "notes": "Precipitation heat treated. CTE and k are figures only in MMPDS.",
+      "refs": [
+        {"label": "MMPDS-14 Table 7.3.2.0(d)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "cu-c17200-tf04",
+      "type": "copper-alloy",
+      "grade": "C17200 beryllium copper",
+      "condition": "TF04 rod and bar, to 9.5 mm (AMS 4651)",
+      "designation": "UNS C17200",
+      "basis": "MMPDS S-basis",
+      "aka": "CuBe2 / CW101C / 2.1247; Alloy 25; CDA 172",
+      "similar": "CW102C / CuBeM25 / 2.1248",
+      "density_kg_m3": 8250,
+      "E_GPa": 127.5,
+      "G_GPa": 50.3,
+      "poisson": 0.27,
+      "yield_MPa": 1000,
+      "ultimate_MPa": 1276,
+      "cost_band": 5,
+      "cost_est": true,
+      "cost_note": "Estimate, about £90 to 150/kg rod.",
+      "notes": "Strength falls with size: UTS 1241 to 25 mm and 1207 to 51 mm; yield 1000 for both.",
+      "refs": [
+        {"label": "MMPDS-14 Table 7.3.2.0(e)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "cu-c17200-th04",
+      "type": "copper-alloy",
+      "grade": "C17200 beryllium copper",
+      "condition": "TH04 rod and bar, 9.6 to 25 mm (AMS 4534)",
+      "designation": "UNS C17200",
+      "basis": "MMPDS A-basis",
+      "aka": "CuBe2 / CW101C / 2.1247; Alloy 25; CDA 172",
+      "similar": "CW102C / CuBeM25 / 2.1248",
+      "density_kg_m3": 8250,
+      "E_GPa": 127.5,
+      "G_GPa": 50.3,
+      "poisson": 0.27,
+      "yield_MPa": 1062,
+      "ultimate_MPa": 1241,
+      "cost_band": 5,
+      "cost_est": true,
+      "cost_note": "Estimate, about £90 to 150/kg rod.",
+      "notes": "A-basis (no S-basis; B-basis yield 1117, UTS 1282). TH04 strip to 4.8 mm reaches yield 1138, UTS 1310 (S).",
+      "refs": [
+        {"label": "MMPDS-14 Table 7.3.2.0(f)", "url": "https://www.mmpds.org/"}
       ]
     },
     {
@@ -407,6 +1576,9 @@ window.MDG_MATERIALS = {
       "grade": "C36000 (free-cutting brass)",
       "condition": "H02 (half-hard)",
       "designation": "UNS C36000",
+      "basis": "Typical",
+      "aka": "CW603N (CuZn36Pb3); CZ124 (old BS); free-cutting brass",
+      "similar": "CW614N (CuZn39Pb3) / CZ121 / UNS C38500",
       "density_kg_m3": 8200,
       "E_GPa": 100,
       "G_GPa": 39,
@@ -416,10 +1588,92 @@ window.MDG_MATERIALS = {
       "cte_um_per_mK": 20.5,
       "k_W_per_mK": 120,
       "melting_C": [890, 900],
+      "cost_band": 2,
+      "cost_est": true,
+      "cost_note": "Estimate, about £7 to 10/kg rod.",
       "notes": "Yield/UTS (typical, half-hard rod <0.5in) from the Copper Development Association; physical properties (density, elastic constants, conductivity, melting range) from MakeItFrom's H02 C36000 datasheet since CDA's page doesn't list them.",
       "refs": [
-        { "label": "Copper Development Association — C36000 free-cutting brass for automatic screw machine products", "url": "https://www.copper.org/applications/rodbar/alloy360/free_cutting.html" },
-        { "label": "MakeItFrom.com — Half-Hard (H02) C36000 Brass", "url": "https://www.makeitfrom.com/material-properties/Half-Hard-H02-C36000-Brass" }
+        {"label": "Copper Development Association — C36000 free-cutting brass for automatic screw machine products", "url": "https://www.copper.org/applications/rodbar/alloy360/free_cutting.html"},
+        {"label": "MakeItFrom.com — Half-Hard (H02) C36000 Brass", "url": "https://www.makeitfrom.com/material-properties/Half-Hard-H02-C36000-Brass"}
+      ]
+    },
+    {
+      "id": "cu-c51000-o60",
+      "type": "copper-alloy",
+      "grade": "C51000 phosphor bronze",
+      "condition": "Soft (O60)",
+      "designation": "CW451K / UNS C51000",
+      "basis": "Datasheet",
+      "aka": "CW451K / CuSn5; BS PB102",
+      "similar": "CuSn6 / CW452K / UNS C51900 / BS PB103",
+      "density_kg_m3": 8860,
+      "E_GPa": 110,
+      "G_GPa": 42,
+      "poisson": 0.34,
+      "yield_MPa": 166,
+      "ultimate_MPa": 310,
+      "cte_um_per_mK": 17.9,
+      "k_W_per_mK": 69.2,
+      "melting_C": [954, 1049],
+      "typical": ["G_GPa", "poisson"],
+      "cost_band": 5,
+      "cost_note": "About £82 to 97/kg ex VAT as RS PRO small-lot rod (15.9 and 38.1 mm). A trade stockist is likely lower.",
+      "cost_ref": {"label": "RS PRO phosphor bronze rod, 38.1 mm (GBP ex VAT)", "url": "https://uk.rs-online.com/web/p/metal-bars-metal-rods/0110090"},
+      "notes": "Low end of the Rm range. k varies 69 to 77 W/m·K between sources; 69.2 used. Harder tempers are much stronger. G and ν are typical. Conductivity 15% IACS (not a busbar conductor grade).",
+      "refs": [
+        {"label": "Aurubis C51000 datasheet", "url": "https://www.aurubis.be/en/dam/jcr:443c8087-9662-495f-8135-4c497045da72/c51000-cusn5-us.pdf"},
+        {"label": "Concast C51000", "url": "https://www.concast.com/files/C51000.pdf"},
+        {"label": "MakeItFrom, C51000", "url": "https://www.makeitfrom.com/material-properties/UNS-C51000-CW451K-Phosphor-Bronze", "typical": true}
+      ]
+    },
+    {
+      "id": "cu-c63000-hr50",
+      "type": "copper-alloy",
+      "grade": "C63000 aluminium bronze",
+      "condition": "HR50 rod, to 25 mm (AMS 4640)",
+      "designation": "UNS C63000",
+      "basis": "MMPDS S-basis",
+      "aka": "AMS 4640; BS CA104; nickel-aluminium bronze (wrought)",
+      "similar": "CW307G",
+      "density_kg_m3": 7585,
+      "E_GPa": 115.1,
+      "G_GPa": 44.1,
+      "poisson": 0.33,
+      "yield_MPa": 469,
+      "ultimate_MPa": 758,
+      "cte_um_per_mK": 16.2,
+      "k_W_per_mK": 38.1,
+      "cost_band": 4,
+      "cost_est": true,
+      "cost_note": "Estimate, about £30 to 50/kg rod.",
+      "notes": "Yield is 0.5% extension under load. CTE 20 to 300 °C and k at 20 °C from the MMPDS table.",
+      "refs": [
+        {"label": "MMPDS-14 Table 7.3.4.0(b)", "url": "https://www.mmpds.org/"}
+      ]
+    },
+    {
+      "id": "cu-cu15ni8sn-tx00",
+      "type": "copper-alloy",
+      "grade": "Cu-15Ni-8Sn",
+      "condition": "TX00 spinodal hardened, plate 29 to 114 mm (AMS 4595)",
+      "designation": "UNS C72900",
+      "basis": "MMPDS S-basis",
+      "aka": "UNS C72900; ToughMet 3 (Materion, wrought AT/TS); Cu-Ni-Sn spinodal",
+      "density_kg_m3": 8995,
+      "E_GPa": 138.6,
+      "G_GPa": 52.5,
+      "poisson": 0.32,
+      "yield_MPa": 745,
+      "ultimate_MPa": 869,
+      "cte_um_per_mK": 16.4,
+      "k_W_per_mK": 51.9,
+      "typical": ["G_GPa"],
+      "cost_band": 5,
+      "cost_est": true,
+      "cost_note": "Estimate, about £80 to 150/kg plate or bar.",
+      "notes": "MMPDS prints G as 76.1, a typo; G here is derived from E and ν (typical). CTE 20 to 150 °C and k at 120 °C from the MMPDS table.",
+      "refs": [
+        {"label": "MMPDS-14 Table 7.3.3.0(b)", "url": "https://www.mmpds.org/"}
       ]
     },
     {
@@ -428,12 +1682,13 @@ window.MDG_MATERIALS = {
       "grade": "PTFE (Teflon)",
       "condition": "Typical, unfilled",
       "designation": "Fluoropolymer",
+      "aka": "Teflon (Chemours); Fluon (AGC)",
       "cti_V": 600,
       "cti_range": "≥600",
       "cti_group": "I",
       "notes": "",
       "refs": [
-        { "label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit" }
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
       ]
     },
     {
@@ -442,12 +1697,13 @@ window.MDG_MATERIALS = {
       "grade": "PFA / FEP",
       "condition": "Typical, unfilled",
       "designation": "Fluoropolymer",
+      "aka": "Teflon PFA; Teflon FEP; Neoflon FEP (Daikin); Dyneon FEP",
       "cti_V": 600,
       "cti_range": "≥600",
       "cti_group": "I",
       "notes": "",
       "refs": [
-        { "label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit" }
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
       ]
     },
     {
@@ -456,13 +1712,14 @@ window.MDG_MATERIALS = {
       "grade": "Polyethylene (PE)",
       "condition": "Typical, unfilled",
       "designation": "Polyolefin",
+      "aka": "Polythene",
       "cti_V": 600,
       "cti_range": "≥600",
       "cti_group": "I",
       "notes": "",
       "refs": [
-        { "label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit" },
-        { "label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/" }
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"},
+        {"label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/"}
       ]
     },
     {
@@ -471,12 +1728,14 @@ window.MDG_MATERIALS = {
       "grade": "Unfilled polyamide / nylon (PA6, PA66)",
       "condition": "Typical, unfilled",
       "designation": "Polyamide",
+      "aka": "Ultramid (BASF); Zytel (DuPont, PA66 grades)",
+      "similar": "Nylatron (cast/filled PA6/PA66)",
       "cti_V": 600,
       "cti_range": "≥600",
       "cti_group": "I",
       "notes": "Glass-filled and flame-retardant nylon grades drop well below this — see the general filler caveat above.",
       "refs": [
-        { "label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit" }
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
       ]
     },
     {
@@ -485,12 +1744,14 @@ window.MDG_MATERIALS = {
       "grade": "Silicone rubber",
       "condition": "Typical",
       "designation": "Elastomer",
+      "aka": "VMQ",
+      "similar": "PDMS elastomer",
       "cti_V": 600,
       "cti_range": "≥600",
       "cti_group": "I",
       "notes": "General engineering figure — not read from either cited datasheet table directly; verify against the specific compound's own CTI test data.",
       "refs": [
-        { "label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit", "typical": true }
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit", "typical": true}
       ]
     },
     {
@@ -504,7 +1765,7 @@ window.MDG_MATERIALS = {
       "cti_group": "I",
       "notes": "General engineering figure for inorganic glass — not read from either cited datasheet table directly; verify against the specific glass's own CTI test data.",
       "refs": [
-        { "label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit", "typical": true }
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit", "typical": true}
       ]
     },
     {
@@ -518,7 +1779,7 @@ window.MDG_MATERIALS = {
       "cti_group": "I",
       "notes": "General engineering figure for technical ceramics — not read from either cited datasheet table directly; verify against the specific ceramic's own CTI test data.",
       "refs": [
-        { "label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit", "typical": true }
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit", "typical": true}
       ]
     },
     {
@@ -527,12 +1788,13 @@ window.MDG_MATERIALS = {
       "grade": "Polyester (PET)",
       "condition": "Typical, unfilled",
       "designation": "Thermoplastic polyester",
+      "aka": "Mylar, Melinex (BoPET film); Hostaphan; Lumirror; Terylene, Dacron (fibre brands)",
       "cti_V": 500,
       "cti_range": "400–599",
       "cti_group": "II",
       "notes": "",
       "refs": [
-        { "label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit" }
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
       ]
     },
     {
@@ -541,12 +1803,13 @@ window.MDG_MATERIALS = {
       "grade": "Unfilled PBT",
       "condition": "Typical, unfilled",
       "designation": "Thermoplastic polyester",
+      "aka": "Crastin (Celanese); Celanex; Valox (PBT grades only)",
       "cti_V": 500,
       "cti_range": "400–599",
       "cti_group": "II",
       "notes": "Glass-filled and flame-retardant PBT grades (the common connector-housing material) drop well below this, often into Group IIIa/IIIb — check the specific grade's datasheet rather than assuming unfilled PBT.",
       "refs": [
-        { "label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/" }
+        {"label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/"}
       ]
     },
     {
@@ -555,12 +1818,14 @@ window.MDG_MATERIALS = {
       "grade": "High-CTI FR-4 laminate",
       "condition": "Typical, high-CTI grade",
       "designation": "Glass-epoxy laminate",
+      "aka": "IEC 60893 EP GC 202; NEMA FR-4; IPC 4101/21",
+      "similar": "G10 (IEC EP GC 201; no flame retardant)",
       "cti_V": 500,
       "cti_range": "400–599",
       "cti_group": "II",
       "notes": "A special high-CTI resin system, not standard FR-4 (see that separate entry below) — confirm the laminate's actual CTI on its own datasheet before relying on this.",
       "refs": [
-        { "label": "JLCPCB — Choosing the Right CTI Value for Safer High-Voltage PCBs", "url": "https://jlcpcb.com/blog/cti-value-high-voltage-pcb" }
+        {"label": "JLCPCB — Choosing the Right CTI Value for Safer High-Voltage PCBs", "url": "https://jlcpcb.com/blog/cti-value-high-voltage-pcb"}
       ]
     },
     {
@@ -569,13 +1834,15 @@ window.MDG_MATERIALS = {
       "grade": "Standard FR-4 glass-epoxy laminate",
       "condition": "Typical, standard grade",
       "designation": "Glass-epoxy laminate",
+      "aka": "IEC 60893 EP GC 202; NEMA FR-4; IPC 4101/21",
+      "similar": "G10 (IEC EP GC 201; no flame retardant)",
       "cti_V": 200,
       "cti_range": "175–399",
       "cti_group": "IIIa",
       "notes": "Most standard FR-4 sits around CTI 175, at the bottom of this group — not adequate for a mains-voltage, Pollution-Degree-3 PCB design without checking the laminate's actual CTI.",
       "refs": [
-        { "label": "JLCPCB — Choosing the Right CTI Value for Safer High-Voltage PCBs", "url": "https://jlcpcb.com/blog/cti-value-high-voltage-pcb" },
-        { "label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/" }
+        {"label": "JLCPCB — Choosing the Right CTI Value for Safer High-Voltage PCBs", "url": "https://jlcpcb.com/blog/cti-value-high-voltage-pcb"},
+        {"label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/"}
       ]
     },
     {
@@ -584,12 +1851,13 @@ window.MDG_MATERIALS = {
       "grade": "Polycarbonate (PC)",
       "condition": "Typical, unfilled",
       "designation": "Thermoplastic",
+      "aka": "Lexan (SABIC); Makrolon (Covestro)",
       "cti_V": 200,
       "cti_range": "175–250",
       "cti_group": "IIIa",
       "notes": "",
       "refs": [
-        { "label": "Battery Design — Comparative Tracking Index", "url": "https://www.batterydesign.net/comparative-tracking-index/" }
+        {"label": "Battery Design — Comparative Tracking Index", "url": "https://www.batterydesign.net/comparative-tracking-index/"}
       ]
     },
     {
@@ -598,12 +1866,13 @@ window.MDG_MATERIALS = {
       "grade": "PPS (polyphenylene sulfide)",
       "condition": "Typical, unfilled",
       "designation": "High-performance thermoplastic",
+      "aka": "Ryton (Solvay); Fortron (Celanese/Kureha); Tedur; Durafide; Torelina",
       "cti_V": 200,
       "cti_range": "175–249",
       "cti_group": "IIIa",
       "notes": "",
       "refs": [
-        { "label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit" }
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
       ]
     },
     {
@@ -612,12 +1881,13 @@ window.MDG_MATERIALS = {
       "grade": "PEN (polyethylene naphthalate)",
       "condition": "Typical, unfilled",
       "designation": "Thermoplastic polyester film",
+      "aka": "Kaladex; Teonex",
       "cti_V": 200,
       "cti_range": "175–249",
       "cti_group": "IIIa",
       "notes": "",
       "refs": [
-        { "label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit" }
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
       ]
     },
     {
@@ -626,12 +1896,14 @@ window.MDG_MATERIALS = {
       "grade": "Phenolic resin (paper-phenolic)",
       "condition": "Typical",
       "designation": "Thermoset",
+      "aka": "NEMA XX",
+      "similar": "IEC PF CP 203 (XX match; PF CP 201 is NEMA X); Bakelite (generic phenolic)",
       "cti_V": 125,
       "cti_range": "100–174",
       "cti_group": "IIIb",
       "notes": "",
       "refs": [
-        { "label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/" }
+        {"label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/"}
       ]
     },
     {
@@ -640,12 +1912,14 @@ window.MDG_MATERIALS = {
       "grade": "Polyimide film (Kapton)",
       "condition": "Typical",
       "designation": "High-temperature polymer film",
+      "aka": "Kapton (DuPont)",
+      "similar": "Vespel (moulded polyimide)",
       "cti_V": 150,
       "cti_range": "100–174",
       "cti_group": "IIIb",
       "notes": "",
       "refs": [
-        { "label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/" }
+        {"label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/"}
       ]
     },
     {
@@ -654,12 +1928,13 @@ window.MDG_MATERIALS = {
       "grade": "PEEK",
       "condition": "Typical, unfilled",
       "designation": "High-performance thermoplastic",
+      "aka": "Victrex PEEK",
       "cti_V": 140,
       "cti_range": "100–174",
       "cti_group": "IIIb",
       "notes": "",
       "refs": [
-        { "label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit" }
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
       ]
     },
     {
@@ -668,12 +1943,13 @@ window.MDG_MATERIALS = {
       "grade": "PEI (polyetherimide, e.g. Ultem)",
       "condition": "Typical, unfilled",
       "designation": "High-performance thermoplastic",
+      "aka": "Ultem (GE/SABIC)",
       "cti_V": 140,
       "cti_range": "100–174",
       "cti_group": "IIIb",
       "notes": "",
       "refs": [
-        { "label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit" }
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
       ]
     },
     {
@@ -682,12 +1958,13 @@ window.MDG_MATERIALS = {
       "grade": "PSU (polysulfone)",
       "condition": "Typical, unfilled",
       "designation": "High-performance thermoplastic",
+      "aka": "Udel (Syensqo)",
       "cti_V": 140,
       "cti_range": "100–174",
       "cti_group": "IIIb",
       "notes": "",
       "refs": [
-        { "label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit" }
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
       ]
     }
   ]
