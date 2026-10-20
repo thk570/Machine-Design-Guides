@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<title>Hardness Converter — Machine Design Guides</title>
+<style>
+  /* Layout: template page — inputs card, results card, collapsible reference table, citations footer. Category: Materials. */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #6b5ba5;
+    --mdg-radius: 8px;
+    --input-bg: #efedf6; --input-border: #cdc8e0;
+    --mdg-warn: #8a5a12; --mdg-warn-bg: #f6ecd9;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent: #8f82c8;
+      --input-bg: #2b2935; --input-border: #4b4764;
+      --mdg-warn: #e0b060; --mdg-warn-bg: #33291a;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent: #8f82c8;
+    --input-bg: #2b2935; --input-border: #4b4764;
+    --mdg-warn: #e0b060; --mdg-warn-bg: #33291a;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); font-size: 15px; }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 900px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .mdg-card h2 { font-size: 1rem; margin: 0 0 0.75rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.4rem 0.6rem; text-align: left; font-size: 0.9rem; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+
+  /* inputs */
+  .field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.9rem 1.1rem; }
+  .field { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
+  .field label { font-size: 0.8rem; font-weight: 600; color: var(--mdg-text-muted); }
+  .field input, .field select { font: inherit; font-size: 0.95rem; color: var(--mdg-text); background: var(--input-bg);
+    border: 1px solid var(--input-border); border-radius: 6px; padding: 0.45rem 0.6rem; width: 100%; }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--mdg-accent); box-shadow: 0 0 0 1px var(--mdg-accent); }
+  .input-row { display: flex; align-items: center; gap: 0.4rem; }
+  .input-row input { flex: 1 1 auto; min-width: 0; }
+  .input-row .unit { font-size: 0.85rem; color: var(--mdg-text-muted); white-space: nowrap; }
+
+  /* results */
+  .designation { font-size: 0.85rem; color: var(--mdg-text-muted); margin: 0 0 0.8rem; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
+  .tile { border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.6rem 0.8rem; min-width: 0; }
+  .tile.is-input { background: var(--input-bg); border-color: var(--input-border); }
+  .tile .lbl { font-size: 0.75rem; color: var(--mdg-text-muted); margin: 0 0 0.15rem; }
+  .tile .val { font-size: 1.35rem; font-weight: 600; font-variant-numeric: tabular-nums; margin: 0; }
+  .tile .val small { font-size: 0.8rem; font-weight: 500; color: var(--mdg-text-muted); }
+  .tile .val.na { color: var(--mdg-text-muted); font-weight: 500; font-size: 1.05rem; }
+  .tile .val.mat { font-size: 1.05rem; }
+  .note { font-size: 0.8rem; color: var(--mdg-text-muted); margin: 0.8rem 0 0; }
+  .warn { font-size: 0.8rem; color: var(--mdg-warn); background: var(--mdg-warn-bg); border-radius: 6px; padding: 0.5rem 0.7rem; margin: 0.8rem 0 0; }
+
+  /* collapsible */
+  .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius); background: var(--mdg-surface); margin: 1rem 0; }
+  .mdg-collapsible > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.65rem 0.9rem; font-size: 0.92rem; font-weight: 600; user-select: none; }
+  .mdg-collapsible > summary::-webkit-details-marker { display: none; }
+  .mdg-collapsible > summary::before { content: ''; flex: none; width: 0; height: 0;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 6px solid var(--mdg-text-muted);
+    transition: transform 0.18s ease; }
+  .mdg-collapsible[open] > summary::before { transform: rotate(90deg); }
+  .mdg-collapsible > summary .hint { font-weight: 400; font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .mdg-collapsible-body { padding: 0 0.9rem 0.9rem; }
+  .table-scroll { overflow: auto; max-height: 420px; }
+  .table-scroll table th { position: sticky; top: 0; }
+  table.mdg-table td.num, table.mdg-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.mdg-table tr.match td { background: var(--input-bg); font-weight: 600; }
+  table.mdg-table td.na { color: var(--mdg-text-muted); }
+
+  @media print {
+    .mdg-header, .mdg-no-print { display: none !important; }
+    .mdg-collapsible:not([open]) { display: block; }
+    .mdg-collapsible > summary::before { display: none; }
+    .mdg-collapsible-body { display: block !important; }
+  }
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode { --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc; --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header, html.mdg-pdf-mode .mdg-collapsible, html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-print-header { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem;">
+      <strong>Hardness Converter</strong>
+      <span class="mdg-tag">Materials</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">ASTM E140 &middot; ASTM D2240</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Hardness Converter<span class="mdg-print-tag">Materials</span></div>
+    <div class="mdg-print-meta">ASTM E140 &middot; ASTM D2240 &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+  <div class="mdg-card">
+    <h2>1. Input</h2>
+    <div class="field-grid">
+      <div class="field">
+        <label for="modeSel">Material family</label>
+        <select id="modeSel">
+          <option value="shore">Rubber &amp; plastics (Shore A / D)</option>
+          <option value="steel" selected>Steel (Rockwell / Brinell / Vickers)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="scaleSel">Input scale</label>
+        <select id="scaleSel"></select>
+      </div>
+      <div class="field">
+        <label for="valIn" id="valLabel">Value</label>
+        <div class="input-row"><input type="number" id="valIn" value="40" step="1"><span class="unit" id="valUnit">HRC</span></div>
+      </div>
+    </div>
+    <p class="note" id="inputNote"></p>
+  </div>
+
+  <div class="mdg-card">
+    <h2>2. Result</h2>
+    <p class="designation" id="designation"></p>
+    <div class="tiles" id="tiles"></div>
+    <div class="warn" id="warn" hidden></div>
+    <p class="note" id="resultNote"></p>
+  </div>
+
+  <div class="mdg-card" id="shoreCard" hidden>
+    <h2 id="shoreTitle">3. Shore A reference materials</h2>
+    <table class="mdg-table" id="shoreTable"></table>
+    <p class="note">Everyday examples at that durometer; real hardness varies with formulation and cure, so treat them as illustrative.</p>
+  </div>
+
+  <details class="mdg-collapsible" id="steelRef">
+    <summary>ASTM E140 steel reference rows <span class="hint">HV, HRC, HRB and HB, nearest row highlighted</span></summary>
+    <div class="mdg-collapsible-body">
+      <div class="table-scroll"><table class="mdg-table" id="refTable"></table></div>
+    </div>
+  </details>
+
+  <div class="mdg-card mdg-footer">
+    <p><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li><a href="https://webstore.ansi.org/standards/astm/astme14012b">ASTM E140</a> &mdash; Standard Hardness Conversion Tables for Metals: Relationship Among Brinell, Vickers, Rockwell, Superficial, Knoop, Scleroscope and Leeb Hardness.</li>
+      <li><a href="https://www.iso.org/standard/36860.html">ISO 18265</a> &mdash; Metallic materials &mdash; Conversion of hardness values.</li>
+      <li><a href="https://store.astm.org/d2240-15r21.html">ASTM D2240</a> &mdash; Standard Test Method for Rubber Property &mdash; Durometer Hardness.</li>
+    </ul>
+    <p>This page does not reproduce the standards' full tables; conformance-critical work should refer to the standard itself.</p>
+
+    <p><strong>References</strong></p>
+    <ol class="ref-list">
+      <li id="ref1"><a href="https://www.threadcheck.com/astm-hardness-conversion-chart/technicalinfo/">ASTM Hardness Conversion Chart</a> &mdash; threadcheck.com (HRC 20&ndash;68 and HRB 83&ndash;100 rows against HV and HB, transcribed from ASTM E140).</li>
+      <li id="ref2">Uploaded file &ldquo;Hardness Conversion Calculator.html&rdquo; &mdash; internal (Shore A / D example materials; HRB 60&ndash;78 rows against HV and HB, not checked against E140).</li>
+    </ol>
+
+    <p>Last updated: 2026-10-20 &middot; Rev 1</p>
+  </div>
+
+</main>
+
+<script>
+(function(){
+  // ---- ASTM E140 steel rows (ref 1) ----
+  // [HRC, HV, HB 3000 kgf]; HB omitted above HRC 58 (outside the ball-test range)
+  var HRC = [[68,940,null],[67,900,null],[66,865,null],[65,832,null],[64,800,null],[63,772,null],[62,745,null],[61,720,null],[60,697,null],[59,674,null],
+    [58,653,615],[57,633,595],[56,613,577],[55,595,560],[54,577,543],[53,560,525],[52,544,512],[51,528,496],[50,513,481],[49,498,469],[48,484,455],
+    [47,471,443],[46,458,432],[45,446,421],[44,434,409],[43,423,400],[42,412,390],[41,402,381],[40,392,371],[39,382,362],[38,372,353],[37,363,344],
+    [36,354,336],[35,345,327],[34,336,319],[33,327,311],[32,318,301],[31,310,294],[30,302,286],[29,294,279],[28,286,271],[27,279,264],[26,272,258],
+    [25,266,253],[24,260,247],[23,254,243],[22,248,237],[21,243,231],[20,238,226]];
+  // [HRB, HV, HB 3000 kgf]
+  var HRB = [[100,240,240],[99,234,234],[98,228,228],[97,222,222],[96,216,216],[95,210,210],[94,205,205],[93,200,200],[92,195,195],[91,190,190],
+    [90,186,186],[89,180,180],[88,176,176],[87,172,172],[86,169,169],[85,165,165],[84,162,162],[83,159,159],
+    // HRB 60-78: from the uploaded file, not checked against E140 (flagged with a dagger)
+    [78,157,157],[76,153,153],[74,148,148],[72,143,143],[70,139,139],[68,134,134],[66,130,130],[64,126,126],[62,122,122],[60,118,118]];
+
+  function pairs(rows, i, j){ return rows.filter(function(r){return r[i]!==null&&r[j]!==null;}).map(function(r){return [r[i],r[j]];}); }
+  function asc(p){ return p.slice().sort(function(a,b){return a[0]-b[0];}); }
+  function swap(p){ return p.map(function(a){return [a[1],a[0]];}); }
+  // linear interpolation; null when x is outside the series
+  function interp(p, x){
+    p = asc(p);
+    if (x < p[0][0] || x > p[p.length-1][0]) return null;
+    for (var i=0;i<p.length-1;i++){
+      if (x >= p[i][0] && x <= p[i+1][0]){
+        var f = (p[i+1][0]===p[i][0]) ? 0 : (x-p[i][0])/(p[i+1][0]-p[i][0]);
+        return p[i][1] + f*(p[i+1][1]-p[i][1]);
+      }
+    }
+    return null;
+  }
+  var S_HRC_HV = pairs(HRC,0,1), S_HRB_HV = pairs(HRB,0,1);
+  // HV to HB bridge: HRB rows up to HRB 97, then HRC rows (the two E140 tables disagree by ~10 HB near HV 238)
+  var BRIDGE = pairs(HRB.filter(function(r){return r[0]<=97;}),1,2).concat(pairs(HRC,1,2));
+  var RANGE = { hrc:[20,68], hrb:[60,100], hb:[118,615], hv:[118,940] };
+
+  var STEEL_SCALES = [
+    ['hb','Brinell, HB (3000 kgf)','HB'],
+    ['hrb','Rockwell B, HRB','HRB'],
+    ['hrc','Rockwell C, HRC','HRC'],
+    ['hv','Vickers, HV','HV']
+  ];
+  var SHORE = {
+    a: { label:'Shore A', range:[10,90], rows:[[20,'Rubber band'],[30,'Mouse pad'],[40,'Bicycle inner tube'],[50,'Pencil eraser'],[60,'Car tire tread'],[70,'Shoe sole'],[80,'Leather belt'],[90,'Phone cord jacket']] },
+    d: { label:'Shore D', range:[30,90], rows:[[40,'Textbook cover'],[50,'Golf ball'],[60,'Shopping cart wheel'],[70,'Wooden ruler'],[80,'Computer case (ABS)'],[90,'Bone']] }
+  };
+  var SHORE_SCALES = [['a','Shore A, soft rubber &amp; elastomers','Shore A'],['d','Shore D, hard rubber &amp; rigid plastics','Shore D']];
+
+  var $ = function(id){ return document.getElementById(id); };
+  var modeSel=$('modeSel'), scaleSel=$('scaleSel'), valIn=$('valIn');
+
+  function fmt(x,d){ return x.toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d}); }
+  function fillScales(){
+    var list = modeSel.value==='steel' ? STEEL_SCALES : SHORE_SCALES;
+    var keep = scaleSel.value;
+    scaleSel.innerHTML = list.map(function(s){return '<option value="'+s[0]+'">'+s[1]+'</option>';}).join('');
+    var def = modeSel.value==='steel' ? 'hrc' : 'a';
+    scaleSel.value = list.some(function(s){return s[0]===keep;}) ? keep : def;
+    if (!list.some(function(s){return s[0]===keep;})) valIn.value = modeSel.value==='steel' ? 40 : 60;
+  }
+  function tile(label, html, cls){ return '<div class="tile'+(cls?' '+cls:'')+'"><p class="lbl">'+label+'</p>'+html+'</div>'; }
+  function valHtml(v, d, unit){ return '<p class="val">'+fmt(v,d)+' <small>'+unit+'</small></p>'; }
+  var NA = '<p class="val na" title="Outside the range the standard covers for this scale">n/a</p>';
+
+  function steel(){
+    var s = scaleSel.value, v = parseFloat(valIn.value), r = RANGE[s];
+    var unit = STEEL_SCALES.filter(function(x){return x[0]===s;})[0][2];
+    $('valLabel').textContent = 'Value'; $('valUnit').textContent = unit;
+    $('inputNote').textContent = 'Valid range for '+unit+': '+r[0]+' to '+r[1]+'.';
+    $('shoreCard').hidden = true; $('steelRef').hidden = false;
+    $('resultNote').innerHTML = 'Approximate, non-austenitic steels only; do not substitute for a direct test where a specification calls for one.<sup><a href="#ref1">1</a></sup> HB is the 3000 kgf / 10 mm ball and is not given above HRC 58. HRB 60–78 (†) is unverified.<sup><a href="#ref2">2</a></sup>';
+    if (isNaN(v)) { $('designation').textContent=''; $('tiles').innerHTML=''; $('warn').hidden=true; return; }
+    if (v < r[0] || v > r[1]) {
+      $('designation').textContent = unit+' '+v+' (steel)';
+      $('tiles').innerHTML = ['hrc','hrb','hb','hv'].map(function(k){ return tile(label(k), '<p class="val na">&mdash;</p>'); }).join('');
+      $('warn').hidden = false; $('warn').textContent = unit+' '+v+' is outside the table range ('+r[0]+' to '+r[1]+'). Enter a value inside the range.';
+      renderRef(null); return;
+    }
+    var hv = s==='hv' ? v : s==='hrc' ? interp(S_HRC_HV,v) : s==='hrb' ? interp(S_HRB_HV,v) : interp(swap(BRIDGE),v);
+    var out = {
+      hv: hv,
+      hrc: s==='hrc' ? v : interp(swap(S_HRC_HV),hv),
+      hrb: s==='hrb' ? v : interp(swap(S_HRB_HV),hv),
+      hb:  s==='hb'  ? v : interp(BRIDGE,hv)
+    };
+    $('designation').textContent = unit+' '+v+', via Vickers HV '+fmt(hv,0);
+    $('tiles').innerHTML = ['hrc','hrb','hb','hv'].map(function(k){
+      var d = (k==='hrc'||k==='hrb') ? 1 : 0;
+      return tile(label(k), out[k]===null ? NA : valHtml(out[k], d, k.toUpperCase()), k===s ? 'is-input' : '');
+    }).join('');
+    var anyNA = ['hrc','hrb','hb'].some(function(k){return out[k]===null;});
+    $('warn').hidden = !anyNA;
+    $('warn').textContent = 'n/a: the result falls outside that scale’s valid range in the standard (HRC 20–68, HRB 60–100, HB 118–615).';
+    renderRef(hv);
+  }
+  function label(k){ return {hrc:'Rockwell C',hrb:'Rockwell B',hb:'Brinell (3000 kgf)',hv:'Vickers'}[k]; }
+
+  var REF_ROWS = HRC.map(function(r){return [r[1],r[0],null,r[2]];}).concat(HRB.map(function(r){return [r[1],null,r[0],r[2],r[0]<=78];}))
+    .sort(function(a,b){return b[0]-a[0] || (b[1]!==null)-(a[1]!==null);});
+  function renderRef(hv){
+    var best=-1, bd=1e9;
+    if (hv!==null) REF_ROWS.forEach(function(r,i){ var d=Math.abs(r[0]-hv); if(d<bd){bd=d;best=i;} });
+    function c(x,f){ return x===null ? '<td class="num na">&mdash;</td>' : '<td class="num">'+x+(f?'†':'')+'</td>'; }
+    $('refTable').innerHTML = '<thead><tr><th class="num">HV</th><th class="num">HRC</th><th class="num">HRB</th><th class="num">HB</th></tr></thead><tbody>'+
+      REF_ROWS.map(function(r,i){ return '<tr'+(i===best?' class="match"':'')+'>'+c(r[0])+c(r[1])+c(r[2],r[4])+c(r[3],r[4])+'</tr>'; }).join('')+'</tbody>';
+  }
+
+  function shore(){
+    var s = scaleSel.value, d = SHORE[s], v = parseFloat(valIn.value);
+    $('valLabel').textContent = 'Value'; $('valUnit').textContent = d.label;
+    $('inputNote').textContent = 'Readings are reliable from '+d.range[0]+' to '+d.range[1]+' on '+d.label+'.';
+    $('steelRef').hidden = true; $('shoreCard').hidden = false;
+    $('shoreTitle').textContent = '3. '+d.label+' reference materials';
+    $('resultNote').innerHTML = 'Shore A and D use different indenters, so there is no standard conversion between them or to HRC, HB or HV.';
+    if (isNaN(v)) { $('designation').textContent=''; $('tiles').innerHTML=''; $('warn').hidden=true; return; }
+    var best = d.rows.reduce(function(a,r){ return Math.abs(r[0]-v) < Math.abs(a[0]-v) ? r : a; });
+    $('designation').textContent = d.label+' '+v+', nearest reference material: '+best[1];
+    $('tiles').innerHTML = tile(d.label, valHtml(v,0,d.label), 'is-input') +
+      tile('Nearest reference', '<p class="val mat">'+best[1]+'</p>');
+    var oor = v < d.range[0] || v > d.range[1];
+    $('warn').hidden = !oor;
+    $('warn').textContent = 'Readings below '+d.range[0]+' or above '+d.range[1]+' on '+d.label+' are unreliable. Use Shore D for harder material, or Shore 00 for softer.';
+    $('shoreTable').innerHTML = '<thead><tr><th class="num">'+d.label+'</th><th>Example material</th></tr></thead><tbody>'+
+      d.rows.map(function(r){ return '<tr'+(r===best?' class="match"':'')+'><td class="num">'+r[0]+'</td><td>'+r[1]+'</td></tr>'; }).join('')+'</tbody>';
+  }
+
+  function update(){ modeSel.value==='steel' ? steel() : shore(); }
+  modeSel.addEventListener('change', function(){ fillScales(); update(); });
+  scaleSel.addEventListener('change', function(){
+    if (modeSel.value==='steel') { var d={hrc:40,hrb:90,hb:371,hv:392}; valIn.value = d[scaleSel.value]; }
+    else { valIn.value = scaleSel.value==='a' ? 60 : 50; }
+    update();
+  });
+  valIn.addEventListener('input', update);
+  fillScales(); scaleSel.value='hrc'; update();
+})();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  function current(){
+    var t = document.documentElement.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  function apply(state){
+    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', state); }
+    try {
+      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
+      else { localStorage.setItem('mdg-theme', state); }
+    } catch (e) {}
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  if (btn) {
+    btn.textContent = LABELS[current()];
+    btn.addEventListener('click', function(){
+      var idx = STATES.indexOf(current());
+      apply(STATES[(idx + 1) % STATES.length]);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var MIN_SCALE = 0.65;
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none'; main.style.margin = '0'; main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) { main.style.width = (AVAIL_W_PX / scale) + 'px'; main.style.zoom = scale; }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) { main.style.maxWidth = ''; main.style.margin = ''; main.style.width = ''; main.style.zoom = ''; }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) { btn.addEventListener('click', function(){ enterPdfMode(); window.print(); }); }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
+</body>
+</html>

@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<title>Capacitor Discharge — Machine Design Guides</title>
+<style>
+  /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #a53b8f;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --input-bg: #fbeef8; --input-border: #d9a0cc;
+    --warn: #b5484d; --ok: #2f7d4f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+      --input-bg: #352432; --input-border: #7a4a70;
+      --warn: #e0696d; --ok: #5cc38a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+    --input-bg: #352432; --input-border: #7a4a70;
+    --warn: #e0696d; --ok: #5cc38a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); flex-wrap: wrap; }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 900px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  h2 { font-size: 1.05rem; margin: 0 0 0.75rem; }
+  h3 { font-size: 0.92rem; margin: 1rem 0 0.4rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1.1rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); line-height: 1.5; }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  table.mdg-table td.num, table.mdg-table th.num { text-align: right; }
+  .tbl-wrap { overflow-x: auto; }
+  .fit-ok { color: var(--ok); font-weight: 600; }
+  .fit-no { color: var(--warn); font-weight: 600; }
+  .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
+    background: var(--mdg-surface); margin: 1rem 0; }
+  .mdg-collapsible > summary { cursor: pointer; list-style: none; display: flex; align-items: center; flex-wrap: wrap;
+    gap: 0.5rem; padding: 0.65rem 0.9rem; font-size: 0.92rem; font-weight: 600; user-select: none; }
+  .mdg-collapsible > summary::-webkit-details-marker { display: none; }
+  .mdg-collapsible > summary::before { content: ''; flex: none; width: 0; height: 0;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+    border-left: 6px solid var(--mdg-text-muted); transition: transform 0.18s ease; }
+  .mdg-collapsible[open] > summary::before { transform: rotate(90deg); }
+  .mdg-collapsible > summary .hint { font-weight: 400; font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .mdg-collapsible-body { padding: 0 0.9rem 0.9rem; }
+  .note { font-size: 0.8rem; color: var(--mdg-text-muted); margin: 0.5rem 0 0; }
+  label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem; }
+  select, input[type=number] {
+    font-family: var(--mdg-font); font-size: 0.9rem; padding: 0.4rem 0.55rem;
+    border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); color: var(--mdg-text);
+  }
+  input[type=number]:focus, select:focus { outline: 2px solid var(--mdg-accent); outline-offset: 1px; }
+  .input-row { display: flex; align-items: center; gap: 0.4rem; }
+  .input-row input { flex: 1 1 auto; min-width: 0; width: 100%; }
+  .input-row .unit { font-size: 0.85rem; color: var(--mdg-text-muted); white-space: nowrap; }
+  .row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 0.75rem; }
+  .row:last-child { margin-bottom: 0; }
+  .field { display: flex; flex-direction: column; min-width: 170px; flex: 1 1 170px; max-width: 280px; }
+  .pill-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; align-items: center; }
+  .pill { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.35rem 0.85rem;
+    font-size: 0.85rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .pill.small { padding: 0.2rem 0.65rem; font-size: 0.78rem; }
+  .pill.active { background: var(--mdg-accent); border-color: var(--mdg-accent); color: #fff; }
+  .pill:focus-visible { outline: 2px solid var(--mdg-accent); outline-offset: 1px; }
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.6rem; margin-top: 0.75rem; }
+  .result { background: var(--mdg-bg); border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.6rem 0.75rem; min-width: 0; }
+  .result.headline { border-color: var(--mdg-accent); border-width: 2px; }
+  .result .k { font-size: 0.72rem; color: var(--mdg-text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+  .result .v { font-family: var(--mdg-font-mono); font-size: 1.25rem; margin-top: 0.15rem; font-variant-numeric: tabular-nums; }
+  .result.headline .v { font-size: 1.5rem; color: var(--mdg-accent); }
+  .warn { background: rgba(181,72,77,0.12); border: 1px solid var(--warn); border-radius: 6px;
+    padding: 0.6rem 0.8rem; font-size: 0.85rem; margin-top: 0.75rem; color: var(--mdg-text); }
+  svg.curve { width: 100%; height: auto; display: block; }
+  svg.curve text { fill: var(--mdg-text-muted); font-family: var(--mdg-font); font-size: 11px; }
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+  .ref-list li:target { color: var(--mdg-text); }
+  @media print {
+    .mdg-header, .mdg-no-print { display: none !important; }
+    .mdg-collapsible:not([open]) { display: block; }
+    .mdg-collapsible > summary::before { display: none; }
+    .mdg-collapsible-body { display: block !important; }
+  }
+
+  /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). Forces a light,
+     compact one-page A4 layout via a temporary .mdg-pdf-mode class on <html>, applied just
+     before window.print() and removed on afterprint/focus. */
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-collapsible,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+      <strong>Capacitor Discharge</strong>
+      <span class="mdg-tag">Electrical</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">RC discharge &middot; TT electronics Design Tool #4</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Capacitor Discharge<span class="mdg-print-tag">Electrical</span></div>
+    <div class="mdg-print-meta">RC discharge &middot; TT electronics Design Tool #4 &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+  <!-- ============ 1. INPUTS ============ -->
+  <div class="mdg-card">
+    <h2>1. Capacitor &amp; Safety Target</h2>
+    <div class="row">
+      <div class="field"><label for="cap">Capacitance</label>
+        <div class="input-row"><input type="number" id="cap" value="100" step="any" min="0"><span class="unit">&micro;F</span></div></div>
+      <div class="field"><label for="v0">Initial charge voltage</label>
+        <div class="input-row"><input type="number" id="v0" value="400" step="any" min="0"><span class="unit">V</span></div></div>
+      <div class="field"><label for="vs">Safe threshold voltage</label>
+        <div class="input-row"><input type="number" id="vs" value="50" step="any" min="0"><span class="unit">V</span></div></div>
+    </div>
+    <div class="pill-row mdg-no-print" id="vs-presets"><span class="note" style="margin:0 0.25rem 0 0;">Threshold presets</span></div>
+
+    <h3>Bleeder type</h3>
+    <div class="pill-row" id="type-pills" style="margin-bottom:0.4rem;"></div>
+    <p class="note" style="margin-top:0;" id="type-note"></p>
+
+    <h3>Solve for</h3>
+    <div class="pill-row" id="mode-pills"></div>
+    <div class="row">
+      <div class="field" id="f-res"><label for="res">Bleed resistance</label>
+        <div class="input-row"><input type="number" id="res" value="50" step="any" min="0"><span class="unit">&Omega;</span></div></div>
+      <div class="field" id="f-time" hidden><label for="tdis">Required discharge time</label>
+        <div class="input-row"><input type="number" id="tdis" value="20" step="any" min="0"><span class="unit">s</span></div></div>
+    </div>
+  </div>
+
+  <!-- ============ 2. RESULT ============ -->
+  <div class="mdg-card">
+    <h2>2. Result</h2>
+    <div class="result-grid" id="results"></div>
+    <div id="out-warning"></div>
+    <div style="margin-top:1rem;"><svg class="curve" id="curve" viewBox="0 0 560 210" role="img" aria-label="Discharge curve of capacitor voltage against time"></svg></div>
+    <p class="note">Single-pole RC decay, V(t) = V<sub>0</sub>&middot;e<sup>&minus;t/RC</sup><sup><a href="#ref1">1</a></sup>. Capacitor leakage and ESR are ignored; real discharge is slightly faster.</p>
+  </div>
+
+  <!-- ============ 3. RESISTOR SELECTION ============ -->
+  <details class="mdg-collapsible" id="res-details">
+    <summary>TT electronics resistors for this bleeder <span class="hint" id="res-hint"></span></summary>
+    <div class="mdg-collapsible-body">
+      <div class="row">
+        <div class="field" style="min-width:150px; max-width:200px;"><label for="maxn">Max resistors in series</label>
+          <div class="input-row"><input type="number" id="maxn" value="3" step="1" min="1"><span class="unit">off</span></div></div>
+        <div class="pill-row" id="filter-pills" style="margin-bottom:0;"></div>
+      </div>
+      <p class="note" style="margin:0 0 0.5rem;">Resistor data from the shared library (data/resistors_tt.js).</p>
+      <div class="tbl-wrap"><table class="mdg-table">
+        <thead><tr><th>Type</th><th>Series</th><th>Technology</th><th>Description</th><th class="num">Rated power @ 70&nbsp;&deg;C (W)</th><th class="num">Limiting element voltage (V)</th><th class="num">Min. in series</th><th class="num">Each: &Omega;</th><th class="num">Each: W</th><th>Fit</th></tr></thead>
+        <tbody id="res-body"></tbody>
+      </table></div>
+      <p class="note">Ratings from the TT electronics selection<sup><a href="#ref1">1</a></sup>. Series count is set by whichever of voltage or power needs more resistors; the check uses the continuous rating, so it is conservative for a switched bleeder. Resistance ranges are not in the source, so check the value is stocked on the datasheet.</p>
+    </div>
+  </details>
+
+  <!-- ============ FOOTER ============ -->
+  <div class="mdg-card mdg-footer">
+    <h3 style="margin-top:0;">Applicable design standards</h3>
+    <ul class="ref-list">
+      <li><a href="https://webstore.iec.ch/" target="_blank" rel="noopener">IEC 60204-1</a> &mdash; Safety of machinery &mdash; Electrical equipment of machines &mdash; Part 1: General requirements</li>
+      <li><a href="https://webstore.iec.ch/" target="_blank" rel="noopener">IEC 61010-1</a> &mdash; Safety requirements for electrical equipment for measurement, control, and laboratory use &mdash; Part 1: General requirements</li>
+      <li><a href="https://www.iso.org/" target="_blank" rel="noopener">ISO 6469-3</a> &mdash; Electrically propelled road vehicles &mdash; Safety specifications &mdash; Part 3: Electrical safety</li>
+      <li><a href="https://unece.org/transport/vehicle-regulations" target="_blank" rel="noopener">UNECE Regulation No. 100</a> &mdash; Uniform provisions concerning the approval of vehicles with regard to specific requirements for the electric power train</li>
+    </ul>
+    <p class="note">This page does not reproduce any standard's discharge-time or voltage limits; take the threshold and time from the standard that applies to your product.</p>
+    <h3>References</h3>
+    <ol class="ref-list">
+      <li id="ref1">TT electronics (Welwyn), <em>Capacitor Discharge Calculator, Design Tool #4</em>, S J Oxley, Mar 2005 (Excel workbook, provided internally; no URL) &mdash; discharge formulae, power and energy equations, and the resistor selection data table.</li>
+    </ol>
+    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-19 &middot; Rev 1</p>
+  </div>
+
+</main>
+
+<script src="../../data/resistors_tt.js"></script>
+<script>
+const NAT = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+const $ = id => document.getElementById(id);
+
+// Resistor rows from the shared library (data/resistors_tt.js), sorted alphanumerically by type.
+const LIB = window.MDG_RESISTORS_TT;
+const RES = LIB ? LIB.rows.slice().sort((a, b) => NAT(a[0], b[0])) : [];
+
+let bleeder = 'permanent', mode = 'r2t', filterSuitable = true;
+const TYPES = [{id:'permanent', label:'Permanent'}, {id:'switched', label:'Switched'}];
+const MODES = [{id:'r2t', label:'Discharge time from resistance'}, {id:'t2r', label:'Resistance from discharge time'}];
+const FILTERS = [{id:true, label:'Suitable only'}, {id:false, label:'All types'}];
+
+function pills(rowId, items, getCur, setCur) {
+  const row = $(rowId); row.innerHTML = '';
+  items.forEach(it => {
+    const b = document.createElement('button'); b.type = 'button';
+    b.className = 'pill' + (getCur() === it.id ? ' active' : ''); b.textContent = it.label;
+    b.addEventListener('click', () => { setCur(it.id); pills(rowId, items, getCur, setCur); update(); });
+    row.appendChild(b);
+  });
+}
+
+function sig(x, n) { return Number(x.toPrecision(n)).toString(); }
+function fmtTime(s) {
+  if (s < 1) return sig(s * 1000, 3) + ' ms';
+  if (s < 120) return sig(s, 3) + ' s';
+  if (s < 7200) return sig(s / 60, 3) + ' min';
+  return sig(s / 3600, 3) + ' h';
+}
+function fmtR(r) { return r >= 1e6 ? sig(r / 1e6, 3) + ' MΩ' : r >= 1e3 ? sig(r / 1e3, 3) + ' kΩ' : sig(r, 3) + ' Ω'; }
+function fmtP(p) { return p >= 1e3 ? sig(p / 1e3, 3) + ' kW' : p >= 1 ? sig(p, 3) + ' W' : sig(p * 1000, 3) + ' mW'; }
+function fmtE(e) { return e >= 1e3 ? sig(e / 1e3, 3) + ' kJ' : e >= 1 ? sig(e, 3) + ' J' : sig(e * 1000, 3) + ' mJ'; }
+
+function drawCurve(V0, Vs, tau, tSafe) {
+  const svg = $('curve');
+  if (!(tSafe > 0)) { svg.innerHTML = ''; return; }
+  const W = 560, H = 210, L = 52, R = 16, T = 12, B = 34, pw = W - L - R, ph = H - T - B;
+  const tMax = tSafe * 1.3;
+  const X = t => L + t / tMax * pw, Y = v => T + (1 - v / V0) * ph;
+  let d = '';
+  for (let i = 0; i <= 80; i++) { const t = tMax * i / 80; d += (i ? 'L' : 'M') + X(t).toFixed(1) + ' ' + Y(V0 * Math.exp(-t / tau)).toFixed(1); }
+  const area = d + `L${X(tMax).toFixed(1)} ${Y(0)}L${X(0)} ${Y(0)}Z`;
+  svg.innerHTML =
+    `<line x1="${L}" y1="${Y(0)}" x2="${W - R}" y2="${Y(0)}" stroke="var(--mdg-border)"/>` +
+    `<line x1="${L}" y1="${T}" x2="${L}" y2="${Y(0)}" stroke="var(--mdg-border)"/>` +
+    `<path d="${area}" fill="var(--mdg-accent)" fill-opacity="0.12" stroke="none"/>` +
+    `<path d="${d}" fill="none" stroke="var(--mdg-accent)" stroke-width="2"/>` +
+    `<line x1="${L}" y1="${Y(Vs)}" x2="${W - R}" y2="${Y(Vs)}" stroke="var(--warn)" stroke-dasharray="5 4"/>` +
+    `<line x1="${X(tSafe)}" y1="${Y(Vs)}" x2="${X(tSafe)}" y2="${Y(0)}" stroke="var(--mdg-text-muted)" stroke-dasharray="3 3"/>` +
+    `<circle cx="${X(tSafe)}" cy="${Y(Vs)}" r="4" fill="var(--mdg-accent)"/>` +
+    `<text x="${L - 6}" y="${T + 4}" text-anchor="end">${sig(V0, 4)} V</text>` +
+    `<text x="${L - 6}" y="${Y(Vs) + 4}" text-anchor="end">${sig(Vs, 4)} V</text>` +
+    `<text x="${L - 6}" y="${Y(0) + 4}" text-anchor="end">0</text>` +
+    `<text x="${L}" y="${H - 14}" text-anchor="middle">0</text>` +
+    `<text x="${X(tSafe)}" y="${H - 14}" text-anchor="middle">${fmtTime(tSafe)}</text>` +
+    `<text x="${(L + W - R) / 2}" y="${H - 1}" text-anchor="middle">Time since disconnection</text>`;
+}
+
+function update() {
+  const C = (parseFloat($('cap').value) || 0) * 1e-6;
+  const V0 = parseFloat($('v0').value) || 0;
+  const Vs = parseFloat($('vs').value) || 0;
+  const warn = $('out-warning'); warn.innerHTML = '';
+  $('f-res').hidden = mode !== 'r2t'; $('f-time').hidden = mode !== 't2r';
+  $('type-note').textContent = bleeder === 'permanent'
+    ? 'Always connected: the initial power is continuous dissipation, so the resistor must be rated for it.'
+    : 'Switched in after power-off: the initial power is a peak that decays with the time constant.';
+  const pLabel = bleeder === 'permanent' ? 'Continuous power, V₀²/R' : 'Peak initial power, V₀²/R';
+
+  let R = null, tSafe = null, tau = null, P = null, E = null, valid = true;
+  if (!(C > 0 && V0 > 0 && Vs > 0)) valid = false;
+  else if (Vs >= V0) { valid = false; warn.innerHTML = '<div class="warn">Safe threshold must be below the initial voltage.</div>'; }
+  if (valid) {
+    const k = Math.log(V0 / Vs);
+    if (mode === 'r2t') {
+      R = parseFloat($('res').value) || 0;
+      if (R > 0) { tau = R * C; tSafe = tau * k; } else valid = false;
+    } else {
+      tSafe = parseFloat($('tdis').value) || 0;
+      if (tSafe > 0) { R = tSafe / (C * k); tau = R * C; } else valid = false;
+    }
+  }
+  const grid = $('results');
+  if (!valid) { grid.innerHTML = ''; drawCurve(0, 0, 0, 0); renderTable(null); return; }
+  P = V0 * V0 / R; E = 0.5 * C * V0 * V0;
+  const head = mode === 'r2t'
+    ? `<div class="result headline"><div class="k">Time to reach safe voltage</div><div class="v">${fmtTime(tSafe)}</div></div>`
+    : `<div class="result headline"><div class="k">Bleed resistor, at or below</div><div class="v">${fmtR(R)}</div></div>`;
+  grid.innerHTML = head +
+    `<div class="result headline"><div class="k">${pLabel}</div><div class="v">${fmtP(P)}</div></div>` +
+    `<div class="result"><div class="k">Time constant, RC</div><div class="v">${fmtTime(tau)}</div></div>` +
+    `<div class="result"><div class="k">Stored energy, ½CV₀²</div><div class="v">${fmtE(E)}</div></div>`;
+  drawCurve(V0, Vs, tau, tSafe);
+  renderTable({ R, P, V0 });
+}
+
+function renderTable(s) {
+  const body = $('res-body'); body.innerHTML = '';
+  if (!LIB) { $('res-hint').textContent = ''; body.innerHTML = '<tr><td colspan="10">Resistor library (data/resistors_tt.js) did not load.</td></tr>'; return; }
+  if (!s) { $('res-hint').textContent = ''; return; }
+  const maxN = Math.max(1, parseInt($('maxn').value) || 1);
+  let suitable = 0, rows = '';
+  RES.forEach(r => {
+    const [type, series, tech, desc, pr, vl] = r;
+    const n = Math.max(Math.ceil(s.V0 / vl), Math.ceil(s.P / pr), 1);
+    const ok = n <= maxN; if (ok) suitable++;
+    if (filterSuitable && !ok) return;
+    rows += `<tr><td>${type}</td><td>${series}</td><td>${tech}</td><td>${desc}</td><td class="num">${pr}</td><td class="num">${vl.toLocaleString()}</td>` +
+      `<td class="num">${n}</td><td class="num">${fmtR(s.R / n).replace(' ', ' ')}</td><td class="num">${fmtP(s.P / n).replace(' ', ' ')}</td>` +
+      `<td class="${ok ? 'fit-ok' : 'fit-no'}">${ok ? (n === 1 ? 'Single' : n + ' in series') : 'Too many'}</td></tr>`;
+  });
+  body.innerHTML = rows || '<tr><td colspan="10">No type fits within the series limit. Raise the limit or lower the power.</td></tr>';
+  $('res-hint').textContent = `${suitable} of ${RES.length} types fit within ${maxN} in series`;
+}
+
+[50, 60].forEach(v => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'pill small'; b.textContent = v + ' V';
+  b.addEventListener('click', () => { $('vs').value = v; update(); });
+  $('vs-presets').appendChild(b);
+});
+['cap', 'v0', 'vs', 'res', 'tdis', 'maxn'].forEach(id => $(id).addEventListener('input', update));
+pills('type-pills', TYPES, () => bleeder, v => bleeder = v);
+pills('mode-pills', MODES, () => mode, v => mode = v);
+pills('filter-pills', FILTERS, () => filterSuitable, v => filterSuitable = v);
+update();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  function current(){
+    var t = document.documentElement.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  function apply(state){
+    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', state); }
+    try {
+      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
+      else { localStorage.setItem('mdg-theme', state); }
+    } catch (e) {}
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  if (btn) {
+    btn.textContent = LABELS[current()];
+    btn.addEventListener('click', function(){
+      var idx = STATES.indexOf(current());
+      apply(STATES[(idx + 1) % STATES.length]);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  // Legibility floor: never shrink below this, even if that means the page then
+  // spills onto a 2nd (or 3rd) sheet. A handful of very long pages (e.g. the
+  // Material Library table, the O-Ring groove-design page) would otherwise need
+  // to zoom out well below half size to fit a single sheet, which prints too
+  // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
+  var MIN_SCALE = 0.65;
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
+</body>
+</html>

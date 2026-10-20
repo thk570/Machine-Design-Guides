@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<title>Involute Splines (DIN 5480) — Machine Design Guides</title>
+<style>
+  /* Layout: house calculator page (header, stacked cards). Fits category = blue accent, blue-tinted inputs. */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #3b6ea5;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --poor: #b5484d; --ok: #2f7d4f;
+    --poor-bg: rgba(181,72,77,0.12); --ok-bg: rgba(47,125,79,0.13);
+    --input-bg: #eef3f8; --input-border: #b9cde0;
+    --hub-c: #b8601a; --shaft-c: #2b64a0;   /* orange / blue pair, colour-blind safe */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+      --poor: #e0696d; --ok: #5fbf88;
+      --poor-bg: rgba(224,105,109,0.16); --ok-bg: rgba(95,191,136,0.16);
+      --input-bg: #1c2833; --input-border: #3a5878; color-scheme: dark;
+      --hub-c: #eaa24f; --shaft-c: #6aa6e0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+    --poor: #e0696d; --ok: #5fbf88;
+    --poor-bg: rgba(224,105,109,0.16); --ok-bg: rgba(95,191,136,0.16);
+    --input-bg: #1c2833; --input-border: #3a5878; color-scheme: dark;
+    --hub-c: #eaa24f; --shaft-c: #6aa6e0;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); font-size: 14px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 0; border-bottom: 1px solid var(--mdg-border); flex-wrap: wrap; max-width: 960px; margin: 0 auto; }
+  .mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem; font-size: 0.78rem; cursor: pointer;
+    background: var(--mdg-surface); color: var(--mdg-text-muted); font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 960px; margin: 0 auto; padding-block: 1.5rem 3rem; }
+  h2 { font-size: 1.05rem; margin: 0 0 0.75rem; }
+  h3 { font-size: 0.9rem; margin: 0 0 0.5rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1.1rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; font-size: 0.8rem; color: var(--mdg-text-muted); line-height: 1.5; }
+  .note { font-size: 0.8rem; color: var(--mdg-text-muted); margin: 0.5rem 0 0; }
+  label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem; }
+  select, input[type=number], input[type=text] { font-family: var(--mdg-font); font-size: 0.9rem; padding: 0.4rem 0.55rem;
+    border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); color: var(--mdg-text); }
+  input:focus, select:focus { outline: none; border-color: var(--mdg-accent); box-shadow: 0 0 0 2px rgba(59,110,165,0.25); }
+  input:disabled { opacity: 0.55; cursor: not-allowed; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 0.75rem 1rem; margin-bottom: 0.75rem; }
+  .field { display: flex; flex-direction: column; min-width: 0; }
+  .field.wide { grid-column: span 2; }
+  .input-row { display: flex; align-items: center; gap: 0.4rem; }
+  .input-row input { flex: 1; min-width: 0; width: 100%; }
+  .unit { font-size: 0.85rem; color: var(--mdg-text-muted); white-space: nowrap; }
+  .sub { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--mdg-text-muted); margin: 0.9rem 0 0.4rem; font-weight: 600; }
+  .layout { display: flex; gap: 1.25rem; flex-wrap: wrap; align-items: flex-start; }
+  .layout .inputs { flex: 1 1 380px; min-width: 0; }
+  .diagram { margin: 0; flex: none; background: var(--mdg-surface); border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.5rem; width: 100%; max-width: 330px; }
+  .diagram svg { display: block; max-width: 100%; height: auto; }
+  .diagram figcaption { font-size: 0.72rem; color: var(--mdg-text-muted); text-align: center; margin-top: 0.4rem; }
+  .pill-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .pill { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.35rem 0.85rem; font-size: 0.85rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .pill:hover { border-color: var(--mdg-accent); }
+  .pill.active { background: var(--mdg-accent); border-color: var(--mdg-accent); color: #fff; }
+  .scroll { overflow-x: auto; }
+  #finder table.mdg-table th:first-child, #finder table.mdg-table td:first-child { position: sticky; left: 0; z-index: 1; background: var(--mdg-surface, var(--mdg-bg)); box-shadow: 1px 0 0 var(--mdg-border); }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border); padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; vertical-align: top; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  td.num, th.num { text-align: right; font-family: var(--mdg-font-mono); white-space: nowrap; }
+  td.sym { font-family: var(--mdg-font-mono); color: var(--mdg-text-muted); white-space: nowrap; }
+  td.tol { color: var(--mdg-text-muted); font-size: 0.8rem; }
+  tr.dim td { color: var(--mdg-text-muted); }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1rem; }
+  .two > div { min-width: 0; }
+  .desig-row { display: flex; gap: 0.5rem; align-items: flex-start; margin-bottom: 0.5rem; }
+  .desig-row .desig { flex: 1; min-width: 0; margin-bottom: 0; }
+  .desig-row .pill { padding: 0.4rem 0.8rem; }
+  .desig { font-family: var(--mdg-font-mono); font-size: 0.9rem; font-weight: 600; padding: 0.45rem 0.6rem; background: var(--mdg-bg); border: 1px solid var(--mdg-border); border-radius: 6px; margin-bottom: 0.5rem; overflow-x: auto; white-space: nowrap; }
+  .banner { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; padding: 0.75rem 1rem; border-radius: 6px; border: 1px solid; margin-bottom: 0.9rem; }
+  .banner.pass { background: var(--ok-bg); border-color: var(--ok); } .banner.fail { background: var(--poor-bg); border-color: var(--poor); }
+  .banner .big { font-size: 1.15rem; font-weight: 700; } .banner.pass .big { color: var(--ok); } .banner.fail .big { color: var(--poor); }
+  .badge { display: inline-block; min-width: 3.4rem; text-align: center; padding: 0.12rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.03em; }
+  .badge.pass { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); }
+  .badge.fail { background: var(--poor-bg); color: var(--poor); border: 1px solid var(--poor); }
+  .badge.na { color: var(--mdg-text-muted); border: 1px solid var(--mdg-border); }
+  .bar { position: relative; height: 8px; min-width: 90px; background: var(--mdg-bg); border: 1px solid var(--mdg-border); border-radius: 4px; overflow: hidden; }
+  .bar > i { position: absolute; inset: 0 auto 0 0; background: var(--ok); }
+  .bar.fail > i { background: var(--poor); }
+  .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.6rem; margin-top: 0.75rem; }
+  .result { background: var(--mdg-bg); border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.55rem 0.7rem; }
+  .result .k { font-size: 0.72rem; color: var(--mdg-text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+  .result .v { font-family: var(--mdg-font-mono); font-size: 1.05rem; margin-top: 0.15rem; }
+  .warn { background: var(--poor-bg); border: 1px solid var(--poor); border-radius: 6px; padding: 0.55rem 0.8rem; font-size: 0.85rem; margin-top: 0.6rem; }
+  .linkrow { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; margin: 0.25rem 0 0.75rem; }
+  .linkrow input { margin: 0; }
+  .lib-note { font-size: 0.78rem; color: var(--mdg-text-muted); font-style: italic; margin: 0 0 0.75rem; }
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; } sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); } .ref-list li { margin-bottom: 0.35rem; }
+  .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius); background: var(--mdg-surface); margin: 0.75rem 0 0; }
+  .mdg-collapsible > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.9rem; font-size: 0.92rem; font-weight: 600; user-select: none; }
+  .mdg-collapsible > summary::-webkit-details-marker { display: none; }
+  .mdg-collapsible > summary::before { content: ''; flex: none; width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 6px solid var(--mdg-text-muted); transition: transform 0.18s ease; }
+  .mdg-collapsible[open] > summary::before { transform: rotate(90deg); }
+  .mdg-collapsible > summary .hint { font-weight: 400; font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .mdg-collapsible-body { padding: 0 0.9rem 0.9rem; }
+  .mdg-collapsible-body table { margin-bottom: 0.9rem; }
+  .svg-line { fill: none; stroke: var(--mdg-text); stroke-width: 1.4; }
+  .svg-ext { stroke: var(--mdg-text-muted); stroke-width: 0.75; stroke-dasharray: 3,2; }
+  .svg-lbl { font: 11px var(--mdg-font); fill: var(--mdg-text); }
+  .svg-lbl-sm { font: 10px var(--mdg-font); fill: var(--mdg-text-muted); }
+
+  /* Save-as-PDF — see structure-and-conventions.md ("Save as PDF"). */
+  @media print {
+    .mdg-header, .mdg-no-print { display: none !important; }
+    .mdg-collapsible:not([open]) { display: block; }
+    .mdg-collapsible > summary::before { display: none; }
+    .mdg-collapsible-body { display: block !important; }
+  }
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-collapsible,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+      <strong>Involute Splines</strong><span class="mdg-tag">Fits</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">DIN 5480 &middot; drawing data &amp; stress check</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Involute Splines (DIN 5480)<span class="mdg-print-tag">Fits</span></div>
+    <div class="mdg-print-meta">DIN 5480 &middot; drawing data &amp; stress check &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+  <div class="mdg-card">
+    <p style="margin:0 0 0.6rem;">Pick a standard DIN 5480 spline (diameter, module, teeth) and fit to get the hub and shaft drawing data and a Pass/Fail stress check. Sizes, pin diameters and tolerances come from the DIN 5480 library<sup><a href="#ref3">3</a></sup>; geometry and measuring dimensions follow the in-house spreadsheet<sup><a href="#ref1">1</a></sup>; stresses follow the Machinery's Handbook method<sup><a href="#ref2">2</a></sup>.</p>
+    <div class="pill-row" style="margin:0;" id="presets"></div>
+    <p class="note" style="margin-top:0.6rem;">Starting from the load instead? Go to <a href="#finder">5. Find a Size from Load</a>.</p>
+  </div>
+
+  <!-- ============ 1. SPLINE DEFINITION ============ -->
+  <div class="mdg-card">
+    <h2>1. Spline Size &amp; Tolerances</h2>
+    <div class="layout">
+      <div class="inputs">
+        <div class="grid" id="f-size"></div>
+        <div class="linkrow" style="margin-top:0.9rem;"><input type="checkbox" id="ovr"><label for="ovr" style="margin:0; font-weight:400;">Override library values (non-standard spline or tolerance)</label></div>
+        <div class="sub">Hub (internal, N) — auto from library</div>
+        <div class="grid" id="f-hub"></div>
+        <div class="sub">Shaft (external, W) — auto from library</div>
+        <div class="grid" id="f-shaft"></div>
+        <div class="sub">Measuring data — auto from library</div>
+        <div class="grid" id="f-meas"></div>
+        <p class="note" id="lib-note"></p>
+      </div>
+      <figure class="diagram">
+        <svg viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="spT"><title id="spT">Spline tooth schematic</title>
+          <defs><pattern id="spHatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" style="fill:var(--hub-c);fill-opacity:0.2"/><line x1="0" y1="0" x2="0" y2="7" style="stroke:var(--hub-c);stroke-width:2.2"/></pattern><clipPath id="spClip"><rect x="0" y="0" width="316" height="250"/></clipPath></defs>
+          <g clip-path="url(#spClip)">
+            <path d="M-139.8,85.0 L-102.3,150.0 L-77.7,150.0 L-40.2,85.0 L-39.8,85.0 L-2.3,150.0 L22.3,150.0 L59.8,85.0 L60.2,85.0 L97.7,150.0 L122.3,150.0 L159.8,85.0 L160.2,85.0 L197.7,150.0 L222.3,150.0 L259.8,85.0 L260.2,85.0 L297.7,150.0 L322.3,150.0 L359.8,85.0 L360.2,85.0 L397.7,150.0 L422.3,150.0 L459.8,85.0 L410,40 L-90,40 Z" fill="url(#spHatch)" class="svg-line"/>
+            <path d="M-86.4,165.0 L-46.0,95.0 L-34.0,95.0 L6.4,165.0 L13.6,165.0 L54.0,95.0 L66.0,95.0 L106.4,165.0 L113.6,165.0 L154.0,95.0 L166.0,95.0 L206.4,165.0 L213.6,165.0 L254.0,95.0 L266.0,95.0 L306.4,165.0 L313.6,165.0 L354.0,95.0 L366.0,95.0 L406.4,165.0 L360,215 L-40,215 Z" style="fill:var(--shaft-c);fill-opacity:0.5" class="svg-line"/>
+            <line x1="0" y1="128" x2="316" y2="128" stroke="var(--mdg-text-muted)" stroke-width="0.8" stroke-dasharray="8,3,2,3"/>
+          </g>
+          <g class="svg-ext"><line x1="316" y1="85" x2="334" y2="85"/><line x1="316" y1="95" x2="334" y2="95"/><line x1="316" y1="128" x2="334" y2="128"/><line x1="316" y1="150" x2="334" y2="150"/><line x1="316" y1="165" x2="334" y2="165"/></g>
+          <text x="338" y="82" class="svg-lbl">df2</text><text x="338" y="99" class="svg-lbl">da1</text><text x="338" y="131" class="svg-lbl">d (ref.)</text>
+          <text x="338" y="147" class="svg-lbl">da2</text><text x="338" y="170" class="svg-lbl">df1</text>
+          <text x="8" y="28" class="svg-lbl" style="fill:var(--hub-c);font-weight:700">HUB (hatched)</text><text x="8" y="232" class="svg-lbl" style="fill:var(--shaft-c);font-weight:700">SHAFT (solid)</text>
+          <text x="200" y="240" class="svg-lbl-sm" text-anchor="middle">s = tooth thickness, e = space width (at reference circle)</text>
+        </svg>
+        <figcaption>Schematic only, not to scale. da/df = tip/root circle diameters; 1 = shaft, 2 = hub.</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- ============ 2. DRAWING DATA ============ -->
+  <div class="mdg-card">
+    <h2>2. Data to be Shown on Drawings</h2>
+    <div class="two">
+      <div><div class="desig-row"><div class="desig" id="d-hub"></div><button type="button" class="pill copy-btn" data-d="d-hub" data-t="t-hub">Copy</button></div><div class="scroll"><table class="mdg-table"><thead><tr><th>Hub parameter</th><th>Sym.</th><th class="num">Value</th><th>Tol. / note</th></tr></thead><tbody id="t-hub"></tbody></table></div></div>
+      <div><div class="desig-row"><div class="desig" id="d-shaft"></div><button type="button" class="pill copy-btn" data-d="d-shaft" data-t="t-shaft">Copy</button></div><div class="scroll"><table class="mdg-table"><thead><tr><th>Shaft parameter</th><th>Sym.</th><th class="num">Value</th><th>Tol. / note</th></tr></thead><tbody id="t-shaft"></tbody></table></div></div>
+    </div>
+    <div id="insp-warn"></div>
+    <p class="note">Lengths in mm. Tip-circle fits follow the recommended values in DIN 5480-1 Table 5. Shaft inspection by method A (over pins) or B (base tangent) — B only where the measurement is reliable.</p>
+    <details class="mdg-collapsible"><summary>Intermediate values <span class="hint">profile shift, base circle, effective gauge sizes</span></summary>
+      <div class="mdg-collapsible-body"><table class="mdg-table"><tbody id="t-inter"></tbody></table></div></details>
+  </div>
+
+  <!-- ============ 3. LOAD & STRESS INPUTS ============ -->
+  <div class="mdg-card">
+    <h2>3. Load Case &amp; Stress Inputs</h2>
+    <div class="grid" id="f-load"></div>
+    <div class="grid">
+      <div class="field"><label for="type">Spline type</label><select id="type"></select></div>
+      <div class="field"><label for="crowned">Crowning</label><select id="crowned"></select></div>
+      <div class="field wide"><label for="mat">Material (allowable stresses)</label><select id="mat"></select></div>
+      <p class="note" id="mat-note" style="grid-column:1/-1;margin:0;"></p>
+    </div>
+    <div class="grid" id="f-crown"></div>
+    <div class="sub">Tooth &amp; wall geometry for the stress check</div>
+    <div class="linkrow"><input type="checkbox" id="link"><label for="link" style="margin:0; font-weight:400;">Use drawing data (t = smin; nominal tip and root diameters)</label></div>
+    <div class="grid" id="f-geo"></div>
+    <p class="note">Ka/Km/Kf/Kw tables are in the reference section below. Fixed splines use Km&nbsp;=&nbsp;1 and ignore Kw<sup><a href="#ref2">2</a></sup>. Pitch dia., module, teeth, pressure angle and reference dia. come from section 1.</p>
+  </div>
+
+  <!-- ============ 4. PASS / FAIL ============ -->
+  <div class="mdg-card">
+    <h2>4. Stress Check &mdash; Pass / Fail</h2>
+    <div id="banner"></div>
+    <div class="scroll"><table class="mdg-table">
+      <thead><tr><th>Check</th><th>Case</th><th class="num">Stress (MPa)</th><th class="num">Allowable (MPa)</th><th class="num">Safety factor</th><th>Margin</th><th>Result</th></tr></thead>
+      <tbody id="t-res"></tbody></table></div>
+    <div id="res-warn"></div>
+    <div class="result-grid" id="res-grid"></div>
+    <div id="cap-line"></div>
+    <p class="note">Pass when stress &lt; allowable. Short term = one-off peak; fatigue/wear applies Kf/Kw. Hub tensile = Ka&middot;Km&middot;(S1+S3)+S2, divided by Kf.</p>
+  </div>
+
+  <!-- ============ 5. FIND A SIZE ============ -->
+  <div class="mdg-card">
+    <details class="mdg-collapsible" id="finder" style="margin-top:0"><summary><span style="font-size:1.05rem;font-weight:600;">5. Find a Size from Load</span> <span class="hint">torque in, capable library sizes out</span></summary>
+    <div class="mdg-collapsible-body">
+    <p class="note" style="margin:0 0 0.6rem;">Enter the load here. Lists every library size whose checks all pass. Factors, material, spline type and crowning come from section 3; fit and method from section 1.</p>
+    <div class="grid" id="f-find"></div>
+    <div id="find-sum"></div>
+    <div class="scroll"><table class="mdg-table">
+      <thead><tr><th></th><th>Spline (dB × m × z)</th><th class="num">Pitch dia. D (mm)</th><th class="num">Length used (mm)</th><th class="num">Min. safety factor</th><th>Governing check</th><th class="num">Capability (N·m)</th></tr></thead>
+      <tbody id="t-find"></tbody></table></div>
+    <div style="margin-top:0.6rem;"><button type="button" class="pill" id="find-more" style="display:none;"></button></div>
+    <p class="note">Sorted smallest first. Capability = highest torque at which every check still passes.</p>
+    </div></details>
+  </div>
+
+  <!-- ============ 6. CHARTS ============ -->
+  <div class="mdg-card">
+    <h2>6. Size Estimation &amp; Effective Length</h2>
+    <div class="two">
+      <div><h3>Torque capability vs reference diameter</h3><div id="ch-cap"></div></div>
+      <div><h3>Effective length limit vs pitch diameter</h3><div id="ch-le"></div></div>
+    </div>
+    <p class="note">Calculated from this page's stress model, not read from the Handbook charts. Other sizes use the section 5 length, hub OD and bore assumptions; the ringed size uses section 3.</p>
+  </div>
+
+  <!-- ============ 7. REFERENCE ============ -->
+  <div class="mdg-card">
+    <h2>7. Reference Tables</h2>
+    <details class="mdg-collapsible" style="margin-top:0"><summary>Factors &amp; allowable stresses <span class="hint">Ka, Km, Kf, Kw, allowable stress by material</span></summary>
+      <div class="mdg-collapsible-body" id="ref-tables"></div></details>
+  </div>
+
+  <div class="mdg-card mdg-footer">
+    <p><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li><a href="https://www.beuth.de/en">DIN 5480-1</a> — Involute splines based on reference diameters — Part 1: General.</li>
+      <li><a href="https://www.beuth.de/en">DIN 5480-2</a> — Involute splines based on reference diameters — Part 2: Nominal dimensions and inspection dimensions.</li>
+    </ul>
+    <p>Library data (<code>data/splines_din5480.js</code>) was keyed from the standards on 2026-10-19: 721 preferred sizes, modules 0.5–10, 30° only. Cold-rolled shafts and diameter-centred fits are not included. Verify conformance-critical splines against the standard.</p>
+    <p><strong>References</strong></p>
+    <ol class="ref-list">
+      <li id="ref1">Spline Data — DIN 5480 (internal spreadsheet; 60&times;1.5&times;38, 85&times;1.5&times;55, 60&times;2.5&times;22 and 70&times;1.25&times;54 versions) — geometry, tolerances, measuring dimensions and drawing-data layout.</li>
+      <li id="ref2">Spline Stress Calculations — DIN 5480 (internal spreadsheet) — stress equations, factor and allowable tables. The sheet cites Machinery's Handbook 27th ed., Gears, Splines and Cams (pp. 2169–2174) and D. W. Dudley, <em>When Splines Need Stress Control</em>; neither opened for this page. The sheet applies Le even where the spline is shorter; this page uses the smaller of L and Le.</li>
+      <li id="ref3">DIN 5480-1:2006-03 (PDF supplied) — Tables 4, 7, 9; DIN 5480-2:2006-05 (English translation read via <a href="https://www.scribd.com/document/379274426/DIN-5480-2">scribd.com</a>) — Tables 2–33 preferred sizes, pin diameters DM, teeth measured k and Wk reliability flags. Wk calculated, matching table values to 0.002 mm.</li>
+    </ol>
+    <p>Last updated: 2026-10-19 &middot; Rev 1</p>
+  </div>
+</main>
+
+<script src="../../data/materials.js"></script>
+<script src="../../data/splines_din5480.js"></script>
+<script>
+// ---------- DIN 5480 geometry + drawing data (port of "Spline Data" sheet) ----------
+const RAD = Math.PI / 180;
+const MFG = {            // dev. factors (ModF1, ModF2) by manufacturing method
+  'Broaching':      [0.55, 0],
+  'Hobbing':        [0.60, 0.1],
+  'Mill-broaching': [0.65, 0.2],
+  'Not specified':  [0.55, 0],
+};
+function solveBeta(inv) {            // tan(b) - b = inv(b)  (sheet uses circular ref iteration)
+  let b = Math.max(0.05, Math.pow(3 * Math.max(inv, 1e-9), 1 / 3));
+  for (let i = 0; i < 60; i++) {
+    const t = Math.tan(b), f = t - b - inv, d = t * t;
+    if (Math.abs(d) < 1e-12) break;
+    const nb = b - f / d;
+    if (Math.abs(nb - b) < 1e-14) { b = nb; break; }
+    b = nb;
+  }
+  return b;
+}
+function splineData(p) {
+  const { dref, m, z, alpha } = p, a = alpha * RAD;
+  const [f1, f2] = MFG[p.method] || MFG['Not specified'];
+  const x1 = (dref - m * z - 1.1 * m) / (2 * m), x2 = -x1;
+  const s1 = m * Math.PI / 2 + 2 * x1 * m * Math.tan(a);
+  const invA = Math.tan(a) - Math.PI * alpha / 180;
+  const A = (z % 2 === 0) ? 1 : Math.cos((2 * Math.PI / 360) * 90 / z);
+  const db = m * z * Math.cos(a);
+  const o = { x1, x2, s1, e2: s1, invA, A, db, d: m * z, f1, f2 };
+  // hub (internal) – space widths
+  o.df2 = Math.abs(-m * z + 2 * x2 * m - 2 * f1 * m);
+  o.da2 = Math.abs(-m * z + 2 * x2 * m + 0.9 * m);
+  o.df2tol = (0.2 - f2) * m + 1.73 * (p.AeH + p.TGH);
+  o.emax = s1 + p.AeH + p.TeffH + p.TactH;
+  o.emin = s1 + p.AeH + p.TeffH;
+  o.evmin = s1 + p.AeH;
+  // shaft (external) – tooth thickness
+  o.da1 = m * z + 2 * x1 * m + 0.9 * m;
+  o.df1 = m * z + 2 * x1 * m - 2 * f1 * m;
+  o.df1tol = (0.2 - f2) * m + 1.73 * (-p.AsS + p.TGS);
+  o.dFf2 = o.da1 + 2 * p.cFmin;      // hub root form dia. (min)
+  o.dFf1 = o.da2 - 2 * p.cFmin;      // shaft root form dia. (max)
+  o.svmax = s1 + p.AsS;
+  o.smax = s1 + p.AsS - p.TeffS;
+  o.smin = s1 + p.AsS - p.TeffS - p.TactS;
+  // measurement over/between pins
+  const M2 = e => {            // hub, between pins
+    const B = (Math.PI * m - e) / (m * -z);
+    const inv = invA + p.DMH / (m * -z) / Math.cos(a) + B - Math.PI / -z;
+    return -m * -z * Math.cos(a) * A / Math.cos(solveBeta(inv)) - p.DMH;
+  };
+  const M1 = s => {            // shaft, over pins
+    const B = s / (m * z);
+    const inv = invA + p.DMS / (m * z) / Math.cos(a) + B - Math.PI / z;
+    return m * z * Math.cos(a) * A / Math.cos(solveBeta(inv)) + p.DMS;
+  };
+  o.M2max = M2(o.emax); o.M2minRef = M2(o.emin); o.M2minEff = M2(o.evmin);
+  o.M1maxRef = M1(o.smax); o.M1min = M1(o.smin); o.M1maxEff = M1(o.svmax);
+  // base tangent length (method B)
+  o.Wkmax = p.Wk - 0.866 * (s1 - o.smax);
+  o.Wkmin = p.Wk - 0.866 * (s1 - o.smin);
+  o.rmin = 0.16 * m;
+  o.designHub = `DIN 5480 - N${dref} x ${m} x ${z} x ${p.tolH}`;
+  o.designShaft = `DIN 5480 - W${dref} x ${m} x ${z} x ${p.tolS}`;
+  return o;
+}
+
+// ---------- stress check (port of "Spline Stress Calculations" sheet; Machinery's Handbook method) ----------
+// ===== TEMPORARY HARD-CODED MATERIALS: remove once data/materials.js carries these properties =====
+// The six recommended materials (Machinery's Handbook Table 11, allowable stresses in ksi) are held here because the shared library has no
+// spline allowables or hardness field yet. Library steels are mapped onto these rows by the page (see splineBand) and take their values from here.
+// Properties needed from the library to retire this block: hardness (HB / HRC) and, per grade or band, allowable shear, compressive
+// (straight and crowned) and tensile stress.
+const MATERIALS = [   // Table 11 – ksi: shear, compressive straight, crowned, tensile (null = no value)
+  { id: 'case',    label: 'Case-hardened steel, 58–63 HRC',                   sh: 50, cs: 5,   cc: 20,   t: 55 },
+  { id: 'st160',   label: 'Steel, 160–200 HB',                                sh: 20, cs: 1.5, cc: 6,    t: 22 },
+  { id: 'st230',   label: 'Steel, 230–260 HB',                                sh: 30, cs: 2,   cc: 8,    t: 32 },
+  { id: 'st302',   label: 'Steel, 302–351 HB (33–38 HRC)',                    sh: 40, cs: 3,   cc: 12,   t: 45 },
+  { id: 'surf',    label: 'Surface-hardened steel, 48–53 HRC',                sh: 40, cs: 4,   cc: 16,   t: 45 },
+  { id: 'thru',    label: 'Through-hardened steel (aircraft quality), 42–46 HRC', sh: 45, cs: null, cc: null, t: 50 },
+];
+// ===== end of temporary hard-coded materials =====
+const KSI = 145.038;
+function stressCheck(q) {
+  const T = q.T, Ka = q.Ka, Km = q.Km, Kf = q.Kf, Kw = q.Kw;
+  const D = q.m * q.N, h = (q.Dte - q.Dti) / 2, tw = (q.Doi - q.Dri) / 2;
+  const flexible = q.type === 'Flexible', crowned = q.crowned;
+  const Din = D / 25.4, Tlb = T * 8.8507, hin = h / 25.4;
+  const Le = flexible ? ((q.Dref / 25.4 + 2.96) / 3.6) * 25.4 : 5000 * Math.pow(Din, 3.5) / Tlb * 25.4;
+  const Lef = Math.min(q.L, Le);
+  const r2 = q.crownH > 0 ? q.L * q.L / (8 * q.crownH) : Infinity;
+  const KfS = 1.8, KwS = 4;          // short-term constants used by the sheet
+  const kn = 1000 * T;
+  const root0 = 16 * T * q.Dre / (Math.PI * (Math.pow(q.Dre, 4) - Math.pow(q.Dh, 4))) * 1000;
+  const tooth0 = 4 * T * Km / (D * q.N * Lef * q.t) * 1000;
+  let comp0, compS, compF;
+  if (!crowned) {
+    const base = 2 * T * Km / (D * q.N * Lef * h) * 1000;
+    if (flexible) { comp0 = base; compS = base * Ka / KwS; compF = base * Ka / Kw; }
+    else { comp0 = base / 9; compS = base / 9 * Ka / KfS; compF = base / 9 * Ka / Kf; }
+  } else {
+    comp0 = compS = compF = 2290 * Math.sqrt(2 * Tlb / (Din * q.N * hin * (r2 / 25.4))) / KSI;
+  }
+  const S1 = T * Math.tan(q.phi * RAD) / (Math.PI * D * tw * Lef) * 1000;
+  const n = q.n;   // rpm
+  const S2ksi = 1.656 * n * n * (Math.pow(q.Doi / 25.4, 2) + 0.212 * Math.pow(q.Dri / 25.4, 2)) / 1e6 / 1000;
+  const S2 = S2ksi * 1000 / KSI;
+  const S3 = 4 * T / (D * D * Lef * 1.5) * 1000;
+  const tens0 = Ka * Km * (S1 + S3) + S2;
+  const m = q.mat;
+  const rows = [];
+  const add = (key, name, sub, val, allowKsi) => {
+    const allow = allowKsi == null ? null : allowKsi * 1000 / KSI;
+    const ksi = val * KSI / 1000;
+    rows.push({ key, name, sub, stress: val, allow, sf: allow == null ? null : allow / val,
+      pass: allowKsi == null ? null : ksi < allowKsi });
+  };
+  add('rs', 'Shear at roots of external teeth', 'Short term', root0 * Ka / KfS, m.sh);
+  add('rf', 'Shear at roots of external teeth', 'Fatigue', root0 * Ka / Kf, m.sh);
+  add('ts', 'Shear at pitch diameter of teeth', 'Short term', tooth0 * Ka / KfS, m.sh);
+  add('tf', 'Shear at pitch diameter of teeth', 'Fatigue', tooth0 * Ka / Kf, m.sh);
+  const cAllow = crowned ? m.cc : m.cs;
+  add('cs', 'Compression on tooth flanks', 'Short term', compS, cAllow);
+  add('cf', 'Compression on tooth flanks', flexible ? 'Wear' : 'Fatigue', compF, cAllow);
+  add('tns', 'Tensile in hub wall', 'Short term', tens0 / KfS, m.t);
+  add('tn', 'Tensile in hub wall', 'Fatigue', tens0 / Kf, m.t);
+  return { D, h, tw, Le, Lef, r2, S1, S2, S3, rows,
+    minCrown: 0.5 * q.L * Math.tan(q.misalign * RAD),
+    allPass: rows.every(r => r.pass !== false), nFail: rows.filter(r => r.pass === false).length };
+}
+if (false && typeof module !== 'undefined') module.exports = { splineData, stressCheck, MATERIALS };
+
+const mdgCmp = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+const $ = id => document.getElementById(id);
+const FIELDS = {
+  hub:   [['AeH','Ae','mm',0.001],['TGH','TG','mm',0.001],['TactH','Tact','mm',0.001],['TeffH','Teff','mm',0.001]],
+  shaft: [['AsS','As','mm',0.001],['TGS','TG','mm',0.001],['TactS','Tact','mm',0.001],['TeffS','Teff','mm',0.001]],
+  meas:  [['cFmin','Root clearance, cFmin','mm',0.001],['DMH','Pin dia., hub DM','mm',0.001],['DMS','Pin dia., shaft DM','mm',0.001],['k','Teeth measured, k','',1],['Wk','Base tangent, Wk','mm',0.001]],
+  load:  [['T','Torque, T','N·m',10],['n','Max. speed, n','rpm',100],['L','Full spline length, L','mm',1],['Ka','Application factor, Ka','',0.1],['Km','Load distribution, Km','',0.1],['Kf','Fatigue life factor, Kf','',0.1],['Kw','Wear life factor, Kw','',0.1]],
+  crown: [['misalign','Misalignment angle','°',0.1],['crownH','Crown height','mm',0.01]],
+  find:  [['fT','Torque, T','N·m',10],['fN','Max. speed, n','rpm',100],['fL','Full spline length, L','mm',1],['fRatio','Length ratio, L/dB','',0.1],['fOD','Hub OD ratio, Doi/dB','',0.05],['fBore','Bore ratio, Dh/dB (0 = solid)','',0.05],['fMin','Min. dB (blank = none)','mm',1],['fMax','Max. dB (blank = none)','mm',1]],
+  geo:   [['t','Tooth thickness, t','mm',0.001],['Dti','Hub tip dia., Dti','mm',0.01],['Dri','Hub root dia., Dri','mm',0.01],['Dte','Shaft tip dia., Dte','mm',0.01],['Dre','Shaft root dia., Dre','mm',0.01],['Dh','Hollow shaft ID, Dh','mm',0.5],['Doi','Hub outer dia., Doi','mm',0.5]],
+};
+// Shared-library steels mapped onto Table 11: hardness estimated from UTS (HB ≈ UTS/3.45), then the highest band whose lower bound it reaches.
+const HB_FROM_UTS = 3.45;
+function splineBand(uts) {
+  const hb = uts / HB_FROM_UTS;
+  if (hb < 160) return null;                        // below Table 11
+  if (uts >= 1370) return 'thru';                   // about 42 HRC and up; Table 11 has no harder through-hardened row
+  return hb >= 302 ? 'st302' : hb >= 230 ? 'st230' : 'st160';
+}
+const BAND_LABEL = { st160:'Steel, 160–200 HB', st230:'Steel, 230–260 HB', st302:'Steel, 302–351 HB', thru:'Through-hardened steel, 42–46 HRC' };
+const LIBMAT = { types: window.MDG_MATERIALS.types, list: [] };
+window.MDG_MATERIALS.grades.forEach(g => {
+  const band = splineBand(g.ultimate_MPa), b = MATERIALS.find(m => m.id === band);
+  if (b) LIBMAT.list.push({ ...b, id: 'lib:' + g.id, type: g.type, band, uts: g.ultimate_MPa, hb: g.ultimate_MPa / HB_FROM_UTS, label: `${g.grade}, ${g.condition}` });
+});
+const matById = id => MATERIALS.find(m => m.id === id) || LIBMAT.list.find(m => m.id === id) || MATERIALS[0];
+function renderFields() {
+  for (const [grp, list] of Object.entries(FIELDS)) {
+    $('f-' + grp).innerHTML = list.map(([id, lab, unit, step]) =>
+      `<div class="field" id="w-${id}"><label for="${id}">${lab}</label><div class="input-row"><input type="number" id="${id}" step="${step}">${unit ? `<span class="unit">${unit}</span>` : ''}</div></div>`).join('');
+  }
+  $('f-size').innerHTML = `
+    <div class="field"><label for="dref">Reference diameter, dB (mm)</label><select id="dref"></select></div>
+    <div class="field"><label for="m">Module, m (mm)</label><select id="m"></select></div>
+    <div class="field"><label for="z">Number of teeth, z</label><select id="z"></select></div>
+    <div class="field"><label for="alpha">Pressure angle, α</label><input type="text" id="alpha" value="30°" readonly title="DIN 5480 uses 30° only"></div>
+    <div class="field wide"><label for="fit">Type of fit (DIN 5480-1 Table 9)</label><select id="fit"></select></div>
+    <div class="field"><label for="tolH">Hub tolerance</label><select id="tolH"></select></div>
+    <div class="field"><label for="tolS">Shaft tolerance</label><select id="tolS"></select></div>
+    <div class="field wide"><label for="method">Manufacturing method</label><select id="method"></select></div>`;
+  $('dref').innerHTML = LIB.diameters().map(d => `<option>${d}</option>`).join('');
+  $('fit').innerHTML = LIB.fitTypes.map(t => `<option value="${t.id}">${t.label}</option>`).join('') + '<option value="custom">Custom (any class)</option>';
+  $('f-meas').insertAdjacentHTML('beforeend', `<div class="field"><label for="reliable">Method B (Wk) reliable?</label><select id="reliable"><option>No</option><option>Yes</option></select></div>`);
+  $('f-find').insertAdjacentHTML('afterbegin', `<div class="field wide"><label for="fLen">Spline length</label><select id="fLen"><option value="L">Fixed length L</option><option value="ratio">Length = ratio × dB</option></select></div>`);
+  $('method').innerHTML = Object.keys(MFG).sort(mdgCmp).map(k => `<option>${k}</option>`).join('');
+  $('type').innerHTML = ['Fixed','Flexible'].map(k => `<option>${k}</option>`).join('');
+  $('crowned').innerHTML = ['No','Yes'].map(k => `<option>${k}</option>`).join('');
+  const grp = (t, items) => items.length ? `<optgroup label="${t}">${items.map(m => `<option value="${m.id}">${m.label}</option>`).join('')}</optgroup>` : '';
+  $('mat').innerHTML = grp('Table 11 materials (recommended)', MATERIALS.slice().sort((a, b) => mdgCmp(a.label, b.label))) +
+    LIBMAT.types.map(t => grp(t.title + ' — shared library', LIBMAT.list.filter(m => m.type === t.slug))).join('');
+}
+const BASE = { fLen:'L', fT:2200, fN:7500, fL:45, fRatio:1, fOD:1.5, fBore:0, fMin:'', fMax:'', fit:'fine-free', tolH:'8H', tolS:'8f', method:'Not specified', T:2200, n:7500, L:45, Ka:1.5, Km:1, Kf:0.2, Kw:0.5, type:'Flexible', crowned:'No', misalign:1, crownH:0.03, Dh:55, Doi:100, mat:'case', link:false };
+const PRESETS = [
+  { name: '85 × 1.5 × 55 (sheet)', v: { ...BASE, dref:85, m:1.5, z:55, t:2.775, Dti:82, Dri:85.2, Dte:84.6, Dre:81.5, Dh:55, Doi:100 } },
+  { name: '60 × 2.5 × 22 (sheet)', v: { ...BASE, dref:60, m:2.5, z:22, type:'Fixed', T:3526.53, n:700, L:50, Ka:1.5, Km:1, Kf:0.4, Kw:0.5, t:5.145, Dti:55, Dri:60.3, Dte:59.5, Dre:54.2, Dh:20, Doi:80 } },
+  { name: '70 × 1.25 × 54 (sheet)', v: { ...BASE, dref:70, m:1.25, z:54, type:'Fixed', T:2200, n:700, L:50, Ka:2.4, Km:1, Kf:0.2, Kw:0.5, t:2.56, Dti:67.5, Dri:70.17, Dte:69.75, Dre:67.1, Dh:20, Doi:90 } },
+  { name: '60 × 1.5 × 38 (sheet)', v: { ...BASE, dref:60, m:1.5, z:38, t:3.064, Dti:57, Dri:60.195, Dte:59.7, Dre:56.5, Dh:10, Doi:80 } },
+];
+const IDS = Object.values(FIELDS).flat().map(f => f[0]).concat(['method','type','crowned','mat','fLen']);
+let showAll = false;
+const OVR = ['AeH','TGH','TactH','TeffH','AsS','TGS','TactS','TeffS','cFmin','DMH','DMS','k','Wk','reliable'];
+const LIB = window.MDG_SPLINES_DIN5480;
+const fill = (id, opts, want) => { $(id).innerHTML = opts.map(o => `<option>${o}</option>`).join(''); if (opts.map(String).includes(String(want))) $(id).value = want; };
+function syncFit(keep) {            // hub/shaft class lists follow the fit type
+  const t = LIB.fitTypes.find(x => x.id === $('fit').value);
+  const hub = t ? t.hub : [7,8,9,10,11].flatMap(c => [...'FGHJKM'].map(l => c + l)).sort(mdgCmp);
+  const sh = t ? t.shaft : [7,8,9,10,11].flatMap(c => [...'vutsrpnmkjhgfedcba'].map(l => c + l)).sort(mdgCmp);
+  fill('tolH', hub, keep ? $('tolH').value : null); fill('tolS', sh, keep ? $('tolS').value : null);
+}
+function syncSize() {               // dB -> modules -> teeth, standard combinations only
+  const d = +$('dref').value, ms = LIB.modulesFor(d);
+  fill('m', ms, $('m').value);
+  fill('z', LIB.teethFor(d, +$('m').value).map(r => r.z), $('z').value);
+}
+function setValues(v) {
+  IDS.forEach(id => { if (v[id] !== undefined) $(id).value = v[id]; });
+  if (v.dref !== undefined) { $('dref').value = v.dref; fill('m', LIB.modulesFor(+v.dref), v.m); fill('z', LIB.teethFor(+v.dref, +$('m').value).map(r => r.z), v.z); }
+  if (v.fit) { $('fit').value = v.fit; syncFit(false); fill('tolH', [...$('tolH').options].map(o => o.value), v.tolH); fill('tolS', [...$('tolS').options].map(o => o.value), v.tolS); }
+  [['T','fT'],['n','fN'],['L','fL']].forEach(([a, b]) => { if (v[b] === undefined && v[a] !== undefined) $(b).value = v[a]; });
+  $('ovr').checked = false; $('link').checked = !!v.link; update();
+}
+const num = id => parseFloat($(id).value) || 0;
+const f = (x, d) => Number(x).toFixed(d);
+const sgn = (x, d) => (x >= 0 ? '+' : '−') + Math.abs(x).toFixed(d);
+
+function updateMain() {
+  const dB = num('dref'), mm = num('m'), zz = Math.round(num('z'));
+  const ovr = $('ovr').checked, lr = LIB.teethFor(dB, mm).find(r => r.z === zz);
+  const lp = lr ? LIB.params(dB, mm, $('tolH').value, $('tolS').value) : null;
+  if (!ovr && lp) {
+    const x1 = (dB - mm * zz - 1.1 * mm) / (2 * mm), al = Math.PI / 6;
+    const wk = mm * Math.cos(al) * (Math.PI * (lr.k - 0.5) + zz * (Math.tan(al) - al)) + 2 * x1 * mm * Math.sin(al);
+    const set = { AeH:lp.Ae, TGH:lp.TGH, TactH:lp.TactH, TeffH:lp.TeffH, AsS:lp.AsS, TGS:lp.TGS, TactS:lp.TactS, TeffS:lp.TeffS, cFmin:lp.cFmin ?? 0, DMH:lr.DMh, DMS:lr.DMs, k:lr.k, Wk:+wk.toFixed(3) };
+    for (const id in set) $(id).value = +set[id].toFixed(4);
+    $('reliable').value = lr.wkUnreliable ? 'No' : 'Yes';
+  }
+  OVR.forEach(id => $(id).disabled = !ovr);
+  $('lib-note').textContent = !lr ? 'Not a standard dB / m / z combination: tick Override and enter values.' : lp.cFmin == null ? 'cFmin is not given for this size in DIN 5480-1 Table 4: tick Override and enter it.' : 'Library: DIN 5480-1 Tables 4, 7, 9; DIN 5480-2 pin sizes.';
+  const p = { dref:dB, m:mm, z:zz, alpha:30, tolH:$('tolH').value, tolS:$('tolS').value, method:$('method').value,
+    AeH:num('AeH'), TGH:num('TGH'), TactH:num('TactH'), TeffH:num('TeffH'), AsS:num('AsS'), TGS:num('TGS'), TactS:num('TactS'), TeffS:num('TeffS'),
+    cFmin:num('cFmin'), DMH:num('DMH'), DMS:num('DMS'), k:Math.round(num('k')), Wk:num('Wk') };
+  if (!(p.dref > 0 && p.m > 0 && p.z > 5)) { $('t-hub').innerHTML = $('t-shaft').innerHTML = ''; return; }
+  const o = splineData(p);
+  // link geometry
+  const linked = $('link').checked;
+  const geoIds = ['t','Dti','Dri','Dte','Dre'];
+  if (linked) { $('t').value = f(o.smin, 3); $('Dti').value = f(o.da2, 2); $('Dri').value = f(o.df2, 2); $('Dte').value = f(o.da1, 2); $('Dre').value = f(o.df1, 2); }
+  geoIds.forEach(id => $(id).disabled = linked);
+  const flex = $('type').value === 'Flexible', crowned = $('crowned').value === 'Yes';
+  $('Kw').disabled = !flex; $('Km').disabled = !flex;
+  $('f-crown').style.display = crowned ? '' : 'none';
+
+  // ---- drawing data ----
+  $('d-hub').textContent = o.designHub; $('d-shaft').textContent = o.designShaft;
+  const row = (name, sym, val, tol, cls) => `<tr${cls ? ` class="${cls}"` : ''}><td>${name}</td><td class="sym">${sym}</td><td class="num">${val}</td><td class="tol">${tol || ''}</td></tr>`;
+  const rel = $('reliable').value === 'Yes';
+  const common = [['Number of teeth','z',p.z,''],['Module','m',f(p.m,2).replace(/\.?0+$/,'') || p.m,'mm'],['Pressure angle','α',p.alpha + '°','']];
+  $('t-hub').innerHTML = common.map(r => row(...r)).join('') +
+    row('Root circle diameter','df2',f(o.df2,2),`${sgn(o.df2tol,3)} / 0`) +
+    row('Root form circle diameter','dFf2',f(o.dFf2,2),'min.') +
+    row('Tip circle diameter','da2',f(o.da2,2),'H11') +
+    row('Actual max. space width','emax',f(o.emax,3),'') +
+    row('Actual min. ref. space width','emin',f(o.emin,3),'') +
+    row('Min. effective space width','evmin',f(o.evmin,3),'') +
+    row('Measuring circle diameter','DM',f(p.DMH,3),'') +
+    row('Max. dist. between measuring circles','M2max',f(o.M2max,3),'') +
+    row('Min. ref. dist. between measuring circles','M2minRef',f(o.M2minRef,3),'') +
+    row('Min. root fillet radius','R',f(o.rmin,2),'0.16·m');
+  $('t-shaft').innerHTML = common.map(r => row(...r)).join('') +
+    row('Tip circle diameter','da1',f(o.da1,2),'h11') +
+    row('Root form circle diameter','dFf1',f(o.dFf1,2),'max.') +
+    row('Root circle diameter','df1',f(o.df1,2),`0 / ${sgn(-o.df1tol,3)}`) +
+    row('Max. effective tooth thickness','svmax',f(o.svmax,3),'') +
+    row('Actual max. ref. tooth thickness','smax',f(o.smax,3),'') +
+    row('Actual min. tooth thickness','smin',f(o.smin,3),'') +
+    row('Measuring circle diameter','DM',f(p.DMS,3),'') +
+    row('A — max. ref. dist. over measuring circles','M1maxRef',f(o.M1maxRef,3),'') +
+    row('A — min. dist. over measuring circles','M1min',f(o.M1min,3),'') +
+    row('B — number of teeth measured','k',p.k,'', rel ? '' : 'dim') +
+    row('B — max. base tangent length over k teeth','Wkmax',f(o.Wkmax,3),'', rel ? '' : 'dim') +
+    row('B — min. base tangent length over k teeth','Wkmin',f(o.Wkmin,3),'', rel ? '' : 'dim');
+  $('insp-warn').innerHTML = rel ? '' : '<div class="warn" style="background:var(--mdg-bg);border-color:var(--mdg-border);">Method B is flagged unreliable for this size. Inspect the shaft by method A (over pins); B values are greyed for reference.</div>';
+  $('t-inter').innerHTML = [['Profile shift, x1 (shaft) / x2 (hub)', f(o.x1,4) + ' / ' + f(o.x2,4)],['Reference circle dia., d = m·z', f(o.d,3) + ' mm'],['Base circle dia., db', f(o.db,3) + ' mm'],
+    ['Tooth thickness / space width, s1 = e2', f(o.s1,4) + ' mm'],['Involute function, inv(α)', f(o.invA,6)],['Factor A', f(o.A,6)],
+    ['Min. effective M2 (hub)', f(o.M2minEff,3) + ' mm'],['Max. effective M1 (shaft)', f(o.M1maxEff,3) + ' mm']].map(r => `<tr><td>${r[0]}</td><td class="num">${r[1]}</td></tr>`).join('');
+
+  // ---- stress check ----
+  const mat = matById($('mat').value);
+  $('mat-note').textContent = mat.band
+    ? `Shared library steel: UTS ${mat.uts} MPa ≈ ${f(mat.hb, 0)} HB, so Table 11 row "${BAND_LABEL[mat.band]}" applies${mat.cs == null ? ' (no compressive allowable, compression checks N/A)' : ''}${mat.uts > 1510 ? '; above 46 HRC, so the band is extrapolated' : ''}. Confirm hardness on the drawing.`
+    : 'Table 11 values, hard-coded in this page for now. Library steels are listed below, mapped by strength; non-steels have no Table 11 values.';
+  const q = { T:num('T'), n:num('n'), L:num('L'), Dref:p.dref, m:p.m, N:p.z, phi:p.alpha, t:num('t'), Dti:num('Dti'), Dri:num('Dri'), Dte:num('Dte'), Dre:num('Dre'), Dh:num('Dh'), Doi:num('Doi'),
+    Ka:num('Ka'), Km:flex ? num('Km') : 1, Kf:num('Kf'), Kw:num('Kw'), type:$('type').value, crowned, misalign:num('misalign'), crownH:num('crownH'), mat };
+  if (!(q.T > 0 && q.L > 0 && q.t > 0 && q.Kf > 0 && q.Kw > 0 && q.Dte > q.Dti && q.Doi > q.Dri && q.Dre > q.Dh)) { $('banner').innerHTML = '<div class="warn">Check the load and geometry inputs.</div>'; $('t-res').innerHTML = ''; return; }
+  const r = stressCheck(q);
+  $('banner').innerHTML = r.allPass
+    ? `<div class="banner pass"><span class="big">PASS</span><span>All ${r.rows.filter(x => x.pass !== null).length} checks within allowable at the stated factors.</span></div>`
+    : `<div class="banner fail"><span class="big">FAIL</span><span>${r.nFail} of ${r.rows.filter(x => x.pass !== null).length} checks exceed allowable.</span></div>`;
+  $('t-res').innerHTML = r.rows.map(x => {
+    if (x.pass === null) return `<tr><td>${x.name}</td><td>${x.sub}</td><td class="num">${f(x.stress,1)}</td><td class="num">n/a</td><td class="num">–</td><td></td><td><span class="badge na">N/A</span></td></tr>`;
+    const w = Math.min(100, 100 / x.sf);
+    return `<tr><td>${x.name}</td><td>${x.sub}</td><td class="num">${f(x.stress,1)}</td><td class="num">${f(x.allow,1)}</td><td class="num">${f(x.sf,2)}</td>
+      <td><div class="bar${x.pass ? '' : ' fail'}" title="Stress as % of allowable"><i style="width:${w}%"></i></div></td><td><span class="badge ${x.pass ? 'pass' : 'fail'}">${x.pass ? 'PASS' : 'FAIL'}</span></td></tr>`;
+  }).join('');
+  let warn = '';
+  if (q.L > r.Le) warn += `<div class="warn">Full length ${f(q.L,1)} mm exceeds the effective length limit ${f(r.Le,1)} mm — the check uses ${f(r.Lef,1)} mm (longer length adds no capacity).</div>`;
+  if (crowned && q.crownH < r.minCrown) warn += `<div class="warn">Crown height is below the minimum recommended ${f(r.minCrown,3)} mm for ${f(q.misalign,1)}° misalignment.</div>`;
+  if (crowned) warn += `<div class="warn" style="background:var(--mdg-bg);border-color:var(--mdg-border);">Crowned compression uses the Hertz-type formula, which ignores Ka, Km and Kw.</div>`;
+  $('res-warn').innerHTML = warn;
+  $('res-grid').innerHTML = [['Pitch diameter, D', f(r.D,2) + ' mm'],['Engagement depth, h', f(r.h,3) + ' mm'],['Hub wall, tw', f(r.tw,3) + ' mm'],['Effective length limit, Le', f(r.Le,1) + ' mm'],
+    ['Length used', f(r.Lef,1) + ' mm'],['S1 radial load', f(r.S1,1) + ' MPa'],['S2 centrifugal', f(r.S2,1) + ' MPa'],['S3 beam loading', f(r.S3,1) + ' MPa']]
+    .map(x => `<div class="result"><div class="k">${x[0]}</div><div class="v">${x[1]}</div></div>`).join('');
+}
+// ---------- size finder & charts ----------
+const GEOC = {};
+function geo(r, m) {
+  const tolH = $('tolH').value, tolS = $('tolS').value, method = $('method').value, key = [tolH, tolS, method, m, r.dB, r.z].join('|');
+  if (GEOC[key]) return GEOC[key];
+  const lp = LIB.params(r.dB, m, tolH, tolS);
+  return GEOC[key] = splineData({ dref:r.dB, m, z:r.z, alpha:30, method, AeH:lp.Ae, TGH:lp.TGH, TactH:lp.TactH, TeffH:lp.TeffH, AsS:lp.AsS, TGS:lp.TGS, TactS:lp.TactS, TeffS:lp.TeffS,
+    cFmin:lp.cFmin ?? 0, DMH:r.DMh, DMS:r.DMs, k:r.k, Wk:0, tolH, tolS });
+}
+function loadCommon(T, n) {
+  const flex = $('type').value === 'Flexible';
+  return { T, n, Ka:num('Ka'), Km:flex ? num('Km') : 1, Kf:num('Kf'), Kw:num('Kw'), type:$('type').value, crowned:$('crowned').value === 'Yes',
+    misalign:num('misalign'), crownH:num('crownH'), mat:matById($('mat').value) };
+}
+function capability(q) {            // highest torque (N·m) at which every check passes
+  const ok = T => stressCheck({ ...q, T }).allPass;
+  if (!ok(0.001)) return 0;
+  let lo = 0.001, hi = 1e8; if (ok(hi)) return hi;
+  for (let i = 0; i < 30; i++) { const mid = Math.sqrt(lo * hi); if (ok(mid)) lo = mid; else hi = mid; }
+  return lo;
+}
+function scan() {
+  const c = loadCommon(num('fT'), num('fN')), ratioMode = $('fLen').value === 'ratio', ratio = num('fRatio'), od = num('fOD'), bore = num('fBore'), mn = num('fMin'), mx = num('fMax'), out = [];
+  for (const m of LIB.modules) for (const r of LIB.list(m)) {
+    const g = geo(r, m), L = ratioMode ? ratio * r.dB : num('fL'), Doi = od * r.dB, Dh = bore * r.dB;
+    if (!(g.df1 > Dh && Doi > g.df2 && g.smin > 0 && L > 0)) continue;
+    const q = { ...c, L, Dref:r.dB, m, N:r.z, phi:30, t:g.smin, Dti:g.da2, Dri:g.df2, Dte:g.da1, Dre:g.df1, Dh, Doi };
+    const res = stressCheck(q), rows = res.rows.filter(x => x.sf != null), gov = rows.reduce((a, b) => (b.sf < a.sf ? b : a));
+    out.push({ m, dB:r.dB, z:r.z, D:m * r.z, L, res, minSf:gov.sf, gov, pass:res.allPass, cap:capability(q), inRange:!(mn && r.dB < mn) && !(mx && r.dB > mx) });
+  }
+  return out;
+}
+const fmtTick = v => v >= 1e6 ? v / 1e6 + 'M' : v >= 1e3 ? v / 1e3 + 'k' : String(v);
+function chart(o) {                 // log-log SVG scatter/line chart in the page's tokens
+  const W = 460, H = 300, ml = 54, mr = 12, mt = 12, mb = 42, lx = Math.log10, X0 = lx(o.x[0]), X1 = lx(o.x[1]), Y0 = lx(o.y[0]), Y1 = lx(o.y[1]);
+  const sx = v => ml + (lx(v) - X0) / (X1 - X0) * (W - ml - mr), sy = v => H - mb - (lx(Math.max(v, o.y[0])) - Y0) / (Y1 - Y0) * (H - mt - mb);
+  let g = '';
+  for (let e = Math.ceil(X0 - 1e-9); e <= Math.floor(X1 + 1e-9); e++) for (let k = 1; k < 10; k++) { const v = k * 10 ** e; if (v < o.x[0] || v > o.x[1]) continue;
+    g += `<line x1="${sx(v)}" x2="${sx(v)}" y1="${mt}" y2="${H - mb}" stroke="var(--mdg-border)" stroke-width="${k === 1 ? 1 : 0.4}"/>`; if (k === 1) g += `<text x="${sx(v)}" y="${H - mb + 14}" text-anchor="middle" class="svg-lbl-sm">${fmtTick(v)}</text>`; }
+  for (let e = Math.ceil(Y0 - 1e-9); e <= Math.floor(Y1 + 1e-9); e++) for (let k = 1; k < 10; k++) { const v = k * 10 ** e; if (v < o.y[0] || v > o.y[1]) continue;
+    g += `<line y1="${sy(v)}" y2="${sy(v)}" x1="${ml}" x2="${W - mr}" stroke="var(--mdg-border)" stroke-width="${k === 1 ? 1 : 0.4}"/>`; if (k === 1) g += `<text y="${sy(v) + 3}" x="${ml - 6}" text-anchor="end" class="svg-lbl-sm">${fmtTick(v)}</text>`; }
+  g += `<rect x="${ml}" y="${mt}" width="${W - ml - mr}" height="${H - mt - mb}" fill="none" stroke="var(--mdg-text-muted)" stroke-width="0.8"/>`;
+  g += `<text x="${(ml + W - mr) / 2}" y="${H - 6}" text-anchor="middle" class="svg-lbl">${o.xl}</text><text transform="translate(12 ${(mt + H - mb) / 2}) rotate(-90)" text-anchor="middle" class="svg-lbl">${o.yl}</text>`;
+  g += `<clipPath id="${o.id}"><rect x="${ml}" y="${mt}" width="${W - ml - mr}" height="${H - mt - mb}"/></clipPath><g clip-path="url(#${o.id})">${o.draw(sx, sy, W - mr)}</g>`;
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${o.label}">${g}${o.legend || ''}</svg>`;
+}
+const GOV = { rs:'Root shear', rf:'Root shear', ts:'Tooth shear', tf:'Tooth shear', cs:'Flank compression', cf:'Flank compression', tns:'Hub tensile', tn:'Hub tensile' };
+function runFinder() {
+  const list = scan(), T = num('fT'), cur = { dB:num('dref'), m:num('m'), z:Math.round(num('z')) };
+  $('fL').disabled = $('fLen').value === 'ratio'; $('fRatio').disabled = $('fLen').value !== 'ratio';
+  list.sort((a, b) => a.dB - b.dB || a.m - b.m || a.z - b.z);
+  const shown = list.filter(x => x.pass && x.inRange);
+  $('find-sum').innerHTML = `<div class="${shown.length ? 'banner pass' : 'banner fail'}" style="font-size:0.9rem;"><span class="big" style="font-size:1.1rem;">${shown.length}</span><span>of ${list.filter(x => x.inRange).length} library sizes pass at ${f(T, 0)} N·m.</span></div>`;
+  const lim = showAll ? shown.length : 20;
+  $('t-find').innerHTML = shown.slice(0, lim).map(x => `<tr><td><button type="button" class="pill use-size" data-i="${list.indexOf(x)}">Use</button></td><td class="sym">${x.dB} × ${x.m} × ${x.z}</td><td class="num">${f(x.D, 1)}</td><td class="num">${f(x.L, 1)}</td><td class="num">${f(x.minSf, 2)}</td>
+    <td style="white-space:nowrap">${GOV[x.gov.key]} · ${x.gov.sub}</td><td class="num">${f(x.cap, 0)}</td></tr>`).join('');
+  $('find-more').style.display = shown.length > 20 ? '' : 'none'; $('find-more').textContent = showAll ? 'Show first 20' : `Show all ${shown.length}`;
+  window.__scan = list;
+  // current spline capability (section 3 inputs)
+  const qc = { ...loadCommon(num('T'), num('n')), L:num('L'), Dref:cur.dB, m:cur.m, N:cur.z, phi:30, t:num('t'), Dti:num('Dti'), Dri:num('Dri'), Dte:num('Dte'), Dre:num('Dre'), Dh:num('Dh'), Doi:num('Doi') };
+  const okq = qc.T > 0 && qc.L > 0 && qc.t > 0 && qc.Dte > qc.Dti && qc.Doi > qc.Dri && qc.Dre > qc.Dh;
+  const capCur = okq ? capability(qc) : null;
+  $('cap-line').innerHTML = capCur == null ? '' : `<div class="result" style="margin-top:0.6rem;"><div class="k">Torque capability of this spline (all checks pass)</div><div class="v">${f(capCur, 0)} N·m <span style="font-weight:400;color:var(--mdg-text-muted);">(applied ${f(num('T'), 0)} N·m)</span></div></div>`;
+  // chart A: capability vs dB
+  const caps = list.map(x => x.cap).filter(v => v > 0), ymin = 10 ** Math.floor(Math.log10(Math.min(...caps, T || 1, capCur || 1e9)) - 0.01), ymax = 10 ** Math.ceil(Math.log10(Math.max(...caps, T || 1, capCur || 1)) + 0.01);
+  $('ch-cap').innerHTML = chart({ id:'clipA', x:[5, 1000], y:[Math.max(ymin, 0.01), ymax], xl:'Reference diameter dB (mm)', yl:'Torque capability (N·m)', label:'Torque capability against reference diameter',
+    draw: (sx, sy, xr) => list.map(x => x.cap > 0 ? (x.cap >= T ? `<circle cx="${sx(x.dB)}" cy="${sy(x.cap)}" r="2.6" style="fill:var(--shaft-c)"/>` : `<circle cx="${sx(x.dB)}" cy="${sy(x.cap)}" r="2.4" fill="none" style="stroke:var(--mdg-text-muted)" stroke-width="1"/>`) : '').join('') +
+      (T > 0 ? `<line x1="0" x2="${xr}" y1="${sy(T)}" y2="${sy(T)}" style="stroke:var(--hub-c)" stroke-width="1.4" stroke-dasharray="6,3"/>` : '') +
+      (capCur ? `<circle cx="${sx(cur.dB)}" cy="${sy(capCur)}" r="7" fill="none" style="stroke:var(--mdg-text)" stroke-width="2"/>` : ''),
+    legend: `<g class="svg-lbl-sm"><circle cx="64" cy="22" r="2.6" style="fill:var(--shaft-c)"/><text x="71" y="25">capable at finder T</text><circle cx="64" cy="35" r="2.4" fill="none" style="stroke:var(--mdg-text-muted)"/><text x="71" y="38">not capable</text><line x1="58" x2="70" y1="48" y2="48" style="stroke:var(--hub-c)" stroke-width="1.4" stroke-dasharray="4,2"/><text x="73" y="51">finder T</text></g>` });
+  // chart B: effective length
+  const leFlex = d => ((d / 25.4 + 2.96) / 3.6) * 25.4, leFix = (d, Tq = T) => 5000 * Math.pow(d / 25.4, 3.5) / (Math.max(Tq, 0.001) * 8.8507) * 25.4;
+  const xs = []; for (let i = 0; i <= 60; i++) xs.push(5 * 200 ** (i / 60));
+  const lf = xs.map((d, i) => `${i ? 'L' : 'M'}${d}`);
+  const cl = LIB.modules.flatMap(m => LIB.list(m).map(r => ({ D:m * r.z })));
+  const flex = $('type').value === 'Flexible', Dcur = cur.m * cur.z, Lcur = num('L'), LeCur = flex ? leFlex(cur.dB) : leFix(Dcur, num('T'));
+  $('ch-le').innerHTML = chart({ id:'clipB', x:[5, 1000], y:[1, 1e5], xl:'Pitch diameter D (mm)', yl:'Effective length limit Le (mm)', label:'Effective length limit against pitch diameter',
+    draw: (sx, sy, xr) => `<path d="${xs.map((d, i) => `${i ? 'L' : 'M'}${sx(d)},${sy(leFlex(d))}`).join(' ')}" fill="none" style="stroke:var(--shaft-c)" stroke-width="1.8"/>` +
+      cl.filter(c => leFix(c.D) >= 1).map(c => `<circle cx="${sx(c.D)}" cy="${sy(leFix(c.D))}" r="1.5" style="fill:var(--hub-c)"/>`).join('') +
+      (Lcur > 0 ? `<line x1="0" x2="${xr}" y1="${sy(Lcur)}" y2="${sy(Lcur)}" style="stroke:var(--mdg-text-muted)" stroke-width="1.2" stroke-dasharray="6,3"/>` : '') +
+      (Dcur > 0 ? `<circle cx="${sx(Dcur)}" cy="${sy(LeCur)}" r="7" fill="none" style="stroke:var(--mdg-text)" stroke-width="2"/>` : ''),
+    legend: `<g class="svg-lbl-sm"><line x1="58" x2="70" y1="22" y2="22" style="stroke:var(--shaft-c)" stroke-width="1.8"/><text x="73" y="25">flexible</text><circle cx="64" cy="35" r="1.8" style="fill:var(--hub-c)"/><text x="73" y="38">fixed, at finder T (library sizes)</text><line x1="58" x2="70" y1="48" y2="48" style="stroke:var(--mdg-text-muted)" stroke-width="1.2" stroke-dasharray="4,2"/><text x="73" y="51">spline length L</text></g>` });
+}
+function update() { updateMain(); try { runFinder(); } catch (e) { console.error(e); } }
+
+function renderRef() {
+  const t = (head, rows) => `<table class="mdg-table"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  $('ref-tables').innerHTML =
+    '<h3>Ka — application factor</h3>' + t(['Power source','Uniform load','Light shock','Intermittent shock','Heavy shock'],[['Uniform (turbine, motor)',1.0,1.2,1.5,1.8],['Light shock (hydraulic motor)',1.2,1.3,1.8,2.1],['Medium shock (IC engine)',2.0,2.2,2.4,2.8]]) +
+    '<h3>Km — flexible splines, by misalignment and face width</h3>' + t(['Misalignment (in/in)','½ in','1 in','2 in','4 in'],[['0.001',1,1,1,1.5],['0.002',1,1,1.5,2],['0.004',1,1.5,2,2.5],['0.008',1.5,2,2.5,3]]) +
+    '<h3>Kf — fatigue life factor</h3>' + t(['Torque cycles','Unidirectional','Fully reversed'],[['1,000',1.8,1.8],['10,000',1.0,1.0],['100,000',0.5,0.4],['1,000,000',0.4,0.3],['10,000,000',0.3,0.2]]) +
+    '<h3>Kw — wear life factor (flexible splines)</h3>' + t(['Revolutions','Kw'],[['10,000',4.0],['100,000',2.8],['1,000,000',2.0],['10,000,000',1.4],['100,000,000',1.0],['1,000,000,000',0.7],['10,000,000,000',0.5]]) +
+    '<h3>Allowable stress (ksi), Table 11 — hard-coded</h3>' + t(['Material','Shear','Compression, straight','Compression, crowned','Tensile'],
+      MATERIALS.slice().sort((a,b)=>mdgCmp(a.label,b.label)).map(m => [m.label, m.sh, m.cs ?? '—', m.cc ?? '—', m.t]));
+}
+renderFields(); renderRef();
+$('presets').innerHTML = '<span style="font-size:0.85rem;color:var(--mdg-text-muted);align-self:center;">Load example:</span>';
+PRESETS.forEach((pr, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'pill'; b.textContent = pr.name; b.addEventListener('click', () => setValues(pr.v)); $('presets').appendChild(b); });
+document.body.addEventListener('input', e => { if (e.target.id !== 'mdg-theme-toggle' && e.target.tagName !== 'SELECT') update(); });
+document.body.addEventListener('change', e => {
+  if (e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') return;   // typed values already handled on 'input'; a rebuild on blur would swallow the Use click
+  if (e.target.id === 'dref') { const m0 = $('m').value; fill('m', LIB.modulesFor(+$('dref').value), m0); fill('z', LIB.teethFor(+$('dref').value, +$('m').value).map(r => r.z), $('z').value); }
+  else if (e.target.id === 'm') fill('z', LIB.teethFor(+$('dref').value, +$('m').value).map(r => r.z), $('z').value);
+  else if (e.target.id === 'fit') syncFit(false);
+  update();
+});
+document.querySelectorAll('a[href="#finder"]').forEach(a => a.addEventListener('click', () => { $('finder').open = true; }));
+$('find-more').addEventListener('click', () => { showAll = !showAll; runFinder(); });
+$('t-find').addEventListener('click', e => {
+  const b = e.target.closest('.use-size'); if (!b) return;
+  const x = window.__scan[+b.dataset.i];
+  $('L').value = f(x.L, 1); $('T').value = $('fT').value; $('n').value = $('fN').value;
+  $('Dh').value = f(x.q_Dh ?? num('fBore') * x.dB, 1); $('Doi').value = f(num('fOD') * x.dB, 1); $('link').checked = true;
+  $('dref').value = x.dB; fill('m', LIB.modulesFor(x.dB), x.m); fill('z', LIB.teethFor(x.dB, x.m).map(r => r.z), x.z); $('ovr').checked = false;
+  update(); document.querySelector('h2').scrollIntoView(); location.hash = ''; $('t-hub').scrollIntoView({ block:'center' });
+});
+document.querySelectorAll('.copy-btn').forEach(btn => btn.addEventListener('click', () => {
+  const text = $(btn.dataset.d).textContent + '\n' + [...$(btn.dataset.t).rows].map(tr => [...tr.cells].map(c => c.textContent).join('\t')).join('\n');
+  const done = () => { btn.textContent = 'Copied'; setTimeout(() => btn.textContent = 'Copy', 1500); };
+  try { navigator.clipboard.writeText(text).then(done, () => {}); } catch (e) {}
+}));
+setValues(PRESETS[0].v);
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  function current(){
+    var t = document.documentElement.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  function apply(state){
+    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
+    else { document.documentElement.setAttribute('data-theme', state); }
+    try {
+      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
+      else { localStorage.setItem('mdg-theme', state); }
+    } catch (e) {}
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  if (btn) {
+    btn.textContent = LABELS[current()];
+    btn.addEventListener('click', function(){
+      var idx = STATES.indexOf(current());
+      apply(STATES[(idx + 1) % STATES.length]);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var MIN_SCALE = 0.65;   // legibility floor — see structure-and-conventions.md
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
+</body>
+</html>
