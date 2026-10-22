@@ -105,6 +105,18 @@
   .mdg-collapsible[open] > summary::before { transform: rotate(90deg); }
   .mdg-collapsible > summary .hint { font-weight: 400; font-size: 0.78rem; color: var(--mdg-text-muted); }
   .mdg-collapsible-body { padding: 0 0.9rem 0.9rem; }
+  /* Clamp Load Design section (collapsible card; opened for PDF/print by script) */
+  .mdg-clamp > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 0.5rem; user-select: none; }
+  .mdg-clamp > summary::-webkit-details-marker { display: none; }
+  .mdg-clamp > summary::before { content: ''; flex: none; width: 0; height: 0;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+    border-left: 6px solid var(--mdg-text-muted); transition: transform 0.18s ease; }
+  .mdg-clamp[open] > summary::before { transform: rotate(90deg); }
+  .mdg-clamp > summary h2 { margin: 0; }
+  .mdg-clamp[open] > summary { margin-bottom: 0.75rem; }
+  .tbl-wrap { overflow-x: auto; }
+  table.mdg-table tbody#clamp-tbody tr { cursor: pointer; }
+  table.mdg-table tbody#clamp-tbody tr:hover td { background: rgba(165,98,59,0.10); }
   @media print {
     .mdg-header, .mdg-no-print { display: none !important; }
     .mdg-collapsible:not([open]) { display: block; }
@@ -279,6 +291,11 @@
           </optgroup>
         </select>
       </div>
+      <div class="field">
+        <label for="pullout-pct">Assembly preload (% of pullout load, P)</label>
+        <div class="input-row"><input type="number" id="pullout-pct" value="65" min="10" max="100" step="1"><span class="unit">%</span></div>
+        <div class="field-hint">Capped at 90% of screw proof load.</div>
+      </div>
       <div class="field" style="min-width:280px;">
         <label for="parent-material">Parent material (tapped hole)</label>
         <select id="parent-material"></select>
@@ -299,12 +316,10 @@
     <div class="pill-row" id="friction-pills-t"></div>
     <div id="engagement-note"></div>
     <p class="note">Based on NASA/TM&mdash;2017-219475's noncritical-joint method<sup><a href="#ref9">9</a></sup>:
-      pullout load from the parent material's thread-shear area, assembly torque taken as 65% of the
-      torque implied by that pullout load (a built-in safety factor of ~1.54, on top of a factor of 3 already in
-      the pullout formula). The resulting assembly preload is then checked against the screw: if it exceeds 90% of
-      the screw's proof load, the <strong>screw is the limiting element</strong> and the torque is capped to that
-      limit. Thread stripping and screw tension only — no structural or vibrational load, and <strong>not for flight
-      or safety-critical hardware</strong>.</p>
+      pullout load from the parent material's thread-shear area, with assembly preload set as a
+      percentage of it (default 65%, on top of a factor of 3 already in the pullout formula). If that exceeds 90% of
+      the screw's proof load, the <strong>screw is the limiting element</strong> and the torque is capped. Thread
+      stripping and screw tension only, and <strong>not for flight or safety-critical hardware</strong>.</p>
   </div>
 
   <!-- ============ 3. EDGE PROXIMITY ============ -->
@@ -338,7 +353,7 @@
 
   <!-- ============ 4. RESULT ============ -->
   <div class="mdg-card">
-    <h2>4. Result</h2>
+    <h2>4. Single Screw Result</h2>
     <div class="result-grid" id="result-bolted">
       <div class="result">
         <div class="k">Stress area, As</div>
@@ -395,13 +410,50 @@
     <p class="note" id="result-note-tapped" style="display:none;">Pitch diameter dm&nbsp;=&nbsp;d&nbsp;&minus;&nbsp;0.6495&middot;P.
       Pullout load P&nbsp;=&nbsp;&pi;&middot;dm&middot;Fsu&middot;L&nbsp;/&nbsp;3, where Fsu is the parent material's
       assumed ultimate shear strength (0.6&times; ultimate tensile for steel, 0.55&times; for stainless/aluminum) and
-      the /3 is a built-in safety factor<sup><a href="#ref9">9</a></sup>. Assembly preload = 0.65&middot;P, capped at
+      the /3 is a built-in safety factor<sup><a href="#ref9">9</a></sup>. Assembly preload = pullout %&middot;P (default 65%), capped at
       0.9&middot;Fp where Fp&nbsp;=&nbsp;proof stress&nbsp;&times;&nbsp;As for the selected screw class. L is capped at 2&times;d.</p>
   </div>
 
-  <!-- ============ 5. QUICK REFERENCE TABLE ============ -->
+  <!-- ============ 5. CLAMP LOAD DESIGN ============ -->
+  <details class="mdg-card mdg-clamp" id="clamp-section">
+    <summary><h2>5. Clamp Load Design</h2></summary>
+    <div class="row">
+      <div class="field">
+        <label for="clamp-load">Required clamp load, total</label>
+        <div class="input-row"><input type="number" id="clamp-load" value="25" min="0.1" step="0.5"><span class="unit">kN</span></div>
+        <div class="field-hint">Sum of preload across all screws in the joint.</div>
+      </div>
+      <div class="field">
+        <label for="clamp-n">Number of screws, n</label>
+        <div class="input-row"><input type="number" id="clamp-n" value="1" min="1" max="999" step="1"><span class="unit">screws</span></div>
+        <div class="field-hint"><button type="button" class="link-btn" id="clamp-use-min">Use minimum</button> <span id="clamp-n-state"></span></div>
+      </div>
+    </div>
+    <div class="result-grid">
+      <div class="result"><div class="k">Min. screws required</div><div class="v" id="out-clamp-nmin">–</div></div>
+      <div class="result" id="clamp-box-f"><div class="k">Preload per screw</div><div class="v" id="out-clamp-f">–</div></div>
+      <div class="result"><div class="k">% of proof load</div><div class="v" id="out-clamp-pct">–</div></div>
+      <div class="result headline"><div class="k">Torque per screw, T</div><div class="v" id="out-clamp-t">–</div></div>
+    </div>
+    <div id="clamp-alert"></div>
+    <details class="mdg-collapsible" style="margin-top:0.9rem;">
+      <summary>Screw count options <span class="hint">preload and torque for each number of screws</span></summary>
+      <div class="mdg-collapsible-body">
+        <div class="tbl-wrap">
+          <table class="mdg-table">
+            <thead><tr><th>Screws, n</th><th>Preload / screw (kN)</th><th>% of proof</th><th>Torque, T (N&middot;m)</th><th>Clamp achieved (kN)</th><th>Status</th></tr></thead>
+            <tbody id="clamp-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+    <p class="note" id="clamp-note">Total clamp = n &times; per-screw preload, with torque T&nbsp;=&nbsp;K&middot;F&middot;d<sup><a href="#ref1">1</a>,<a href="#ref2">2</a></sup>
+      (plus prevailing torque for Nyloc and Stover nuts). The per-screw maximum is the preload from section 4; click a row to select n.</p>
+  </details>
+
+  <!-- ============ 6. QUICK REFERENCE TABLE ============ -->
   <div class="mdg-card">
-    <h2>5. Quick Reference — all sizes</h2>
+    <h2>6. Quick Reference — all sizes</h2>
     <details class="mdg-collapsible">
       <summary><span id="qr-title">All sizes &amp; pitches</span> <span class="hint" id="qr-hint">current selection highlighted</span></summary>
       <div class="mdg-collapsible-body">
@@ -474,7 +526,7 @@
       <li id="ref14"><a href="https://cdn.standards.iteh.ai/samples/61175/2853a9f105a143848badc377786b7ddf/ISO-2320-2015.pdf">ISO 2320:2015 (preview)</a> — iteh.ai (clause 8 tables, footnote e: for non-metallic insert prevailing torque nuts the maximum prevailing torque is 50% of the all-metal first-installation value; class 5 values M5–M24 match the all-metal table in ref 13).</li>
     </ol>
 
-    <p>Last updated: 2026-10-16 &middot; Rev 11</p>
+    <p>Last updated: 2026-10-22 &middot; Rev 12</p>
   </div>
 
 </main>
@@ -873,12 +925,14 @@ function updateBolted() {
     asOut.textContent = `${fmt(As, 2)} mm²`;
     torqueBox.classList.remove('flag');
     if (thread.series === 'fine') {
+      clampCtx = { na: 'PEM tables are for coarse-thread screws; select the coarse pitch.' };
       retentionHtml += '<div class="warn">PEM\'s tables are for coarse-thread mating screws — select the coarse pitch.</div>';
       document.getElementById('out-pemaxial').textContent = row ? `${fmt(row[2], 2)} kN` : '–';
       preloadOut.textContent = '–'; torqueOut.textContent = 'coarse only';
       torqueBox.classList.add('flag');
     } else if (!row) {
       const sizes = [...new Set(series.rows.map(r => r[1]))].sort(NAT).join(', ');
+      clampCtx = { na: `No PEM ${series.title} nut is listed for ${bSizeSel.value}.` };
       retentionHtml += `<div class="warn">No PEM ${series.title} nut is listed for ${bSizeSel.value}. ` +
         `Sizes available: ${sizes}.</div>`;
       document.getElementById('out-pemaxial').textContent = '–';
@@ -886,11 +940,14 @@ function updateBolted() {
     } else {
       document.getElementById('out-pemaxial').textContent = `${fmt(row[2], 2)} kN`;
       if (col === -1) {
+        clampCtx = { na: `PEM does not list a torque for class ${classKey} in this series.` };
         preloadOut.textContent = '–'; torqueOut.textContent = 'not listed by PEM';
         torqueBox.classList.add('flag');
       } else {
         const T = row[4 + col];
         const F = T * 1000 / (series.K * thread.d); // N
+        const spP = cls.sp(thread.d);
+        clampCtx = { Fmax: F, Fp: spP === null ? null : spP * As, K: series.K, d: thread.d, Tp: 0 };
         preloadOut.textContent = `${fmt(F / 1000, 2)} kN`;
         torqueOut.textContent = `${fmtT(T)} N·m`;
       }
@@ -935,6 +992,7 @@ function updateBolted() {
   const sp = cls.sp(thread.d);
 
   if (sp === null) {
+    clampCtx = { na: `Class ${classKey} has no standardised proof stress at this size.` };
     asOut.textContent = '–'; preloadOut.textContent = '–'; torqueOut.textContent = 'not standardised';
     document.getElementById('out-seat').textContent = '–';
   } else {
@@ -942,6 +1000,7 @@ function updateBolted() {
     const F = (util / 100) * sp * As * Ce; // N
     const Tseat = K * F * thread.d / 1000; // N·m
     const T = Tseat + (Tp || 0);
+    clampCtx = { Fmax: F, Fp: sp * As, K, d: thread.d, Tp: Tp || 0, tpMissing: prevail && Tp === null };
     asOut.textContent = `${fmt(As, 2)} mm²`;
     preloadOut.textContent = `${fmt(F / 1000, 2)} kN`;
     document.getElementById('out-seat').textContent = `${fmtT(Tseat)} N·m`;
@@ -972,6 +1031,11 @@ function updateBolted() {
 }
 
 // ================= TAPPED-HOLE MODE =================
+// Assembly preload as a fraction of parent-thread pullout load (user input, default 65% per NASA/TM-2017-219475).
+function pulloutFraction() {
+  const v = parseFloat(document.getElementById('pullout-pct').value);
+  return Math.min(100, Math.max(10, isFinite(v) ? v : 65)) / 100;
+}
 const SHEAR_RATIO = { 'steel-carbon-alloy': 0.6, 'stainless-steel': 0.55, 'aluminum': 0.55 };
 const K_FACTOR_TAPPED = { dry: 0.20, lube: 0.15 };
 
@@ -1029,10 +1093,10 @@ document.getElementById('use-recommended').addEventListener('click', () => {
 // Tapped-hole torque with a screw-strength check. Returns pullout P, screw proof load Fp (null if
 // the class/size has no standardised proof stress), the assembly preload actually used, which
 // element limits it ('parent' | 'screw' | 'unchecked'), and the resulting assembly torque.
-function tappedCalc(th, fsu, L, Ce, cls, K) {
+function tappedCalc(th, fsu, L, Ce, cls, K, pf) {
   const dm = pitchDiameter(th.d, th.p);
   const P = Math.PI * dm * fsu * L / 3 * Ce;    // N — parent-thread pullout, edge knockdown applied
-  const Fparent = 0.65 * P;                     // N — NASA 65% assembly preload
+  const Fparent = pf * P;                       // N — assembly preload, user % of pullout (NASA default 65%)
   const sp = cls.sp(th.d);
   const Fp = sp === null ? null : sp * stressArea(th.d, th.p); // N — screw proof load
   let F = Fparent, limit = 'parent';
@@ -1053,6 +1117,7 @@ function updateTapped() {
   const material = currentParentMaterial();
   const fsu = fsuFor(material);
   const K = K_FACTOR_TAPPED[friction];
+  const pf = pulloutFraction();
   const Lin = Math.max(0.1, parseFloat(document.getElementById('engagement').value) || 0);
   const Lmax = ENGAGEMENT_CAP_D * thread.d;
   const L = Math.min(Lin, Lmax);               // capacity stops increasing beyond 2×d
@@ -1073,12 +1138,13 @@ function updateTapped() {
   const limitNote = document.getElementById('limit-note');
 
   if (fsu === null) {
+    clampCtx = { na: 'Parent material data not available.' };
     ['out-pullout','out-screwproof','out-limit','out-assypreload','out-assemblytorque']
       .forEach(id => document.getElementById(id).textContent = '–');
     limitBox.classList.remove('flag');
     limitNote.innerHTML = '';
   } else {
-    const r = tappedCalc(thread, fsu, L, edgeFactor(e, thread.d), cls, K);
+    const r = tappedCalc(thread, fsu, L, edgeFactor(e, thread.d), cls, K, pf);
     document.getElementById('out-pullout').textContent = `${fmtN(r.P)} N`;
     document.getElementById('out-screwproof').textContent = r.Fp === null ? 'n/a' : `${fmtN(r.Fp)} N`;
     document.getElementById('out-assypreload').textContent = `${fmt(r.F / 1000, 2)} kN`;
@@ -1086,6 +1152,7 @@ function updateTapped() {
     const limitText = { parent: 'Parent thread', screw: 'Screw', unchecked: 'Not checked' }[r.limit];
     document.getElementById('out-limit').textContent = limitText;
     limitBox.classList.toggle('flag', r.limit !== 'parent');
+    clampCtx = { Fmax: r.F, Fp: r.Fp, K, d: thread.d, Tp: 0 };
 
     if (r.limit === 'screw') {
       const Tparent = K * r.Fparent * thread.d / 1000;
@@ -1113,7 +1180,7 @@ function updateTapped() {
     if (fsu === null) {
       tr.innerHTML = `<td>${sizeKey}</td><td>${pitchLabel(th.p, th.series)}</td><td>${fmt(Lrow, 1)}</td><td>–</td><td>–</td><td>–</td><td>–</td>`;
     } else {
-      const r = tappedCalc(th, fsu, Lrow, edgeFactor(e, th.d), cls, K);
+      const r = tappedCalc(th, fsu, Lrow, edgeFactor(e, th.d), cls, K, pf);
       const limitCell = r.limit === 'screw'
         ? '<td class="limit-screw">Screw</td>'
         : `<td>${r.limit === 'parent' ? 'Parent' : 'n/a'}</td>`;
@@ -1124,11 +1191,88 @@ function updateTapped() {
   });
 }
 
+// ================= CLAMP LOAD DESIGN (section 5) =================
+// Per-screw maximum preload comes from whichever joint calculation is active (clampCtx, set in
+// updateBolted / updateTapped): target-% of proof (bolted), back-calculated from PEM's torque table,
+// or the parent-thread / screw-limited assembly preload (tapped). Number of screws follows the
+// minimum until the user types their own.
+const CLAMP_LOW_PCT = 50; // % of proof load — the lowest target preload this page allows
+let clampCtx = null;      // { Fmax, Fp, K, d, Tp, tpMissing } (N, N, –, mm, N·m) or { na: message }
+let clampUserN = null;    // null = follow the minimum
+
+function clampAt(c, n, Fclamp) {
+  const nmin = Math.ceil(Fclamp / c.Fmax - 1e-9);
+  const short = n < nmin;
+  const F = short ? c.Fmax : Fclamp / n;
+  const T = c.K * F * c.d / 1000 + (c.Tp || 0);
+  return { nmin, short, F, T, pct: c.Fp ? F / c.Fp * 100 : null, ach: n * F };
+}
+
+function updateClamp() {
+  const alertEl = document.getElementById('clamp-alert');
+  const tbody = document.getElementById('clamp-tbody');
+  const outs = ['out-clamp-nmin','out-clamp-f','out-clamp-pct','out-clamp-t'];
+  const c = clampCtx;
+  if (!c || c.na || !(c.Fmax > 0)) {
+    outs.forEach(id => document.getElementById(id).textContent = '–');
+    document.getElementById('clamp-box-f').classList.remove('flag');
+    alertEl.innerHTML = '<div class="warn">' + ((c && c.na) || 'No preload available for this selection.') +
+      ' The clamp load tool needs a per-screw preload from the selection above.</div>';
+    tbody.innerHTML = '';
+    document.getElementById('clamp-n-state').textContent = '';
+    return;
+  }
+  const Fclamp = Math.max(0.1, parseFloat(document.getElementById('clamp-load').value) || 0.1) * 1000;
+  const nmin = Math.ceil(Fclamp / c.Fmax - 1e-9);
+  const n = clampUserN === null ? nmin : clampUserN;
+  const nInput = document.getElementById('clamp-n');
+  if (clampUserN === null) nInput.value = nmin;
+  document.getElementById('clamp-n-state').textContent = clampUserN === null ? '(following minimum)' : '(set by you)';
+  const r = clampAt(c, n, Fclamp);
+
+  document.getElementById('out-clamp-nmin').textContent = nmin;
+  document.getElementById('out-clamp-f').textContent = `${fmt(r.F / 1000, 2)} kN`;
+  document.getElementById('out-clamp-pct').textContent = r.pct === null ? 'n/a' : `${fmt(r.pct, 0)} %`;
+  document.getElementById('out-clamp-t').textContent = `${fmtT(r.T)} N·m`;
+  document.getElementById('clamp-box-f').classList.toggle('flag', r.short);
+
+  let html = '';
+  if (r.short) {
+    html += `<div class="warn"><strong>Not enough screws.</strong> ${n} &times; ${fmt(c.Fmax / 1000, 2)}&nbsp;kN reaches only ` +
+      `${fmt(r.ach / 1000, 2)}&nbsp;kN of the ${fmt(Fclamp / 1000, 1)}&nbsp;kN required (short by ${fmt((Fclamp - r.ach) / 1000, 2)}&nbsp;kN). ` +
+      `Minimum required: <strong>${nmin}</strong>. Torque shown is the maximum for this screw, not enough for the load.</div>`;
+  } else if (r.pct !== null && r.pct < CLAMP_LOW_PCT) {
+    html += `<div class="warn"><strong>Low preload (${fmt(r.pct, 0)}% of proof load).</strong> Below ${CLAMP_LOW_PCT}% the joint is more ` +
+      'exposed to separation or slip under load, self-loosening, and preload loss from embedding.' + (n > nmin ? ' Fewer screws give a firmer joint.' : '') + '</div>';
+  }
+  if (c.tpMissing) html += '<div class="warn">No prevailing torque listed for this size or class; seating torque shown alone.</div>';
+  alertEl.innerHTML = html;
+
+  tbody.innerHTML = '';
+  for (let i = Math.max(1, nmin - 1); i <= nmin + 5; i++) {
+    const x = clampAt(c, i, Fclamp);
+    const tr = document.createElement('tr');
+    if (i === n) tr.className = 'current';
+    tr.innerHTML = `<td>${i}</td><td>${fmt(x.F / 1000, 2)}</td><td>${x.pct === null ? 'n/a' : fmt(x.pct, 0)}</td>` +
+      `<td>${fmtT(x.T)}</td><td>${fmt(x.ach / 1000, 2)}</td>` + (x.short ? '<td class="limit-screw">Under-clamped</td>' : '<td>OK</td>');
+    tr.addEventListener('click', () => { clampUserN = i; updateClamp(); });
+    tbody.appendChild(tr);
+  }
+}
+document.getElementById('clamp-load').addEventListener('input', updateClamp);
+document.getElementById('clamp-n').addEventListener('input', () => {
+  const v = parseInt(document.getElementById('clamp-n').value, 10);
+  clampUserN = (isFinite(v) && v >= 1) ? v : null;
+  updateClamp();
+});
+document.getElementById('clamp-use-min').addEventListener('click', () => { clampUserN = null; updateClamp(); });
+
 // ---------- shared update ----------
 function updateAll() {
   renderFrictionPills();
   updateEdgeSection();
   if (jointType === 'bolted') updateBolted(); else updateTapped();
+  updateClamp();
 }
 
 bSizeSel.addEventListener('change', () => {
@@ -1149,6 +1293,7 @@ pemSeriesSel.addEventListener('change', updateAll);
 pemPartSel.addEventListener('change', updateAll);
 document.getElementById('parent-material').addEventListener('change', updateAll);
 document.getElementById('engagement').addEventListener('input', updateAll);
+document.getElementById('pullout-pct').addEventListener('input', updateAll);
 
 // init
 renderJointPills();
@@ -1201,7 +1346,13 @@ updateAll();
   // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
   var MIN_SCALE = 0.65;
 
+  // Section 5 is collapsed on screen; open it for PDF/print and restore afterwards.
+  var clampSec = document.getElementById('clamp-section');
+  function openClamp(){ if (clampSec && !clampSec.open) { clampSec.open = true; clampSec.dataset.mdgForced = '1'; } }
+  function restoreClamp(){ if (clampSec && clampSec.dataset.mdgForced) { clampSec.open = false; delete clampSec.dataset.mdgForced; } }
+  window.addEventListener('beforeprint', openClamp);
   function enterPdfMode(){
+    openClamp();
     document.documentElement.classList.add('mdg-pdf-mode');
     var main = document.querySelector('main');
     if (!main) return;
@@ -1221,6 +1372,7 @@ updateAll();
     if (d) d.textContent = new Date().toLocaleDateString();
   }
   function exitPdfMode(){
+    restoreClamp();
     document.documentElement.classList.remove('mdg-pdf-mode');
     var main = document.querySelector('main');
     if (main) {
