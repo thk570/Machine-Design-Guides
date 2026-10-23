@@ -44,7 +44,7 @@
   table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
     padding: 0.4rem 0.6rem; text-align: left; font-size: 0.9rem; }
   table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
-  /* Citations & references — see docs/00-structure-and-conventions.md.
+  /* Citations & references — see MDG/structure-and-conventions.md.
      sup a = in-body superscript marker linking down to its reference entry;
      .ref-list = the "Applicable design standards" and "References" lists
      at the bottom of the page. */
@@ -54,7 +54,7 @@
   .ref-list li { margin-bottom: 0.35rem; }
   @media print { .mdg-header, .mdg-no-print { display: none !important; } }
 
-  /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). Forces a light,
+  /* Save-as-PDF — see MDG/structure-and-conventions.md ("Save as PDF"). Forces a light,
      compact one-page A4 layout via a temporary .mdg-pdf-mode class on <html>, applied just
      before window.print() and removed on afterprint/focus. */
   @page { size: A4; margin: 12mm; }

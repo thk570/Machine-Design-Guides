@@ -7,8 +7,8 @@
 // meant to be a short summary, fully visible, not the page's full feature list. Longer detail belongs
 // on the page itself.
 window.MDG_MANIFEST = {
-  "rev": 1,
-  "updated": "2026-10-20",
+  "rev": 3,
+  "updated": "2026-10-23",
   "categories": [
     {
       "slug": "fits",
@@ -56,7 +56,7 @@ window.MDG_MANIFEST = {
       "description": "Density, modulus, strength, CTE and cost band by material type and grade, with the data basis stated — shared by other calculators.",
       "tags": ["materials", "MMPDS", "properties", "density", "elastic modulus", "yield strength", "CTE", "thermal conductivity", "cost", "steel", "tool steel", "aluminum", "titanium", "copper"],
       "status": "done",
-      "rev": 6
+      "rev": 7
     },
     {
       "id": "hardness-converter",
@@ -92,6 +92,17 @@ window.MDG_MANIFEST = {
       "rev": 4
     },
     {
+      "id": "iso2768-general-tolerances",
+      "title": "General Tolerances (ISO 2768-1)",
+      "category": "fits",
+      "path": "calculators/fits-tolerances/iso2768-general-tolerances.html",
+      "standard": "ISO 2768-1",
+      "description": "Permissible deviations for untoleranced linear, external radius/chamfer and angular dimensions by ISO 2768-1 class f, m, c or v.",
+      "tags": ["general tolerances", "ISO 2768", "ISO 2768-1", "DIN ISO 2768", "untoleranced dimensions", "title block", "linear", "angular", "chamfer", "radius", "fine", "medium", "coarse", "very coarse"],
+      "status": "done",
+      "rev": 1
+    },
+    {
       "id": "creepage-clearance",
       "title": "Creepage & Clearance",
       "category": "electrical",
@@ -122,7 +133,7 @@ window.MDG_MANIFEST = {
       "description": "DIN 5480 hub and shaft drawing data with a Pass/Fail stress check, plus a finder for library sizes capable of a given torque.",
       "tags": ["spline", "involute spline", "DIN 5480", "module", "pin diameter", "base tangent", "Wk", "M1", "M2", "profile shift", "flank centred", "shaft connection", "torque capacity", "shear stress", "wear", "size finder", "drawing data"],
       "status": "done",
-      "rev": 1
+      "rev": 2
     },
     {
       "id": "screw-torque",
@@ -130,10 +141,10 @@ window.MDG_MANIFEST = {
       "category": "fasteners",
       "path": "calculators/fasteners/screw-torque.html",
       "standard": "ISO 898-1 / ISO 3506-1 / NASA/TM-2017-219475 / PEM data",
-      "description": "Tightening torque for bolted, PEM clinch-nut and tapped-hole joints, from proof stress, PEM tables or thread pullout.",
-      "tags": ["screw", "bolt", "torque", "preload", "ISO 898", "ISO 3506", "nyloc", "rivnut", "self-clinching nut", "PEM", "clinch nut", "pullout", "thread stripping", "NASA", "fine pitch", "Stover", "prevailing torque", "all-metal lock nut"],
+      "description": "Tightening torque for bolted, PEM clinch-nut and tapped-hole joints, plus clamp load design for the number of screws.",
+      "tags": ["screw", "bolt", "torque", "preload", "ISO 898", "ISO 3506", "nyloc", "rivnut", "self-clinching nut", "PEM", "clinch nut", "pullout", "thread stripping", "NASA", "fine pitch", "Stover", "prevailing torque", "all-metal lock nut", "clamp load"],
       "status": "done",
-      "rev": 11
+      "rev": 12
     },
     {
       "id": "fastener-library",

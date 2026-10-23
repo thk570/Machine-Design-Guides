@@ -171,7 +171,6 @@
 
   <div class="mdg-card">
     <p style="margin:0 0 0.6rem;">Pick a standard DIN 5480 spline (diameter, module, teeth) and fit to get the hub and shaft drawing data and a Pass/Fail stress check. Sizes, pin diameters and tolerances come from the DIN 5480 library<sup><a href="#ref3">3</a></sup>; geometry and measuring dimensions follow the in-house spreadsheet<sup><a href="#ref1">1</a></sup>; stresses follow the Machinery's Handbook method<sup><a href="#ref2">2</a></sup>.</p>
-    <div class="pill-row" style="margin:0;" id="presets"></div>
     <p class="note" style="margin-top:0.6rem;">Starting from the load instead? Go to <a href="#finder">5. Find a Size from Load</a>.</p>
   </div>
 
@@ -297,7 +296,7 @@
       <li id="ref2">Spline Stress Calculations — DIN 5480 (internal spreadsheet) — stress equations, factor and allowable tables. The sheet cites Machinery's Handbook 27th ed., Gears, Splines and Cams (pp. 2169–2174) and D. W. Dudley, <em>When Splines Need Stress Control</em>; neither opened for this page. The sheet applies Le even where the spline is shorter; this page uses the smaller of L and Le.</li>
       <li id="ref3">DIN 5480-1:2006-03 (PDF supplied) — Tables 4, 7, 9; DIN 5480-2:2006-05 (English translation read via <a href="https://www.scribd.com/document/379274426/DIN-5480-2">scribd.com</a>) — Tables 2–33 preferred sizes, pin diameters DM, teeth measured k and Wk reliability flags. Wk calculated, matching table values to 0.002 mm.</li>
     </ol>
-    <p>Last updated: 2026-10-19 &middot; Rev 1</p>
+    <p>Last updated: 2026-10-23 &middot; Rev 2</p>
   </div>
 </main>
 
@@ -487,12 +486,7 @@ function renderFields() {
     LIBMAT.types.map(t => grp(t.title + ' — shared library', LIBMAT.list.filter(m => m.type === t.slug))).join('');
 }
 const BASE = { fLen:'L', fT:2200, fN:7500, fL:45, fRatio:1, fOD:1.5, fBore:0, fMin:'', fMax:'', fit:'fine-free', tolH:'8H', tolS:'8f', method:'Not specified', T:2200, n:7500, L:45, Ka:1.5, Km:1, Kf:0.2, Kw:0.5, type:'Flexible', crowned:'No', misalign:1, crownH:0.03, Dh:55, Doi:100, mat:'case', link:false };
-const PRESETS = [
-  { name: '85 × 1.5 × 55 (sheet)', v: { ...BASE, dref:85, m:1.5, z:55, t:2.775, Dti:82, Dri:85.2, Dte:84.6, Dre:81.5, Dh:55, Doi:100 } },
-  { name: '60 × 2.5 × 22 (sheet)', v: { ...BASE, dref:60, m:2.5, z:22, type:'Fixed', T:3526.53, n:700, L:50, Ka:1.5, Km:1, Kf:0.4, Kw:0.5, t:5.145, Dti:55, Dri:60.3, Dte:59.5, Dre:54.2, Dh:20, Doi:80 } },
-  { name: '70 × 1.25 × 54 (sheet)', v: { ...BASE, dref:70, m:1.25, z:54, type:'Fixed', T:2200, n:700, L:50, Ka:2.4, Km:1, Kf:0.2, Kw:0.5, t:2.56, Dti:67.5, Dri:70.17, Dte:69.75, Dre:67.1, Dh:20, Doi:90 } },
-  { name: '60 × 1.5 × 38 (sheet)', v: { ...BASE, dref:60, m:1.5, z:38, t:3.064, Dti:57, Dri:60.195, Dte:59.7, Dre:56.5, Dh:10, Doi:80 } },
-];
+const DEFAULTS = { ...BASE, dref:85, m:1.5, z:55, t:2.775, Dti:82, Dri:85.2, Dte:84.6, Dre:81.5, Dh:55, Doi:100 };
 const IDS = Object.values(FIELDS).flat().map(f => f[0]).concat(['method','type','crowned','mat','fLen']);
 let showAll = false;
 const OVR = ['AeH','TGH','TactH','TeffH','AsS','TGS','TactS','TeffS','cFmin','DMH','DMS','k','Wk','reliable'];
@@ -704,8 +698,6 @@ function renderRef() {
       MATERIALS.slice().sort((a,b)=>mdgCmp(a.label,b.label)).map(m => [m.label, m.sh, m.cs ?? '—', m.cc ?? '—', m.t]));
 }
 renderFields(); renderRef();
-$('presets').innerHTML = '<span style="font-size:0.85rem;color:var(--mdg-text-muted);align-self:center;">Load example:</span>';
-PRESETS.forEach((pr, i) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'pill'; b.textContent = pr.name; b.addEventListener('click', () => setValues(pr.v)); $('presets').appendChild(b); });
 document.body.addEventListener('input', e => { if (e.target.id !== 'mdg-theme-toggle' && e.target.tagName !== 'SELECT') update(); });
 document.body.addEventListener('change', e => {
   if (e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') return;   // typed values already handled on 'input'; a rebuild on blur would swallow the Use click
@@ -729,7 +721,7 @@ document.querySelectorAll('.copy-btn').forEach(btn => btn.addEventListener('clic
   const done = () => { btn.textContent = 'Copied'; setTimeout(() => btn.textContent = 'Copy', 1500); };
   try { navigator.clipboard.writeText(text).then(done, () => {}); } catch (e) {}
 }));
-setValues(PRESETS[0].v);
+setValues(DEFAULTS);
 </script>
 
 <script>

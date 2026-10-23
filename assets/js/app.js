@@ -1,7 +1,7 @@
 // Machine Design Guides — hub logic. Reads the registry from window.MDG_MANIFEST (populated by
 // data/manifest.js, loaded via a <script> tag before this file — see that file's own comment for
 // why it's JS and not JSON), renders category sections of cards, and wires up the text filter.
-// Used by index.html only (calculator pages are self-contained, see docs/00-structure-and-conventions.md).
+// Used by index.html only (calculator pages are self-contained, see MDG/structure-and-conventions.md).
 //
 // Categories and the cards within them are always rendered in alphabetical order (by title),
 // regardless of the order they're listed in manifest.js — that file's ordering doesn't matter.

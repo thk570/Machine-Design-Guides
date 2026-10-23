@@ -70,6 +70,14 @@
   table.mdg-table thead th { background: var(--mdg-bg); font-weight: 600; font-size: 0.78rem; white-space: nowrap; }
   table.mdg-table td.num, table.mdg-table th.num { text-align: right; }
   table.mdg-table tr:last-child > td { border-bottom: none; }
+  th.sortable { padding: 0 !important; }
+  .sort-btn { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 0.3rem; width: 100%; padding: 0.45rem 0.65rem; cursor: pointer; font: inherit; }
+  th.num .sort-btn { justify-content: flex-end; }
+  .sort-btn:hover { color: var(--mdg-accent); }
+  .sort-btn:focus-visible { outline: 2px solid var(--mdg-accent); outline-offset: -2px; }
+  .sort-ind { font-size: 0.68rem; color: var(--mdg-accent); white-space: nowrap; }
+  .sort-clear { all: unset; cursor: pointer; font-size: 0.74rem; color: var(--mdg-accent); margin-left: auto; }
+  .sort-clear:hover { text-decoration: underline; }
   tr.grade-row { cursor: pointer; }
   tr.grade-row:hover { background: var(--row-hover); }
   tr.grade-row:focus-visible { outline: 2px solid var(--mdg-accent); outline-offset: -2px; }
@@ -154,7 +162,7 @@
       </div>
       <div class="count" id="count"></div>
     </div>
-    <div class="key"><span>Italic value = typical, not from the grade's own data</span><span>N/A = no value published</span><span>– = not entered</span><span>Cost band = approximate £/kg of a small-lot stock piece, ex VAT: £ under 6, ££ 6 to 12, £££ 12 to 30, ££££ 30 to 70, £££££ over 70. ~ italic = estimate. Not live</span></div>
+    <div class="key"><span>Italic value = typical, not from the grade's own data</span><span>N/A = no value published</span><span>– = not entered</span><span>Click a column header to sort (ascending, descending, off); click more headers to add tie-break sorts</span><span>Cost band = approximate £/kg of a small-lot stock piece, ex VAT: £ under 6, ££ 6 to 12, £££ 12 to 30, ££££ 30 to 70, £££££ over 70. ~ italic = estimate. Not live</span></div>
   </div>
 
   <div id="library"></div>
@@ -169,7 +177,7 @@
       <li id="ref1"><a href="https://www.mmpds.org/">MMPDS-14</a> — Metallic Materials Properties Development and Standardization.</li>
     </ul>
     <p>Per-grade sources are listed in each row's detail view.</p>
-    <p>Last updated: 2026-10-19 &middot; Rev 6</p>
+    <p>Last updated: 2026-10-23 &middot; Rev 7</p>
   </div>
 
 </main>
@@ -301,10 +309,56 @@
     return html;
   }
 
-  var MECH_HEAD = '<colgroup><col style="width:27%"><col style="width:12%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:10%"><col style="width:10%"><col style="width:17%"></colgroup><thead><tr>' +
-    '<th>Grade and condition</th><th>Basis</th><th class="num">Yield (MPa)</th><th class="num">UTS (MPa)</th><th class="num">E (GPa)</th><th class="num">CTE (µm/m·K)</th><th class="num">Density (kg/m³)</th><th class="num">Cost band</th></tr></thead>';
-  var CTI_HEAD = '<colgroup><col style="width:44%"><col style="width:14%"><col style="width:14%"><col style="width:14%"><col style="width:14%"></colgroup><thead><tr>' +
-    '<th>Material and condition</th><th>Basis</th><th class="num">CTI (V)</th><th class="num">CTI range</th><th>IEC 60664-1 group</th></tr></thead>';
+  var MECH_COLS = '<colgroup><col style="width:27%"><col style="width:12%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:10%"><col style="width:10%"><col style="width:17%"></colgroup>';
+  var CTI_COLS = '<colgroup><col style="width:44%"><col style="width:14%"><col style="width:14%"><col style="width:14%"><col style="width:14%"></colgroup>';
+  var MECH_FIELDS = [['name', 'Grade and condition', 0], ['basis', 'Basis', 0], ['yield_MPa', 'Yield (MPa)', 1], ['ultimate_MPa', 'UTS (MPa)', 1], ['E_GPa', 'E (GPa)', 1],
+    ['cte_um_per_mK', 'CTE (µm/m·K)', 1], ['density_kg_m3', 'Density (kg/m³)', 1], ['cost_band', 'Cost band', 1]];
+  var CTI_FIELDS = [['name', 'Material and condition', 0], ['basis', 'Basis', 0], ['cti_V', 'CTI (V)', 1], ['cti_range', 'CTI range', 1], ['cti_group', 'IEC 60664-1 group', 0]];
+  var CTI_ORDER = ['I', 'II', 'IIIa', 'IIIb'];
+
+  // Column sort, per table: a stack of { k, dir }; the first entry is the primary sort, later ones break ties.
+  // Header click cycles that column ascending → descending → off. Missing values (null, N/A, –) always sort last.
+  var sorts = {};
+  function sortVal(g, k) {
+    if (k === 'name') return g.grade + ' — ' + (g.condition || '');
+    if (k === 'basis') { var i = BASIS_ORDER.indexOf(basisOf(g)); return i < 0 ? BASIS_ORDER.length : i; }
+    if (k === 'cti_range' || k === 'cti_group') { var j = CTI_ORDER.indexOf(g.cti_group); return j < 0 ? null : j; }
+    return typeof g[k] === 'number' ? g[k] : null;
+  }
+  function sortList(list, slug) {
+    var st = sorts[slug]; if (!st || !st.length) return list;
+    var base = list.map(function (g, i) { return { g: g, i: i }; });
+    base.sort(function (a, b) {
+      for (var n = 0; n < st.length; n++) {
+        var va = sortVal(a.g, st[n].k), vb = sortVal(b.g, st[n].k);
+        if (va === null && vb === null) continue;
+        if (va === null) return 1;
+        if (vb === null) return -1;
+        var c = (typeof va === 'number' && typeof vb === 'number') ? va - vb : cmp(va, vb);
+        if (c) return st[n].dir === 'desc' ? -c : c;
+      }
+      return a.i - b.i;
+    });
+    return base.map(function (x) { return x.g; });
+  }
+  function head(fields, slug) {
+    var st = sorts[slug] || [];
+    return '<thead><tr>' + fields.map(function (f) {
+      var pos = -1; st.forEach(function (s, i) { if (s.k === f[0]) pos = i; });
+      var s = pos >= 0 ? st[pos] : null;
+      var ind = s ? (s.dir === 'asc' ? '▲' : '▼') + (st.length > 1 ? pos + 1 : '') : '';
+      return '<th class="sortable' + (f[2] ? ' num' : '') + '" aria-sort="' + (s && pos === 0 ? (s.dir === 'asc' ? 'ascending' : 'descending') : 'none') + '">' +
+        '<button type="button" class="sort-btn" data-type="' + esc(slug) + '" data-k="' + f[0] + '" title="Sort by ' + esc(f[1]) + '">' + f[1] +
+        '<span class="sort-ind">' + ind + '</span></button></th>';
+    }).join('') + '</tr></thead>';
+  }
+  function cycleSort(slug, k) {
+    var st = sorts[slug] || (sorts[slug] = []);
+    var i = -1; st.forEach(function (s, n) { if (s.k === k) i = n; });
+    if (i < 0) st.push({ k: k, dir: 'asc' });
+    else if (st[i].dir === 'asc') st[i].dir = 'desc';
+    else st.splice(i, 1);
+  }
 
   function render() {
     var q = document.getElementById('search').value.trim();
@@ -313,12 +367,15 @@
     lib.innerHTML = '';
     TYPES.forEach(function (t) {
       if (tf && tf !== t.slug) return;
-      var list = gradesOf(t.slug).filter(function (g) { return (!bf || basisOf(g) === bf) && matchInfo(g, q).hit; });
+      var list = sortList(gradesOf(t.slug), t.slug).filter(function (g) { return (!bf || basisOf(g) === bf) && matchInfo(g, q).hit; });
       if (!list.length) return;
       shown += list.length;
       var cti = isCti(list[0]);
-      var html = '<div class="type-group"><h3>' + esc(t.title) + '<span>' + list.length + ' shown</span></h3><div class="tbl-wrap"><table class="mdg-table' + (cti ? ' cti' : '') + '">' +
-        (cti ? CTI_HEAD : MECH_HEAD) + '<tbody>' + list.map(function (g) { return rowHtml(g, q, cti ? 5 : 8); }).join('') + '</tbody></table></div></div>';
+      var sorted = sorts[t.slug] && sorts[t.slug].length;
+      var html = '<div class="type-group"><h3>' + esc(t.title) + '<span>' + list.length + ' shown</span>' +
+        (sorted ? '<button type="button" class="sort-clear mdg-no-print" data-type="' + esc(t.slug) + '">Clear sort</button>' : '') +
+        '</h3><div class="tbl-wrap"><table class="mdg-table' + (cti ? ' cti' : '') + '">' +
+        (cti ? CTI_COLS + head(CTI_FIELDS, t.slug) : MECH_COLS + head(MECH_FIELDS, t.slug)) + '<tbody>' + list.map(function (g) { return rowHtml(g, q, cti ? 5 : 8); }).join('') + '</tbody></table></div></div>';
       lib.insertAdjacentHTML('beforeend', html);
     });
     if (!shown) lib.innerHTML = '<div class="mdg-card empty">No grade matches. Try a UNS number, EN or DIN designation, or a trade name.</div>';
@@ -328,11 +385,16 @@
   var lib = document.getElementById('library');
   lib.addEventListener('click', function (e) {
     if (e.target.closest('a')) return;
+    var sb = e.target.closest('.sort-btn'), sc = e.target.closest('.sort-clear');
+    if (sb) { var k = sb.dataset.k, ty = sb.dataset.type; cycleSort(ty, k); render();
+      var b2 = document.querySelector('.sort-btn[data-type="' + ty + '"][data-k="' + k + '"]'); if (b2) b2.focus(); return; }
+    if (sc) { delete sorts[sc.dataset.type]; render(); return; }
     var row = e.target.closest('tr.grade-row'); if (!row) return;
     open[row.dataset.id] = !open[row.dataset.id]; render();
   });
   lib.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ') return;
+    if (e.target.closest('button')) return;
     var row = e.target.closest('tr.grade-row'); if (!row) return;
     e.preventDefault(); var id = row.dataset.id; open[id] = !open[id]; render();
     var again = document.querySelector('tr.grade-row[data-id="' + id + '"]'); if (again) again.focus();
