@@ -162,7 +162,7 @@
   <div class="mdg-card">
     <p>Parallel (feather) key and keyway sizing per DIN 6885-1 — key size, keyway depths, and fit-tolerance
       class by shaft diameter. Below that, a torque-capacity check: minimum key length for shear and bearing
-      failure at a chosen safety factor, using the shared material library<sup><a href="#ref5">5</a></sup>.</p>
+      failure at a chosen safety factor, using the shared material library<sup><a href="#ref1">1</a></sup>.</p>
   </div>
 
   <!-- ============ 1. KEY & KEYWAY SIZE ============ -->
@@ -278,8 +278,8 @@
       </div>
     </div>
     <p class="note" id="fit-note"></p>
-    <p class="note">DIN 6885-1 Deep Pattern values, matched to the nearest standard band<sup><a href="#ref1">1</a></sup>.
-      Key width is always h9; the fit comes from the keyway width tolerances<sup><a href="#ref2">2</a></sup>.
+    <p class="note">DIN 6885-1 Deep Pattern values, matched to the nearest standard band<sup><a href="#ref2">2</a></sup>.
+      Key width is always h9; the fit comes from the keyway width tolerances<sup><a href="#ref3">3</a></sup>.
       Radii, chamfers and taper/Woodruff variants aren't shown.</p>
   </div>
 
@@ -315,7 +315,7 @@
       </div>
     </div>
     <p class="lib-note">Materials from the shared library (data/materials.js) — default is a common key-stock
-      grade<sup><a href="#ref5">5</a></sup>.</p>
+      grade<sup><a href="#ref1">1</a></sup>.</p>
 
     <div class="result-grid">
       <div class="result">
@@ -356,11 +356,11 @@
       </div>
     </div>
     <div id="length-warning"></div>
-    <p class="note">F&nbsp;=&nbsp;2T/D. Shear &tau;&nbsp;=&nbsp;F/(W&middot;L); bearing
-      &sigma;<sub>b</sub>&nbsp;=&nbsp;F/((H/2)&middot;L)<sup><a href="#ref3">3</a></sup>. Allowable shear
-      =&nbsp;0.577&times;S<sub>y</sub>/FS; allowable bearing&nbsp;=&nbsp;S<sub>y</sub>/FS<sup><a href="#ref3">3</a>,<a href="#ref4">4</a></sup>
-      — bearing usually governs. A simplified static check: ignores stress concentration, fatigue and shock;
-      keep L within the hub length and treat L&nbsp;&gt;&nbsp;~2&times;d with caution<sup><a href="#ref4">4</a></sup>.</p>
+    <p class="note">F&nbsp;=&nbsp;2T/D; shear &tau;&nbsp;=&nbsp;F/(W&middot;L); bearing
+      &sigma;<sub>b</sub>&nbsp;=&nbsp;F/((H/2)&middot;L)<sup><a href="#ref4">4</a></sup>. Allowable shear
+      =&nbsp;0.577&times;S<sub>y</sub>/FS, allowable bearing&nbsp;=&nbsp;S<sub>y</sub>/FS<sup><a href="#ref4">4</a>,<a href="#ref5">5</a></sup>
+      — bearing usually governs. A simplified static check (ignores stress concentration, fatigue and shock): keep L within the hub length
+      and treat L&nbsp;&gt;&nbsp;~2&times;d with caution<sup><a href="#ref5">5</a></sup>.</p>
   </div>
 
   <!-- ============ 3. QUICK REFERENCE TABLE ============ -->
@@ -390,14 +390,14 @@
 
     <p><strong>References</strong></p>
     <ol class="ref-list">
-      <li id="ref1"><a href="https://engineeringhardware.com/guide/standard/din-6885-parallel-keys/">DIN 6885 Parallel Keys Dimensions &amp; ISO Equivalent</a> — engineeringhardware.com (full DIN 6885-1 shaft-diameter/b/h/t1/t2 table).</li>
-      <li id="ref2"><a href="https://www.jwwinco.com/fileadmin/user_upload/6885_1.pdf">Keys and Keyways WN 6885</a> — jwwinco.com (key width h9 tolerance; shaft/hub keyway width tolerance combinations for tight, normal and sliding fits).</li>
-      <li id="ref3"><a href="https://calcimator.com/calculators/engineering/keyway-design">Keyway Design Calculator — Shear, Bearing &amp; Key Length</a> — calcimator.com (F&thinsp;=&thinsp;2T/d, shear and bearing stress formulas, 0.577&times;Sy distortion-energy allowable shear).</li>
-      <li id="ref4"><a href="https://www.roymech.co.uk/Useful_Tables/Keyways/key_strength.html">Key and Spline Strength Calculations</a> — roymech.co.uk (allowable-stress/factor-of-safety approach to key design; long-key load-distribution caveat).</li>
-      <li id="ref5"><a href="https://www.theworldmaterial.com/astm-sae-aisi-1045-carbon-steel-material/">AISI 1045 Carbon Steel</a> — theworldmaterial.com (1045 as a common key-stock grade; backs the shared material library entry used as this page's default).</li>
+      <li id="ref1"><a href="https://www.theworldmaterial.com/astm-sae-aisi-1045-carbon-steel-material/">AISI 1045 Carbon Steel</a> — theworldmaterial.com (1045 as a common key-stock grade; backs the shared material library entry used as this page's default).</li>
+      <li id="ref2"><a href="https://engineeringhardware.com/guide/standard/din-6885-parallel-keys/">DIN 6885 Parallel Keys Dimensions &amp; ISO Equivalent</a> — engineeringhardware.com (full DIN 6885-1 shaft-diameter/b/h/t1/t2 table).</li>
+      <li id="ref3"><a href="https://www.jwwinco.com/fileadmin/user_upload/6885_1.pdf">Keys and Keyways WN 6885</a> — jwwinco.com (key width h9 tolerance; shaft/hub keyway width tolerance combinations for tight, normal and sliding fits).</li>
+      <li id="ref4"><a href="https://calcimator.com/calculators/engineering/keyway-design">Keyway Design Calculator — Shear, Bearing &amp; Key Length</a> — calcimator.com (F&thinsp;=&thinsp;2T/d, shear and bearing stress formulas, 0.577&times;Sy distortion-energy allowable shear).</li>
+      <li id="ref5"><a href="https://www.roymech.co.uk/Useful_Tables/Keyways/key_strength.html">Key and Spline Strength Calculations</a> — roymech.co.uk (allowable-stress/factor-of-safety approach to key design; long-key load-distribution caveat).</li>
     </ol>
 
-    <p>Last updated: 2026-10-12 &middot; Rev 5</p>
+    <p>Last updated: 2026-10-26 &middot; Rev 7</p>
   </div>
 
 </main>

@@ -191,7 +191,7 @@
         </div>
       </div>
       <p class="note" id="presetDesc"></p>
-      <p class="note">★ = preferred for new designs per Equipmake's internal standard<sup><a href="#ref7">7</a></sup>.
+      <p class="note">★ = preferred for new designs per Equipmake's internal standard<sup><a href="#ref1">1</a></sup>.
         Bearing seats use these same fits for the housing/shaft — confirm the exact class against the bearing
         manufacturer's catalogue.</p>
     </div>
@@ -265,18 +265,12 @@
           <input type="text" id="manualLabel" placeholder="e.g. off-the-shelf DC motor shaft">
         </div>
       </div>
-      <p class="note">c–h/C–G are clearance letters, js/JS is symmetric, k/m/n/p/r/s/u are transition/interference<sup><a href="#ref2">2</a></sup>.
-        Hole letters mirror the same-letter shaft deviation (ISO 286-1's Δ correction is 0 for clearance letters,
-        JS, and P–U); K, M and N use a grade-differential Δ correction instead (Δ&nbsp;=&nbsp;IT<sub>n</sub>&minus;IT<sub>n−1</sub>,
-        ES&nbsp;=&nbsp;&minus;ei<sub>shaft</sub>&nbsp;+&nbsp;Δ<sup><a href="#ref9">9</a></sup>), computed here only at grades
-        6–8 — grade 5 would need an IT4 value this page doesn't tabulate, so K5/M5/N5 stay unsupported rather than
-        guess; switch the hole letter to H to check the shaft side of an unsupported combination instead.
-        Tick "enter manually" on either side to type its deviations directly, in µm from nominal size —
-        upper (ES/es) and lower (EI/ei), positive above nominal and negative below — for a part with a
-        known but non-standard tolerance (an off-the-shelf component, a supplier datasheet, a drawing
-        callout that doesn't match an ISO 286 letter/grade). The two sides are independent: e.g. tick it
-        for the shaft only to check a manufacturer's shaft (say "+0/&minus;0.013&nbsp;mm", i.e.
-        es&nbsp;=&nbsp;0, ei&nbsp;=&nbsp;&minus;13) against a standard hole picked normally above.</p>
+      <p class="note">c–h/C–G are clearance letters, js/JS is symmetric, k/m/n/p/r/s/u are transition/interference<sup><a href="#ref2">2</a></sup>; other hole letters mirror the same-letter shaft deviation (Δ&nbsp;=&nbsp;0).
+        K, M and N use a grade-differential Δ correction (Δ&nbsp;=&nbsp;IT<sub>n</sub>&minus;IT<sub>n−1</sub>,
+        ES&nbsp;=&nbsp;&minus;ei<sub>shaft</sub>&nbsp;+&nbsp;Δ<sup><a href="#ref3">3</a></sup>) at grades 6–8 only — K5/M5/N5 stay
+        unsupported (IT4 isn't tabulated), so use an H hole to check the shaft side instead.
+        Tick "enter manually" on either side to type non-standard deviations directly (µm from nominal; upper ES/es,
+        lower EI/ei, positive above nominal), e.g. a manufacturer's shaft against a standard hole.</p>
     </div>
 
     <div id="dowel-panel" class="hidden">
@@ -297,7 +291,7 @@
           </select>
         </div>
       </div>
-      <p class="note">Per Equipmake's dowel guidance<sup><a href="#ref7">7</a></sup>: dowels are ISO 2388, in m6 or
+      <p class="note">Per Equipmake's dowel guidance<sup><a href="#ref1">1</a></sup>: dowels are ISO 2388, in m6 or
         h8 grade; m6 is the more widely available and the default for new designs.</p>
     </div>
 
@@ -350,7 +344,7 @@
         <div class="result"><div class="k">Min clearance / interference</div><div class="v" id="outMinGap"></div></div>
         <div class="result"><div class="k">Max clearance / interference</div><div class="v" id="outMaxGap"></div></div>
       </div>
-      <p class="note">Positive = clearance, negative = interference. A transition fit can land anywhere in this range.</p>
+      <p class="note">Positive = clearance, negative = interference. A transition fit can land anywhere in this range. IT tolerance widths follow ISO 286-1 Table 1<sup><a href="#ref4">4</a></sup>; the g6, h6, f7, k6, n6 and p6 limits were cross-checked against published ISO 286-2 values<sup><a href="#ref5">5</a></sup>.</p>
     </div>
   </div>
 
@@ -365,8 +359,8 @@
     <div id="noInterferenceMsg" class="ok-note hidden"></div>
 
     <div id="forcePanel" class="hidden">
-      <p class="note">Lamé thick-cylinder contact pressure<sup><a href="#ref4">4</a></sup> from section 2's interference,
-        converted to force/torque via Coulomb friction<sup><a href="#ref5">5</a></sup>. A first-pass hand-calc, not a
+      <p class="note">Lamé thick-cylinder contact pressure<sup><a href="#ref6">6</a></sup> from section 2's interference,
+        converted to force/torque via Coulomb friction<sup><a href="#ref7">7</a></sup>. A first-pass hand-calc, not a
         substitute for FEA on a safety-critical joint.</p>
 
       <div class="row">
@@ -443,8 +437,8 @@
         </div>
       </div>
       <p class="note">Assembly flattens mating roughness peaks, reducing effective interference by roughly
-        0.8×(R<sub>z,shaft</sub>+R<sub>z,hub</sub>)<sup><a href="#ref6">6</a></sup>, with R<sub>a</sub> converted to
-        R<sub>z</sub> at ≈4× (a rough planning estimate, not an exact conversion<sup><a href="#ref8">8</a></sup>).
+        0.8×(R<sub>z,shaft</sub>+R<sub>z,hub</sub>)<sup><a href="#ref8">8</a></sup>, with R<sub>a</sub> converted to
+        R<sub>z</sub> at ≈4× (a rough planning estimate, not an exact conversion<sup><a href="#ref9">9</a></sup>).
         Leave at 0 for the full toleranced value; ~1–2.5 µm R<sub>a</sub> is typical for a turned/reamed fit.</p>
 
       <div id="forceWarn"></div>
@@ -478,20 +472,20 @@
 
     <p><strong>References</strong></p>
     <ol class="ref-list">
-      <li id="ref1"><a href="https://en.wikipedia.org/wiki/IT_Grade">IT Grade — Wikipedia</a> — wikipedia.org, citing ISO 286-1:2010 Table 1 (standard tolerance IT5–IT11 values by nominal-size range, used for the hole and shaft tolerance widths on this page).</li>
+      <li id="ref1">Equipmake, <em>DESIGN – ISO Fit Selection Guide</em>, STD-V-014 Issue 1 (Sam Peck, approved 09/04/24) — internal standard (not publicly linkable; backs the ★ preferred-fit selection, the dowel and rolling-bearing fit notes, and the plain-English name given to each preset above).</li>
       <li id="ref2"><a href="https://www.cobanengineering.com/Tolerances/UpperAndLowerDeviationsShafts.asp">Calculation of Upper and Lower Deviation for Shaft — Coban Engineering</a> — cobanengineering.com (fundamental-deviation tables for shaft letters c, d, e, f, g, h, k, m, n, p, s, u across the full 0–500&nbsp;mm size-range breakdown, and the es = ei + IT / ei = es − IT relations).</li>
-      <li id="ref3"><a href="https://www.roymech.co.uk/Useful_Tables/ISO_Tolerances/ISO_286_2s.html">ISO 286-2 Shaft Tolerance Limits — RoyMech</a> — roymech.co.uk (independent cross-check of the g6, h6, f7, k6, n6 and p6 deviation values used above).</li>
-      <li id="ref4"><a href="https://metricmech.com/calculators/press-fit">Press-Fit Interference Calculator — MetricMech</a> — metricmech.com (Lamé thick-cylinder contact-pressure and hub hoop-stress formulae for a shaft-in-hub interference fit).</li>
-      <li id="ref5"><a href="https://www.engineersedge.com/calculators/force_to_press_together_hub_and_shaft_15887.htm">Force to Press Together Hub and Shaft — Engineers Edge</a> — engineersedge.com (typical Coulomb friction coefficients: ≈0.085–0.125 dry/unlubricated, ≈0.05 with assembly lubricant).</li>
-      <li id="ref6"><a href="https://technische-antriebselemente.de/en/guides/iso-fits-h7-h6/">ISO Fits H7/H6: Tolerance Tables &amp; Selection Guide — TEA</a> — technische-antriebselemente.de (effective vs. toleranced interference, roughness-flattening reduction of ≈0.8×(Rz,shaft + Rz,hub), and DIN 7190 as the governing interference-fit design standard).</li>
-      <li id="ref7">Equipmake, <em>DESIGN – ISO Fit Selection Guide</em>, STD-V-014 Issue 1 (Sam Peck, approved 09/04/24) — internal standard (not publicly linkable; backs the ★ preferred-fit selection, the dowel and rolling-bearing fit notes, and the plain-English name given to each preset above).</li>
-      <li id="ref8"><a href="https://www.kuslaprototype.com/surface-roughness-ra-rz-explained">Surface Roughness Ra vs Rz Explained</a> — kuslaprototype.com (Rz/Ra ratio of roughly 4–7 on ordinary machined surfaces — an empirical planning estimate, not an ISO-sanctioned conversion; this page uses the low end, ≈4×, since drawings specify Ra directly).</li>
-      <li id="ref9">ISO 286-1's Δ (grade-differential) formula for the K/M/N fundamental deviations — Δ&nbsp;=&nbsp;IT<sub>n</sub>&minus;IT<sub>n−1</sub> for grades up to IT8, ES&nbsp;=&nbsp;&minus;ei(shaft k/m/n)&nbsp;+&nbsp;Δ — supplied by a Google AI Overview summary (source, 2026) and independently cross-checked here against 21 already-agreed K6/K7/K8/M6/M7/M8/N6/N7/N8 values (3–40&nbsp;mm) from three separately-hosted reference charts before being trusted; it also correctly predicted that those same charts' numbers past 40&nbsp;mm are wrong (they imply a non-constant IT7 width within the single 30–50&nbsp;mm coarse range, which ISO 286-1 doesn't allow). Not a primary-standard citation — verify against ISO 286-2 itself before using K5/M5/N5 or anything outside grades 6–8.</li>
+      <li id="ref3">ISO 286-1's Δ (grade-differential) formula for the K/M/N fundamental deviations — Δ&nbsp;=&nbsp;IT<sub>n</sub>&minus;IT<sub>n−1</sub> for grades up to IT8, ES&nbsp;=&nbsp;&minus;ei(shaft k/m/n)&nbsp;+&nbsp;Δ — supplied by a Google AI Overview summary (source, 2026) and independently cross-checked here against 21 already-agreed K6/K7/K8/M6/M7/M8/N6/N7/N8 values (3–40&nbsp;mm) from three separately-hosted reference charts before being trusted; it also correctly predicted that those same charts' numbers past 40&nbsp;mm are wrong (they imply a non-constant IT7 width within the single 30–50&nbsp;mm coarse range, which ISO 286-1 doesn't allow). Not a primary-standard citation — verify against ISO 286-2 itself before using K5/M5/N5 or anything outside grades 6–8.</li>
+      <li id="ref4"><a href="https://en.wikipedia.org/wiki/IT_Grade">IT Grade — Wikipedia</a> — wikipedia.org, citing ISO 286-1:2010 Table 1 (standard tolerance IT5–IT11 values by nominal-size range, used for the hole and shaft tolerance widths on this page).</li>
+      <li id="ref5"><a href="https://www.roymech.co.uk/Useful_Tables/ISO_Tolerances/ISO_286_2s.html">ISO 286-2 Shaft Tolerance Limits — RoyMech</a> — roymech.co.uk (independent cross-check of the g6, h6, f7, k6, n6 and p6 deviation values used above).</li>
+      <li id="ref6"><a href="https://metricmech.com/calculators/press-fit">Press-Fit Interference Calculator — MetricMech</a> — metricmech.com (Lamé thick-cylinder contact-pressure and hub hoop-stress formulae for a shaft-in-hub interference fit).</li>
+      <li id="ref7"><a href="https://www.engineersedge.com/calculators/force_to_press_together_hub_and_shaft_15887.htm">Force to Press Together Hub and Shaft — Engineers Edge</a> — engineersedge.com (typical Coulomb friction coefficients: ≈0.085–0.125 dry/unlubricated, ≈0.05 with assembly lubricant).</li>
+      <li id="ref8"><a href="https://technische-antriebselemente.de/en/guides/iso-fits-h7-h6/">ISO Fits H7/H6: Tolerance Tables &amp; Selection Guide — TEA</a> — technische-antriebselemente.de (effective vs. toleranced interference, roughness-flattening reduction of ≈0.8×(Rz,shaft + Rz,hub), and DIN 7190 as the governing interference-fit design standard).</li>
+      <li id="ref9"><a href="https://www.kuslaprototype.com/surface-roughness-ra-rz-explained">Surface Roughness Ra vs Rz Explained</a> — kuslaprototype.com (Rz/Ra ratio of roughly 4–7 on ordinary machined surfaces — an empirical planning estimate, not an ISO-sanctioned conversion; this page uses the low end, ≈4×, since drawings specify Ra directly).</li>
     </ol>
 
     <p>Materials for the force estimate (E, ν, yield strength) come from the shared library, <code>data/materials.js</code>
       — see the <a href="../materials/material-library.html">Material Library</a> page for per-grade citations.</p>
-    <p>Last updated: 2026-10-12 &middot; Rev 4</p>
+    <p>Last updated: 2026-10-26 &middot; Rev 5</p>
   </div>
 
 </main>
@@ -503,7 +497,7 @@
 // (24 ranges, 0-500mm) and coarser breakpoints for standard-tolerance
 // (IT) width (13 ranges) — this split matches the actual standard: the
 // fundamental-deviation tables use finer size steps than the IT-grade
-// table. See references 1 and 2 in the footer.
+// table. See references 4 and 2 in the footer.
 // =====================================================================
 const FINE_RANGES = [
   [0,3],[3,6],[6,10],[10,14],[14,18],[18,24],[24,30],[30,40],[40,50],
@@ -515,7 +509,7 @@ const COARSE_RANGES = [
   [0,3],[3,6],[6,10],[10,18],[18,30],[30,50],[50,80],[80,120],
   [120,180],[180,250],[250,315],[315,400],[400,500]
 ];
-// IT5..IT11 standard tolerance, µm, per COARSE_RANGES row (ref 1)
+// IT5..IT11 standard tolerance, µm, per COARSE_RANGES row (ref 4)
 const IT_TABLE = [
   [4,6,10,14,25,40,60],
   [5,8,12,18,30,48,75],
@@ -556,7 +550,7 @@ const EI_R = [10,15,19,23,23,28,28,34,34,41,43,51,54,63,65,68,77,80,84,94,98,108
 // Fundamental (lower) deviation ei, µm, for m, n, p, s, u — grade-independent
 // — per FINE_RANGES row (ref 2). The u column at the 14-18 and 18-24mm rows
 // is corrected from ref 2's own reproduction (33 and 41 µm respectively, not
-// 39/47) to match ISO 286-1 and Equipmake's own published u6 tables (ref 7).
+// 39/47) to match ISO 286-1 and Equipmake's own published u6 tables (ref 1).
 const EI_MNPSU = [
   [2,4,6,14,18],[4,8,12,19,23],[6,10,15,23,28],[7,12,18,28,33],
   [7,12,18,28,33],[8,15,22,35,41],[8,15,22,35,48],[9,17,26,43,60],
@@ -653,7 +647,7 @@ function holeDeviationExact(letter, grade, D){
 }
 
 // =====================================================================
-// Dowel fits (ISO 2388), per Equipmake's dowel guidance (ref 7, Table 1).
+// Dowel fits (ISO 2388), per Equipmake's dowel guidance (ref 1, Table 1).
 // Dowel grade fixes the shaft (m6 or h8); fit type picks the mating hole class.
 // =====================================================================
 const DOWEL_FITS = {
@@ -693,7 +687,7 @@ const HOLE_LETTER_LABEL = {
 
 // =====================================================================
 // Preferred hole-basis fits. Based on the ISO 286 preferred-fit set as
-// adopted by Equipmake's internal fit-selection standard (ref 7) — the
+// adopted by Equipmake's internal fit-selection standard (ref 1) — the
 // 10 marked ★ are that standard's Table 2 "preferred" combinations for
 // new designs; the other 4 are its documented alternatives.
 // =====================================================================
@@ -1093,8 +1087,8 @@ function updateForceSection(){
   const L = parseFloat(document.getElementById('engageLength').value) || 0;
   const hubRa = parseFloat(document.getElementById('hubRa').value) || 0;
   const shaftRa = parseFloat(document.getElementById('shaftRa').value) || 0;
-  // Drawings specify Ra, but the flattening formula (ref 6) uses Rz (peak-to-valley); Rz ≈ 4×Ra
-  // is a common planning-level approximation for machined surfaces (ref 8) — not an ISO-sanctioned
+  // Drawings specify Ra, but the flattening formula (ref 8) uses Rz (peak-to-valley); Rz ≈ 4×Ra
+  // is a common planning-level approximation for machined surfaces (ref 9) — not an ISO-sanctioned
   // conversion, so treat the result as indicative rather than exact.
   const RA_TO_RZ = 4;
   const rough = 0.8 * RA_TO_RZ * (hubRa + shaftRa); // diametral roughness-flattening reduction

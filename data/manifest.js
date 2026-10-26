@@ -7,8 +7,8 @@
 // meant to be a short summary, fully visible, not the page's full feature list. Longer detail belongs
 // on the page itself.
 window.MDG_MANIFEST = {
-  "rev": 3,
-  "updated": "2026-10-23",
+  "rev": 5,
+  "updated": "2026-10-26",
   "categories": [
     {
       "slug": "fits",
@@ -78,7 +78,7 @@ window.MDG_MANIFEST = {
       "description": "Material and cross-section selection, Parker-style groove/gland design for four seal types, and thermal-fit sizing.",
       "tags": ["o-ring", "seal", "metric", "groove", "gland", "elastomer", "working fluid", "thermal expansion", "CTE", "cost"],
       "status": "done",
-      "rev": 8
+      "rev": 10
     },
     {
       "id": "hole-basis-fits",
@@ -86,10 +86,10 @@ window.MDG_MANIFEST = {
       "category": "fits",
       "path": "calculators/fits-tolerances/hole-basis-fits.html",
       "standard": "ISO 286",
-      "description": "Hole-basis fit classes and limit dimensions, plus an interference-fit assembly/press-off force estimate.",
+      "description": "Hole-basis fit classes and limit dimensions to ISO 286, plus an interference-fit assembly and press-off force estimate.",
       "tags": ["fit", "tolerance", "ISO 286", "limits", "clearance", "interference", "press fit", "force estimate"],
       "status": "done",
-      "rev": 4
+      "rev": 5
     },
     {
       "id": "iso2768-general-tolerances",
@@ -119,10 +119,10 @@ window.MDG_MANIFEST = {
       "category": "fits",
       "path": "calculators/shaft-connections/keyways.html",
       "standard": "DIN 6885-1 / ISO/R 773",
-      "description": "Parallel key and keyway sizing by shaft diameter, plus a torque-capacity check for minimum key length.",
+      "description": "Parallel key and keyway sizing by shaft diameter to DIN 6885-1, plus a torque-capacity check for minimum key length.",
       "tags": ["keyway", "key", "shaft", "DIN 6885", "ISO 773", "spline", "torque capacity", "shear stress", "bearing stress", "factor of safety"],
       "status": "done",
-      "rev": 5
+      "rev": 7
     },
     {
       "id": "splines-din5480",
@@ -144,7 +144,7 @@ window.MDG_MANIFEST = {
       "description": "Tightening torque for bolted, PEM clinch-nut and tapped-hole joints, plus clamp load design for the number of screws.",
       "tags": ["screw", "bolt", "torque", "preload", "ISO 898", "ISO 3506", "nyloc", "rivnut", "self-clinching nut", "PEM", "clinch nut", "pullout", "thread stripping", "NASA", "fine pitch", "Stover", "prevailing torque", "all-metal lock nut", "clamp load"],
       "status": "done",
-      "rev": 12
+      "rev": 13
     },
     {
       "id": "fastener-library",
@@ -163,10 +163,10 @@ window.MDG_MANIFEST = {
       "category": "fasteners",
       "path": "calculators/fasteners/din76-thread-undercuts.html",
       "standard": "DIN 76-1",
-      "description": "Thread run-out/undercut reference: pick a size, pitch and relief form for a diagram and standard dimensions.",
+      "description": "Thread run-out and undercut reference: pick a size, pitch and relief form for a dimensioned diagram and standard values.",
       "tags": ["DIN 76", "thread undercut", "thread relief", "thread run-out", "groove", "neck", "shaft end", "tapped hole"],
       "status": "done",
-      "rev": 4
+      "rev": 5
     },
     {
       "id": "hv-cable-sizing",
@@ -262,7 +262,7 @@ window.MDG_MANIFEST = {
       "category": "libraries",
       "path": "calculators/components/locknut-library.html",
       "standard": "SKF catalogue data · ISO 2982-2 / DIN 981",
-      "description": "SKF KM, KMFE and KMT lock nuts M10–M60 with MB lock washers, shaft-slot size and axial load capacity.",
+      "description": "SKF KM, KMFE and KMT lock nut library, M10–M60, with MB lock washers, shaft-slot size and axial load capacity.",
       "tags": ["lock nut", "locknut", "KM", "KMFE", "KMT", "MB", "lock washer", "SKF", "shaft nut", "bearing retention", "DIN 981", "COTS"],
       "status": "done",
       "rev": 4
