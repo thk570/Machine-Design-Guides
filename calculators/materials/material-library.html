@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>(function(){try{var t=localStorage.getItem('mdg-theme');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<script>(function(){try{var s=null,t=0,m;try{s=localStorage.getItem('mdg-theme');t=+localStorage.getItem('mdg-theme-ts')||0;}catch(e){}m=/^mdg-theme=(auto|light|dark)@(\d+)$/.exec(window.name||'');if(m&&+m[2]>t){s=m[1];}if(s==='light'||s==='dark'){document.documentElement.setAttribute('data-theme',s);}}catch(e){}})();</script>
 <title>Material Library — Machine Design Guides</title>
 <style>
   /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
@@ -177,7 +177,7 @@
       <li id="ref1"><a href="https://www.mmpds.org/">MMPDS-14</a> — Metallic Materials Properties Development and Standardization.</li>
     </ul>
     <p>Per-grade sources are listed in each row's detail view.</p>
-    <p>Last updated: 2026-10-23 &middot; Rev 7</p>
+    <p>Last updated: 2026-10-29 &middot; Rev 8</p>
   </div>
 
 </main>
@@ -411,24 +411,43 @@
   var STATES = ['auto','light','dark'];
   var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
   var btn = document.getElementById('mdg-theme-toggle');
+  var root = document.documentElement;
   function current(){
-    var t = document.documentElement.getAttribute('data-theme');
+    var t = root.getAttribute('data-theme');
     return (t === 'light' || t === 'dark') ? t : 'auto';
   }
-  function apply(state){
-    if (state === 'auto') { document.documentElement.removeAttribute('data-theme'); }
-    else { document.documentElement.setAttribute('data-theme', state); }
-    try {
-      if (state === 'auto') { localStorage.removeItem('mdg-theme'); }
-      else { localStorage.setItem('mdg-theme', state); }
-    } catch (e) {}
+  // Newest saved choice: localStorage (shared by same-origin pages) vs window.name (follows the tab,
+  // covers browsers that give each file:// page its own storage). Timestamps decide which is newer.
+  function saved(){
+    var s = null, t = 0, m;
+    try { s = localStorage.getItem('mdg-theme'); t = +localStorage.getItem('mdg-theme-ts') || 0; } catch (e) {}
+    m = /^mdg-theme=(auto|light|dark)@(\d+)$/.exec(window.name || '');
+    if (m && +m[2] > t) { s = m[1]; }
+    return STATES.indexOf(s) > -1 ? s : null;
+  }
+  function show(state){
+    if (state === 'auto') { root.removeAttribute('data-theme'); }
+    else { root.setAttribute('data-theme', state); }
     if (btn) { btn.textContent = LABELS[state]; }
   }
+  function save(state){
+    var ts = Date.now();
+    try { localStorage.setItem('mdg-theme', state); localStorage.setItem('mdg-theme-ts', String(ts)); } catch (e) {}
+    if (!window.name || /^mdg-theme=/.test(window.name)) { window.name = 'mdg-theme=' + state + '@' + ts; }
+  }
+  // Re-apply the saved choice when the page is shown from the back/forward cache, when the tab regains
+  // focus, or when another tab changes it, so the toggle never shows a stale state.
+  function sync(){ var s = saved(); if (s && s !== current()) { show(s); } }
+  show(current());
+  sync();
+  window.addEventListener('pageshow', sync);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) { sync(); } });
+  window.addEventListener('storage', function(e){ if (!e.key || e.key.indexOf('mdg-theme') === 0) { sync(); } });
   if (btn) {
-    btn.textContent = LABELS[current()];
     btn.addEventListener('click', function(){
-      var idx = STATES.indexOf(current());
-      apply(STATES[(idx + 1) % STATES.length]);
+      var next = STATES[(STATES.indexOf(current()) + 1) % STATES.length];
+      show(next);
+      save(next);
     });
   }
 })();
