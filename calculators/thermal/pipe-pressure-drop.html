@@ -339,7 +339,7 @@
       <li id="ref11"><a href="https://www.engineeringtoolbox.com/cubical-expansion-coefficients-d_1262.html" target="_blank" rel="noopener">Volumetric (Cubical) Expansion Coefficients</a> &mdash; engineeringtoolbox.com (oil &beta; &asymp; 0.00070&nbsp;1/K, used for oil density vs temperature).</li>
       <li id="ref12"><a href="https://en.wikipedia.org/wiki/Darcy_friction_factor_formulae" target="_blank" rel="noopener">Darcy friction factor formulae</a> &mdash; Wikipedia (f = 64/Re laminar; Swamee&ndash;Jain, valid 5000 &le; Re &le; 10<sup>8</sup>, 10<sup>&minus;6</sup> &le; &epsilon;/D &le; 0.05; transition Re 2300&ndash;4000).</li>
     </ol>
-    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-12 &middot; Rev 3</p>
+    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-29 &middot; Rev 4</p>
   </div>
 </main>
 
@@ -402,16 +402,16 @@
     FLUIDS_SORTED.forEach(function (f) {
       if (f.model === 'table') {
         html += '<p style="margin:0.6rem 0 0.3rem; font-weight:600; font-size:0.85rem;">' + f.name + sups(REF[f.id] || []) + '</p>' +
-          '<table class="mdg-table"><thead><tr><th>Property</th>' + '<th>&deg;C: value</th></tr></thead><tbody>' +
+          '<div class="table-scroll"><table class="mdg-table"><thead><tr><th>Property</th>' + '<th>&deg;C: value</th></tr></thead><tbody>' +
           '<tr><td>&rho; (kg/m&sup3;)</td><td>' + f.rho.map(function (p) { return p[0] + '&nbsp;&deg;C: ' + p[1]; }).join(' &middot; ') + '</td></tr>' +
-          '<tr><td>&mu; (cP)</td><td>' + f.mu.map(function (p) { return p[0] + '&nbsp;&deg;C: ' + p[1]; }).join(' &middot; ') + '</td></tr></tbody></table>';
+          '<tr><td>&mu; (cP)</td><td>' + f.mu.map(function (p) { return p[0] + '&nbsp;&deg;C: ' + p[1]; }).join(' &middot; ') + '</td></tr></tbody></table></div>';
       }
     });
     html += '<p style="margin:0.9rem 0 0.3rem; font-weight:600; font-size:0.85rem;">Oils &mdash; datasheet points</p>' +
-      '<table class="mdg-table"><thead><tr><th>Fluid</th><th class="num">&nu; 40&nbsp;&deg;C (mm&sup2;/s)</th><th class="num">&nu; 100&nbsp;&deg;C (mm&sup2;/s)</th><th class="num">&rho; 15&nbsp;&deg;C (kg/m&sup3;)</th><th class="num">Range (&deg;C)</th></tr></thead><tbody>' +
+      '<div class="table-scroll"><table class="mdg-table"><thead><tr><th>Fluid</th><th class="num">&nu; 40&nbsp;&deg;C (mm&sup2;/s)</th><th class="num">&nu; 100&nbsp;&deg;C (mm&sup2;/s)</th><th class="num">&rho; 15&nbsp;&deg;C (kg/m&sup3;)</th><th class="num">Range (&deg;C)</th></tr></thead><tbody>' +
       FLUIDS_SORTED.filter(function (f) { return f.model === 'walther'; }).map(function (f) {
         return '<tr><td>' + f.name + sups([(REF[f.id] || [])[0]]) + '</td><td class="num">' + f.nu40 + '</td><td class="num">' + f.nu100 + '</td><td class="num">' + f.rho15 + '</td><td class="num">' + f.range_C[0] + '&ndash;' + f.range_C[1] + '</td></tr>';
-      }).join('') + '</tbody></table>' +
+      }).join('') + '</tbody></table></div>' +
       '<p class="note">Walther fit reproduces the Tellus 0&nbsp;&deg;C datasheet values within 1&nbsp;%' + sups([7, 8]) + '. ATF and 75W-90 are multigrade, so their range starts at 20&nbsp;&deg;C.</p>';
     el('fluid-tables').innerHTML = html;
   }

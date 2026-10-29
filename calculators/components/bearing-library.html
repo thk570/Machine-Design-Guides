@@ -54,6 +54,7 @@
   table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
     padding: 0.35rem 0.55rem; text-align: left; font-size: 0.84rem; }
   table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  .mdg-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }  /* wide tables side-scroll on narrow screens (REQ-0019) */
   table.mdg-table td.num, table.mdg-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
   table.mdg-table tr.current td { font-weight: 600; background: var(--mdg-accent-soft); }
   table.pick tbody tr { cursor: pointer; }
@@ -228,26 +229,26 @@
     </div>
     <div class="mdg-card">
       <h2>5. Dimensions &amp; abutments</h2>
-      <table class="mdg-table"><tbody id="dim-body"></tbody></table>
+      <div class="mdg-scroll"><table class="mdg-table"><tbody id="dim-body"></tbody></table></div>
     </div>
   </div>
 
   <div class="grid-2">
     <div class="mdg-card">
       <h2>6. Calculation data</h2>
-      <table class="mdg-table"><tbody id="calc-body"></tbody></table>
+      <div class="mdg-scroll"><table class="mdg-table"><tbody id="calc-body"></tbody></table></div>
       <p class="note" id="calc-note"></p>
     </div>
     <div class="mdg-card">
       <h2>7. Tolerances &amp; properties</h2>
-      <table class="mdg-table"><tbody id="tol-body"></tbody></table>
+      <div class="mdg-scroll"><table class="mdg-table"><tbody id="tol-body"></tbody></table></div>
       <p class="note" id="tol-note"></p>
     </div>
   </div>
 
   <div class="mdg-card" id="var-card">
     <h2>8. Shielded and sealed versions</h2>
-    <table class="mdg-table pick" id="var-table"></table>
+    <div class="mdg-scroll"><table class="mdg-table pick" id="var-table"></table></div>
     <p class="note" id="var-note"></p>
   </div>
 
@@ -267,7 +268,7 @@
     <p style="margin-top:0.75rem;"><strong>References</strong></p>
     <ol class="ref-list" id="ref-list"></ol>
 
-    <p>Last updated: 2026-10-16 &middot; Rev 5</p>
+    <p>Last updated: 2026-10-29 &middot; Rev 6</p>
   </div>
 
 </main>

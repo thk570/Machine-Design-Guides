@@ -52,6 +52,7 @@
   table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
     padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
   table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  .mdg-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }  /* wide tables side-scroll on narrow screens (REQ-0019) */
   table.mdg-table tr.current td { font-weight: 600; background: rgba(59,110,165,0.14); }
   .note { font-size: 0.8rem; color: var(--mdg-text-muted); margin-top: 0.5rem; }
   label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem; }
@@ -369,10 +370,10 @@
     <details class="mdg-collapsible" id="table-details">
       <summary>All DIN 6885-1 shaft-diameter bands <span class="hint">current selection highlighted — click to expand</span></summary>
       <div class="mdg-collapsible-body">
-        <table class="mdg-table">
+        <div class="mdg-scroll"><table class="mdg-table">
           <thead><tr><th>Shaft dia., D (mm)</th><th>Key W&times;H (mm)</th><th>Shaft keyway depth, T1 (mm)</th><th>Hub keyway depth, T2 (mm)</th></tr></thead>
           <tbody id="table-body"></tbody>
-        </table>
+        </table></div>
       </div>
     </details>
   </div>
@@ -397,7 +398,7 @@
       <li id="ref5"><a href="https://www.roymech.co.uk/Useful_Tables/Keyways/key_strength.html">Key and Spline Strength Calculations</a> — roymech.co.uk (allowable-stress/factor-of-safety approach to key design; long-key load-distribution caveat).</li>
     </ol>
 
-    <p>Last updated: 2026-10-26 &middot; Rev 7</p>
+    <p>Last updated: 2026-10-29 &middot; Rev 8</p>
   </div>
 
 </main>

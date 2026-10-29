@@ -78,11 +78,12 @@
   table.mdg-table { border-collapse: collapse; width: 100%; }
   table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border); padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; vertical-align: top; }
   table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  .mdg-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }  /* wide tables side-scroll on narrow screens (REQ-0019) */
   td.num, th.num { text-align: right; font-family: var(--mdg-font-mono); white-space: nowrap; }
   td.sym { font-family: var(--mdg-font-mono); color: var(--mdg-text-muted); white-space: nowrap; }
   td.tol { color: var(--mdg-text-muted); font-size: 0.8rem; }
   tr.dim td { color: var(--mdg-text-muted); }
-  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1rem; }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: 1rem; }
   .two > div { min-width: 0; }
   .desig-row { display: flex; gap: 0.5rem; align-items: flex-start; margin-bottom: 0.5rem; }
   .desig-row .desig { flex: 1; min-width: 0; margin-bottom: 0; }
@@ -218,7 +219,7 @@
     <div id="insp-warn"></div>
     <p class="note">Lengths in mm. Tip-circle fits follow the recommended values in DIN 5480-1 Table 5. Shaft inspection by method A (over pins) or B (base tangent) — B only where the measurement is reliable.</p>
     <details class="mdg-collapsible"><summary>Intermediate values <span class="hint">profile shift, base circle, effective gauge sizes</span></summary>
-      <div class="mdg-collapsible-body"><table class="mdg-table"><tbody id="t-inter"></tbody></table></div></details>
+      <div class="mdg-collapsible-body"><div class="mdg-scroll"><table class="mdg-table"><tbody id="t-inter"></tbody></table></div></div></details>
   </div>
 
   <!-- ============ 3. LOAD & STRESS INPUTS ============ -->
@@ -296,7 +297,7 @@
       <li id="ref2">Spline Stress Calculations — DIN 5480 (internal spreadsheet) — stress equations, factor and allowable tables. The sheet cites Machinery's Handbook 27th ed., Gears, Splines and Cams (pp. 2169–2174) and D. W. Dudley, <em>When Splines Need Stress Control</em>; neither opened for this page. The sheet applies Le even where the spline is shorter; this page uses the smaller of L and Le.</li>
       <li id="ref3">DIN 5480-1:2006-03 (PDF supplied) — Tables 4, 7, 9; DIN 5480-2:2006-05 (English translation read via <a href="https://www.scribd.com/document/379274426/DIN-5480-2">scribd.com</a>) — Tables 2–33 preferred sizes, pin diameters DM, teeth measured k and Wk reliability flags. Wk calculated, matching table values to 0.002 mm.</li>
     </ol>
-    <p>Last updated: 2026-10-23 &middot; Rev 2</p>
+    <p>Last updated: 2026-10-29 &middot; Rev 3</p>
   </div>
 </main>
 
@@ -688,7 +689,7 @@ function runFinder() {
 function update() { updateMain(); try { runFinder(); } catch (e) { console.error(e); } }
 
 function renderRef() {
-  const t = (head, rows) => `<table class="mdg-table"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  const t = (head, rows) => `<div class="mdg-scroll"><table class="mdg-table"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   $('ref-tables').innerHTML =
     '<h3>Ka — application factor</h3>' + t(['Power source','Uniform load','Light shock','Intermittent shock','Heavy shock'],[['Uniform (turbine, motor)',1.0,1.2,1.5,1.8],['Light shock (hydraulic motor)',1.2,1.3,1.8,2.1],['Medium shock (IC engine)',2.0,2.2,2.4,2.8]]) +
     '<h3>Km — flexible splines, by misalignment and face width</h3>' + t(['Misalignment (in/in)','½ in','1 in','2 in','4 in'],[['0.001',1,1,1,1.5],['0.002',1,1,1.5,2],['0.004',1,1.5,2,2.5],['0.008',1.5,2,2.5,3]]) +

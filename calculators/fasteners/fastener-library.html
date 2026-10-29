@@ -53,6 +53,7 @@
   table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
     padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
   table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  .mdg-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }  /* wide tables side-scroll on narrow screens (REQ-0019) */
   table.mdg-table td.num, table.mdg-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
   table.mdg-table tr.current td { font-weight: 600; background: var(--mdg-accent-soft); }
   td.sym { font-style: italic; color: var(--mdg-text-muted); width: 3.2rem; }
@@ -235,8 +236,8 @@
     <div class="mdg-card">
       <h2>4. Head &amp; Drive Dimensions</h2>
       <div class="tool" id="tool"></div>
-      <table class="mdg-table"><thead><tr><th></th><th>Dimension</th><th class="num">Value (mm)</th></tr></thead>
-        <tbody id="dim-body"></tbody></table>
+      <div class="mdg-scroll"><table class="mdg-table"><thead><tr><th></th><th>Dimension</th><th class="num">Value (mm)</th></tr></thead>
+        <tbody id="dim-body"></tbody></table></div>
       <p class="note" id="dim-note"></p>
     </div>
   </div>
@@ -245,17 +246,17 @@
     <!-- ============ 5. THREAD & HOLES ============ -->
     <div class="mdg-card">
       <h2>5. Thread &amp; Mating Holes</h2>
-      <table class="mdg-table"><tbody id="thread-body"></tbody></table>
+      <div class="mdg-scroll"><table class="mdg-table"><tbody id="thread-body"></tbody></table></div>
       <p class="note" id="thread-note"></p>
     </div>
 
     <!-- ============ 6. PROPERTY CLASS ============ -->
     <div class="mdg-card">
       <h2 id="class-title">6. Property Class</h2>
-      <table class="mdg-table">
+      <div class="mdg-scroll"><table class="mdg-table">
         <thead><tr><th>Property</th><th class="num">Stress</th><th class="num">Load at A<sub>s</sub></th></tr></thead>
         <tbody id="class-body"></tbody>
-      </table>
+      </table></div>
       <p class="note" id="class-note"></p>
       <a class="btn-link mdg-no-print" id="torque-link" href="screw-torque.html">Open Screw Torques</a>
       <p class="note mdg-no-print" id="torque-link-note" style="display:none;"></p>
@@ -319,7 +320,7 @@
     <p style="margin-top:0.75rem;"><strong>References</strong></p>
     <ol class="ref-list" id="ref-list"></ol>
 
-    <p>Last updated: 2026-10-16 &middot; Rev 7</p>
+    <p>Last updated: 2026-10-29 &middot; Rev 8</p>
   </div>
 
 </main>

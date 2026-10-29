@@ -52,6 +52,7 @@
   table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
     padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
   table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  .mdg-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }  /* wide tables side-scroll on narrow screens (REQ-0019) */
   table.mdg-table tr.current td { font-weight: 600; background: rgba(165,59,143,0.12); }
   .note { font-size: 0.82rem; color: var(--mdg-text-muted); margin: 0.5rem 0 0; line-height: 1.45; }
   label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.3rem; }
@@ -242,13 +243,13 @@
     <details class="mdg-collapsible" style="margin-top:0.75rem;">
       <summary>Current-density defaults used above <span class="hint">base density &times; environment factor, by material family</span></summary>
       <div class="mdg-collapsible-body">
-        <table class="mdg-table">
+        <div class="mdg-scroll"><table class="mdg-table">
           <thead><tr><th>Material family</th><th>Base J, open air</th><th>Enclosed / poor vent.<sup><a href="#ref3">3</a></sup></th><th>Open air (reference)</th><th>Outdoor / forced-air<sup><a href="#ref4">4</a></sup></th></tr></thead>
           <tbody>
             <tr><td>Aluminium</td><td>1.04 A/mm&sup2;<sup><a href="#ref1">1</a>,<a href="#ref2">2</a></sup></td><td>0.73 A/mm&sup2; (&times;0.70)</td><td>1.04 A/mm&sup2; (&times;1.00)</td><td>1.14 A/mm&sup2; (&times;1.10)</td></tr>
             <tr><td>Copper</td><td>5.00 A/mm&sup2;</td><td>3.50 A/mm&sup2; (&times;0.70)</td><td>5.00 A/mm&sup2; (&times;1.00)</td><td>5.50 A/mm&sup2; (&times;1.10)</td></tr>
           </tbody>
-        </table>
+        </table></div>
         <p class="note">Copper's base is Equipmake's own design target, above the cited literature range.
           Aluminium's base follows that literature range, at ~65% of a "typical" copper value<sup><a href="#ref1">1</a></sup>.
           Knockdown factors aren't a substitute for a full IEC&nbsp;61439-1 calculation.</p>
@@ -384,7 +385,7 @@
       <li id="ref7"><a href="https://electrical-engineering-portal.com/calculating-the-short-circuit-heating-of-busbars" target="_blank" rel="noopener">Calculating The Short-Circuit Heating Of Busbars</a> — electrical-engineering-portal.com (adiabatic heating formula; ~200&nbsp;°C short-time temperature limit for bare copper).</li>
       <li id="ref8"><a href="https://industrialmonitordirect.com/blogs/knowledgebase/calculating-copper-busbar-cross-section-for-7000a-peak-and-1600a-continuous" target="_blank" rel="noopener">Copper Busbar Sizing: 7000A Peak and 1600A Continuous Current</a> — industrialmonitordirect.com (worked example: continuous current governs cross-section, peak current checked separately via adiabatic heating since a short pulse doesn't reach thermal equilibrium).</li>
     </ol>
-    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-12 &middot; Rev 6.</p>
+    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-29 &middot; Rev 7.</p>
   </div>
 
 </main>

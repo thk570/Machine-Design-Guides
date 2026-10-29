@@ -53,6 +53,7 @@
   table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
     padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
   table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  .mdg-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }  /* wide tables side-scroll on narrow screens (REQ-0019) */
   table.mdg-table tr.current td { font-weight: 600; background: rgba(165,98,59,0.10); }
   .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
     background: var(--mdg-surface); margin: 1rem 0; }
@@ -1313,10 +1314,10 @@ c4 -24 -26 -40 -34 -18 -8 21 3 47 19 43 6 -3 13 -14 15 -25z m22 -152 c0 -14
     <details class="mdg-collapsible">
       <summary>Quick reference — all sizes, current form <span class="hint">&#8960;dg, groove length (min/max), run-out and r at coarse pitch for every standard size</span></summary>
       <div class="mdg-collapsible-body">
-        <table class="mdg-table">
+        <div class="mdg-scroll"><table class="mdg-table">
           <thead><tr><th>Size</th><th>Pitch, P (mm)</th><th>&#8960;dg (mm)</th><th>Groove length, min (mm)</th><th>Groove length, max (mm)</th><th>Run-out, max (mm)</th><th>r &#8776; (mm)</th></tr></thead>
           <tbody id="table-body"></tbody>
-        </table>
+        </table></div>
       </div>
     </details>
   </div>
@@ -1337,7 +1338,7 @@ c4 -24 -26 -40 -34 -18 -8 21 3 47 19 43 6 -3 13 -14 15 -25z m22 -152 c0 -14
       <li id="ref2"><a href="https://www.scribd.com/document/737674723/DIN-76-2024-UNDERCUTS-PARA-PARAFUSOS" target="_blank" rel="noopener">DIN 76 (2024) — Thread run-outs and thread undercuts, Table 1 (external, Forms A/B) and Table 2 (internal, Forms C/D)</a> — scribd.com (source of the per-pitch &#8960;dg offset, minimum/maximum groove length, guideline thread run-out and corner radius values transcribed into this page's lookup table).</li>
       <li id="ref3">Screw Torques page, this suite — <a href="../fasteners/screw-torque.html">calculators/fasteners/screw-torque.html</a> (source of the coarse-pitch-by-size table reused here).</li>
     </ol>
-    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-26 &middot; Rev 5</p>
+    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-29 &middot; Rev 6</p>
   </div>
 
 </main>

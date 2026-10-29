@@ -28,7 +28,7 @@
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
-  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; flex-wrap: wrap;
     padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); }
   .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
   .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
@@ -52,7 +52,7 @@
   sup a:hover, .ref-list a:hover { text-decoration: underline; }
   .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
   .ref-list li { margin-bottom: 0.35rem; }
-  .note { font-size: 0.82rem; color: var(--mdg-text-muted); margin: 0.5rem 0 0; }
+  .note { font-size: 0.82rem; color: var(--mdg-text-muted); margin: 0.5rem 0 0; overflow-wrap: anywhere; }
   .warn { font-size: 0.8rem; background: color-mix(in srgb, #b23b3b 12%, transparent);
     border: 1px solid #b23b3b; color: #b23b3b; border-radius: var(--mdg-radius);
     padding: 0.5rem 0.75rem; margin: 0.75rem 0 0; }
@@ -113,7 +113,7 @@
       <span class="mdg-tag">Electrical</span>
     </div>
   </div>
-  <div style="display:flex; align-items:center; gap:0.75rem;">
+  <div style="display:flex; align-items:center; gap:0.5rem 0.75rem; flex-wrap:wrap;">
     <div style="font-size:0.85rem; color:var(--mdg-text-muted);">Internal method (IEC 60287-style)</div>
     <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
     <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
@@ -334,7 +334,7 @@
         short-circuit temperatures: 160&nbsp;°C PVC, 250&nbsp;°C XLPE/EPR).</li>
     </ol>
 
-    <p>Last updated: 2026-10-12 &middot; Rev 6</p>
+    <p>Last updated: 2026-10-29 &middot; Rev 7</p>
   </div>
 
 </main>

@@ -323,7 +323,7 @@
       <li id="ref2"><a href="https://www.engineeringtoolbox.com/linear-thermal-expansion-d_1379.html" target="_blank" rel="noopener">Linear Thermal Expansion</a> &mdash; engineeringtoolbox.com (dL&nbsp;=&nbsp;L<sub>0</sub>&alpha;(t<sub>1</sub>&nbsp;&minus;&nbsp;t<sub>0</sub>) with worked aluminium example; coefficient varies with temperature, so integrate over smaller spans for wide ranges).</li>
       <li id="ref3">Shared material library, <a href="../materials/material-library.html">data/materials.js</a> &mdash; mean linear CTE per grade (cited per grade on the Material Library page).</li>
     </ol>
-    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-16 &middot; Rev 5</p>
+    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-10-29 &middot; Rev 6</p>
   </div>
 
 </main>
@@ -448,10 +448,10 @@
         '<td class="num">' + sgn((Xb - Xa) * 1000, 1) + '</td><td class="num">' + sgn((Yb - Ya) * 1000, 1) + '</td>' +
         '<td class="num">' + (r.ref ? '–' : sgn(dgX * 1000, 1)) + '</td><td class="num">' + (r.ref ? '–' : sgn(dgY * 1000, 1)) + '</td></tr>';
     }).join('');
-    return '<table class="mdg-table"><thead><tr><th>Point</th><th class="num">Temp A / B (&deg;C)</th>' +
+    return '<div class="table-scroll"><table class="mdg-table"><thead><tr><th>Point</th><th class="num">Temp A / B (&deg;C)</th>' +
       '<th class="num">Size diff. X, B&minus;A (&micro;m)</th><th class="num">Size diff. Y, B&minus;A (&micro;m)</th>' +
       '<th class="num">Differential growth X (&micro;m)</th><th class="num">Differential growth Y (&micro;m)</th></tr></thead><tbody>' +
-      rows + '</tbody></table>';
+      rows + '</tbody></table></div>';
   }
 
   function renderDiagram(a, b) {

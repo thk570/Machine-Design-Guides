@@ -53,6 +53,7 @@
   table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
     padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
   table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  .mdg-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }  /* wide tables side-scroll on narrow screens (REQ-0019) */
   table.mdg-table tr.boundary td { font-weight: 600; }
   .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
     background: var(--mdg-surface); margin: 1rem 0; }
@@ -175,10 +176,10 @@
         </select>
       </div>
     </div>
-    <table class="mdg-table">
+    <div class="mdg-scroll"><table class="mdg-table">
       <thead><tr><th>Material</th><th>Temp range</th><th>Hardness</th><th>CTE (×10⁻⁶/°C)</th><th>Relative cost</th><th>Fit for selected medium</th><th>Typical use</th></tr></thead>
       <tbody id="material-body"></tbody>
-    </table>
+    </table></div>
     <p class="note">Typical values and cost index (NBR&nbsp;=&nbsp;1.0×) per elastomer family<sup><a href="#ref1">1</a></sup>; actual limits vary by compound and cure.
       CTE is approximate and disputed by source<sup><a href="#ref2">2</a>,<a href="#ref3">3</a></sup> (section 4 uses one representative ≈150&nbsp;×10⁻⁶/°C
       rather than a per-material figure). The fit badge is general guidance — check chemical compatibility against the datasheet and service conditions.</p>
@@ -1439,7 +1440,7 @@ m64 -18 c30 -29 10 -94 -28 -94 -21 0 -36 23 -36 55 0 50 33 71 64 39z M4110
       <div class="mdg-collapsible-body">
         <p class="note" style="margin-top:0;">As used in the Parker diagrams and tables above<sup><a href="#ref4">4</a></sup>
           — not every symbol applies to every seal type.</p>
-        <table class="mdg-table">
+        <div class="mdg-scroll"><table class="mdg-table">
           <thead><tr><th>Symbol</th><th>Applies to</th><th>Meaning</th></tr></thead>
           <tbody>
             <tr><td>d1</td><td>reference figure</td><td>Centre-to-centre pitch between adjacent O-ring cross-sections in the catalog's surface-roughness illustration — not used in this page's calculations.</td></tr>
@@ -1463,12 +1464,12 @@ m64 -18 c30 -29 10 -94 -28 -94 -21 0 -36 23 -36 55 0 50 33 71 64 39z M4110
             <tr><td>0° to 5°</td><td>all</td><td>Lead-in chamfer angle at the groove mouth — eases ring installation without cutting or rolling it.</td></tr>
             <tr><td>15° to 20°</td><td>piston &amp; rod seal</td><td>Lead-in chamfer angle at the piston/rod OD or housing bore entry.</td></tr>
           </tbody>
-        </table>
+        </table></div>
       </div>
     </details>
 
     <h3>ID / OD stretch limits (typical)</h3>
-    <table class="mdg-table">
+    <div class="mdg-scroll"><table class="mdg-table">
       <thead><tr><th>Gland type</th><th>Stretch condition</th><th>Typical max stretch</th></tr></thead>
       <tbody>
         <tr><td>Face seal, external pressure</td><td>O-ring ID vs. groove ID</td><td>≤ 6%<sup><a href="#ref4">4</a></sup></td></tr>
@@ -1476,7 +1477,7 @@ m64 -18 c30 -29 10 -94 -28 -94 -21 0 -36 23 -36 55 0 50 33 71 64 39z M4110
         <tr><td>Piston (bore) gland</td><td>O-ring ID stretched over piston OD</td><td>≤ 5%<sup><a href="#ref5">5</a></sup></td></tr>
         <tr><td>Rod gland</td><td>O-ring ID stretched over rod OD</td><td>≤ 2%<sup><a href="#ref5">5</a></sup></td></tr>
       </tbody>
-    </table>
+    </table></div>
   </div>
 
   <!-- ============ 4. O-RING ID RANGE — THERMAL FIT ============ -->
@@ -1515,10 +1516,10 @@ m64 -18 c30 -29 10 -94 -28 -94 -21 0 -36 23 -36 55 0 50 33 71 64 39z M4110
       <div class="result"><div class="k" id="out-id-range-label">Suggested free ID range</div><div class="v" id="out-id-range">–</div></div>
     </div>
     <div id="out-warning"></div>
-    <table class="mdg-table" id="size-table-wrap" style="margin-top:0.75rem;">
+    <div class="mdg-scroll"><table class="mdg-table" id="size-table-wrap" style="margin-top:0.75rem;">
       <thead id="size-table-head"><tr><th>Candidate free ID (mm)</th><th>Stretch at T&nbsp;min</th><th>Stretch at T&nbsp;max</th></tr></thead>
       <tbody id="size-table-body"></tbody>
-    </table>
+    </table></div>
     <p class="note">Rows step in 0.5&nbsp;mm between the suggested limits (bold first/last rows), so you can see
       the fit margin at both temperature extremes before picking a size. Reference temperature 20°C (ISO 1); mean
       dimension is the mating feature's size at 20°C. CTE values are typical published figures<sup><a href="#ref8">8</a></sup>,
@@ -1553,7 +1554,7 @@ m64 -18 c30 -29 10 -94 -28 -94 -21 0 -36 23 -36 55 0 50 33 71 64 39z M4110
     </ol>
     <p class="note" style="margin-top:0.75rem;">Third-party technical/supplier sources, not the standards
       themselves — verify against the governing standard or datasheet for a specific design.<br>
-      Last updated: 2026-10-26 &middot; Rev 10</p>
+      Last updated: 2026-10-29 &middot; Rev 11</p>
   </div>
 
 </main>

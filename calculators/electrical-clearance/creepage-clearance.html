@@ -53,6 +53,7 @@
   table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
     padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
   table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  .mdg-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }  /* wide tables side-scroll on narrow screens (REQ-0019) */
   .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
     background: var(--mdg-surface); margin: 1rem 0; }
   .mdg-collapsible > summary { cursor: pointer; list-style: none; display: flex; align-items: center;
@@ -261,7 +262,7 @@
   <details class="mdg-collapsible">
     <summary>Table F.1 — Rated impulse withstand voltage <span class="hint">by nominal supply voltage and overvoltage category</span></summary>
     <div class="mdg-collapsible-body">
-      <table class="mdg-table">
+      <div class="mdg-scroll"><table class="mdg-table">
         <thead><tr><th>Nominal a.c./d.c. supply voltage, up to and including</th><th>OVC I</th><th>OVC II</th><th>OVC III</th><th>OVC IV</th></tr></thead>
         <tbody>
           <tr><td>50 V</td><td>330 V</td><td>500 V</td><td>800 V</td><td>1500 V</td></tr>
@@ -272,7 +273,7 @@
           <tr><td>1000 V</td><td>4000 V</td><td>6000 V</td><td>8000 V</td><td>12000 V</td></tr>
           <tr><td>1500 V</td><td>6000 V</td><td>8000 V</td><td>10000 V</td><td>15000 V</td></tr>
         </tbody>
-      </table>
+      </table></div>
       <p class="note">Reproduced from IEC 60664-1 Table F.1<sup><a href="#ref1">1</a></sup>. Above 1500&nbsp;V this
         tool does not extrapolate — check the standard directly.</p>
     </div>
@@ -281,7 +282,7 @@
   <details class="mdg-collapsible">
     <summary>Table F.2 — Minimum clearance vs. rated impulse voltage <span class="hint">plus pollution-degree floor values</span></summary>
     <div class="mdg-collapsible-body">
-      <table class="mdg-table">
+      <div class="mdg-scroll"><table class="mdg-table">
         <thead><tr><th>U<sub>imp</sub></th><th>Min. clearance</th></tr></thead>
         <tbody>
           <tr><td>0.33 kV</td><td>0.01 mm</td></tr>
@@ -296,7 +297,7 @@
           <tr><td>12 kV</td><td>14 mm</td></tr>
           <tr><td>15 kV</td><td>18 mm</td></tr>
         </tbody>
-      </table>
+      </table></div>
       <p class="note">Values for altitude &le; 2000&nbsp;m, non-uniform (case B) field, basic/functional
         insulation<sup><a href="#ref1">1</a>,<a href="#ref5">5</a></sup>. Regardless of U<sub>imp</sub>, the
         clearance is never allowed below a pollution-degree floor: PD1 0.01&nbsp;mm, PD2 0.2&nbsp;mm,
@@ -307,7 +308,7 @@
   <details class="mdg-collapsible">
     <summary>Table A.2 — Altitude correction factor <span class="hint">multiplies the clearance above 2000 m</span></summary>
     <div class="mdg-collapsible-body">
-      <table class="mdg-table">
+      <div class="mdg-scroll"><table class="mdg-table">
         <thead><tr><th>Altitude</th><th>Multiplication factor</th></tr></thead>
         <tbody>
           <tr><td>2000 m</td><td>1.00</td></tr>
@@ -318,7 +319,7 @@
           <tr><td>7000 m</td><td>1.95</td></tr>
           <tr><td>8000 m</td><td>2.25</td></tr>
         </tbody>
-      </table>
+      </table></div>
       <p class="note">This tool linearly interpolates between the tabulated points<sup><a href="#ref2">2</a>,<a href="#ref4">4</a></sup>.
         Above 8000&nbsp;m, check IEC 60664-1 Annex A directly rather than extrapolating.</p>
     </div>
@@ -327,7 +328,7 @@
   <details class="mdg-collapsible">
     <summary>Table F.4 — Minimum creepage distance <span class="hint">by working voltage, pollution degree and material group</span></summary>
     <div class="mdg-collapsible-body">
-      <table class="mdg-table">
+      <div class="mdg-scroll"><table class="mdg-table">
         <thead><tr><th>Working voltage (rms or DC), up to</th><th>PD1<br>(all groups)</th><th>PD2<br>Group I</th><th>PD2<br>Group II</th><th>PD2<br>Group IIIa/b</th><th>PD3<br>Group I</th><th>PD3<br>Group II</th><th>PD3<br>Group IIIa/b</th></tr></thead>
         <tbody>
           <tr><td>10 V</td><td>0.08</td><td>0.40</td><td>0.40</td><td>0.40</td><td>1.00</td><td>1.00</td><td>1.00</td></tr>
@@ -352,7 +353,7 @@
           <tr><td>800 V</td><td>2.40</td><td>4.00</td><td>5.60</td><td>8.00</td><td>10.00</td><td>11.00</td><td>12.50</td></tr>
           <tr><td>1000 V</td><td>3.20</td><td>5.00</td><td>7.10</td><td>10.00</td><td>12.50</td><td>14.00</td><td>16.00</td></tr>
         </tbody>
-      </table>
+      </table></div>
       <p class="note">All values in mm, reproduced from IEC 60664-1 Table F.4<sup><a href="#ref1">1</a>,<a href="#ref6">6</a></sup>.
         Material group IIIb is not permitted for pollution degree 3 above 630&nbsp;V<sup><a href="#ref1">1</a></sup>.
         Above 1000&nbsp;V this tool does not extrapolate — the standard's higher-voltage creepage tables aren't
@@ -385,7 +386,7 @@
       reconstructed from technical summaries and cross-checked across multiple independent industry sources
       rather than read directly from the standard's text — verify against a purchased copy before using these
       numbers on a certification-critical design.<br>
-      Last updated: 2026-10-12 &middot; Rev 3.</p>
+      Last updated: 2026-10-29 &middot; Rev 4.</p>
   </div>
 
 </main>

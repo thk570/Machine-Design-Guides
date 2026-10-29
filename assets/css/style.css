@@ -110,6 +110,7 @@ table.mdg-table th, table.mdg-table td {
   font-size: 0.9rem;
 }
 table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+.mdg-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }  /* wide tables side-scroll on narrow screens (REQ-0019) */
 
 /* Unit-on-input rows — see docs/00-structure-and-conventions.md ("Unit placement on inputs").
    The unit always sits to the right of its input box, never wrapped below it. Wrap the <input>

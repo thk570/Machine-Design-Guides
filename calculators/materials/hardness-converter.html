@@ -54,6 +54,7 @@
   table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
     padding: 0.4rem 0.6rem; text-align: left; font-size: 0.9rem; }
   table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  .mdg-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }  /* wide tables side-scroll on narrow screens (REQ-0019) */
   sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
   sup a:hover, .ref-list a:hover { text-decoration: underline; }
   .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
@@ -174,7 +175,7 @@
 
   <div class="mdg-card" id="shoreCard" hidden>
     <h2 id="shoreTitle">3. Shore A reference materials</h2>
-    <table class="mdg-table" id="shoreTable"></table>
+    <div class="mdg-scroll"><table class="mdg-table" id="shoreTable"></table></div>
     <p class="note">Everyday examples at that durometer; real hardness varies with formulation and cure, so treat them as illustrative.</p>
   </div>
 
@@ -200,7 +201,7 @@
       <li id="ref2">Uploaded file &ldquo;Hardness Conversion Calculator.html&rdquo; &mdash; internal (Shore A / D example materials; HRB 60&ndash;78 rows against HV and HB, not checked against E140).</li>
     </ol>
 
-    <p>Last updated: 2026-10-20 &middot; Rev 1</p>
+    <p>Last updated: 2026-10-29 &middot; Rev 2</p>
   </div>
 
 </main>

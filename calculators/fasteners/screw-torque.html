@@ -52,6 +52,7 @@
   table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
     padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
   table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  .mdg-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }  /* wide tables side-scroll on narrow screens (REQ-0019) */
   table.mdg-table tr.current td { font-weight: 600; background: rgba(165,98,59,0.10); }
   table.mdg-table td.limit-screw { color: var(--poor); font-weight: 600; }
   .note { font-size: 0.8rem; color: var(--mdg-text-muted); margin-top: 0.5rem; }
@@ -455,18 +456,18 @@
     <details class="mdg-collapsible">
       <summary><span id="qr-title">All sizes &amp; pitches</span> <span class="hint" id="qr-hint">current selection highlighted</span></summary>
       <div class="mdg-collapsible-body">
-    <table class="mdg-table" id="table-bolted">
+    <div class="mdg-scroll"><table class="mdg-table" id="table-bolted">
       <thead><tr><th>Size</th><th>Pitch (mm)</th><th>As (mm&sup2;)</th><th>Preload, F (kN)</th><th>Torque, T (N&middot;m)</th></tr></thead>
       <tbody id="table-body-bolted"></tbody>
-    </table>
-    <table class="mdg-table" id="table-pem" style="display:none;">
+    </table></div>
+    <div class="mdg-scroll"><table class="mdg-table" id="table-pem" style="display:none;">
       <thead><tr><th>PEM part</th><th>Thread</th><th>Min. axial strength (kN)</th><th id="th-pem-torque">Torque, T (N&middot;m)</th></tr></thead>
       <tbody id="table-body-pem"></tbody>
-    </table>
-    <table class="mdg-table" id="table-tapped" style="display:none;">
+    </table></div>
+    <div class="mdg-scroll"><table class="mdg-table" id="table-tapped" style="display:none;">
       <thead><tr><th>Size</th><th>Pitch (mm)</th><th>Engagement used, 1.5&times;d (mm)</th><th>Pullout, P (N)</th><th>Screw proof, Fp (N)</th><th>Limit</th><th>Assembly torque (N&middot;m)</th></tr></thead>
       <tbody id="table-body-tapped"></tbody>
-    </table>
+    </table></div>
       </div>
     </details>
     <p class="note" id="table-note-bolted">Nut factor K lumps thread and under-head friction into one coefficient: steel dry
@@ -519,7 +520,7 @@
       <li id="ref14"><a href="https://www.crestindustrial.com/prevailing-torque-lock-nut-values---metric.html">Prevailing Torque Lock Nut Values — Metric</a> — crestindustrial.com (all-metal lock nut first-installation max prevailing torque, classes 5/8 and 10/12, M4–M24; waxed-nut K&nbsp;0.10–0.125).</li>
     </ol>
 
-    <p>Last updated: 2026-10-26 &middot; Rev 13</p>
+    <p>Last updated: 2026-10-29 &middot; Rev 14</p>
   </div>
 
 </main>
