@@ -40,13 +40,20 @@
 // nothing here needs it for.
 //
 // The `insulating-materials` type is a different kind of entry: dielectrics (polymers, laminates,
-// ceramics) used for creepage/clearance insulation design, not load-bearing structure. They carry
-// `cti_V` / `cti_range` (Comparative Tracking Index, IEC 60112) and `cti_group` (the IEC 60664-1
-// material group — I/II/IIIa/IIIb — that CTI falls into) instead of the mechanical properties above;
-// the mechanical fields are simply omitted on these grades. The Creepage & Clearance calculator's
-// substrate-material lookup filters this library to grades with `cti_group` set, rather than
-// hard-coding its own material list, the same way the Busbar calculator filters on
-// `conductivity_pct_IACS`.
+// ceramics) used for creepage/clearance insulation design. They carry `cti_V` / `cti_range` (Comparative
+// Tracking Index, IEC 60112) and `cti_group` (the IEC 60664-1 material group — I/II/IIIa/IIIb — that CTI
+// falls into), plus the same mechanical and physical fields as the metals (density, E, G, ν, yield, UTS,
+// CTE, k, specific heat, melting range) and these extra optional fields: `tg_C` (glass transition),
+// `max_service_C` (maximum continuous service temperature), `dielectric_strength_kV_per_mm` (+
+// `dielectric_cond`, test thickness/standard), `volume_resistivity_ohm_m`, `permittivity_rel` (+
+// `permittivity_cond`, frequency). `lower_bound` (array of property names) marks values the source prints
+// as a minimum or floor (">"); `typical` works as above, and G is derived from E and ν (so listed in
+// `typical`). `yield_MPa: null` means no true yield (brittle or elastomer); `ultimate_MPa: null` means no
+// value found. Both keys are always present on these grades so consumers never see undefined. Values are
+// typical datasheet figures for the unfilled or named grade at about 23 °C; `props_note` carries the
+// caveats for the property set. The Creepage & Clearance calculator's substrate-material lookup filters
+// this library to grades with `cti_group` set, rather than hard-coding its own material list, the same
+// way the Busbar calculator filters on `conductivity_pct_IACS`.
 window.MDG_MATERIALS = {
   "types": [
     { "slug": "steel-carbon-alloy", "title": "Steel (Carbon & Alloy)" },
@@ -56,7 +63,7 @@ window.MDG_MATERIALS = {
     { "slug": "magnesium", "title": "Magnesium Alloys" },
     { "slug": "titanium", "title": "Titanium Alloys" },
     { "slug": "copper-alloy", "title": "Copper Alloys" },
-    { "slug": "insulating-materials", "title": "Insulating Materials (CTI)" }
+    { "slug": "insulating-materials", "title": "Insulating Materials" }
   ],
   "grades": [
     {
@@ -1788,9 +1795,35 @@ window.MDG_MATERIALS = {
       "cti_V": 600,
       "cti_range": "≥600",
       "cti_group": "I",
+      "density_kg_m3": 2150,
+      "E_GPa": 0.45,
+      "G_GPa": 0.15,
+      "poisson": 0.46,
+      "yield_MPa": null,
+      "ultimate_MPa": 22,
+      "cte_um_per_mK": 130,
+      "k_W_per_mK": 0.2,
+      "specific_heat_J_per_kgK": 1050,
+      "melting_C": [330, 335],
+      "max_service_C": 260,
+      "dielectric_strength_kV_per_mm": 80,
+      "dielectric_cond": "0.125 mm film, ASTM D149",
+      "volume_resistivity_ohm_m": 1e16,
+      "permittivity_rel": 2.1,
+      "permittivity_cond": "1 MHz",
+      "typical": ["G_GPa"],
+      "lower_bound": ["volume_resistivity_ohm_m"],
+      "cost_band": 4,
+      "cost_note": "Rod, about £34/kg ex VAT (25 mm, Plastock).",
+      "cost_ref": {"label": "Plastock — PTFE virgin white rod", "url": "https://www.plastock.co.uk/ptfe-extruded-virgin-white-rod"},
       "notes": "",
+      "props_note": "Virgin PTFE at 23 °C; no yield figure on the sources, and Tg sources disagree (−35 to 20 °C) so none is given. Dielectric strength is a thin-film value; thick sections are far lower.",
       "refs": [
-        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"},
+        {"label": "Ensinger — TECAFLON PTFE natural datasheet", "url": "https://www.ensingerplastics.com/en/shapes/tecaflon-ptfe-natural"},
+        {"label": "Professional Plastics — PTFE / FEP / PFA reference sheet", "url": "https://www.professionalplastics.com/professionalplastics/content/downloads/PTFE_FEP_PFA.pdf"},
+        {"label": "MakeItFrom — Unfilled PTFE (modulus, specific heat)", "url": "https://www.makeitfrom.com/material-properties/Unfilled-PTFE"},
+        {"label": "AmesWeb — Poisson's ratio of polymers", "url": "https://amesweb.info/Materials/Poissons_Ratio_of_Polymers.aspx"}
       ]
     },
     {
@@ -1803,9 +1836,32 @@ window.MDG_MATERIALS = {
       "cti_V": 600,
       "cti_range": "≥600",
       "cti_group": "I",
+      "density_kg_m3": 2150,
+      "E_GPa": 0.59,
+      "yield_MPa": 13.8,
+      "ultimate_MPa": 25,
+      "cte_um_per_mK": 120,
+      "k_W_per_mK": 0.209,
+      "specific_heat_J_per_kgK": 1047,
+      "melting_C": [302, 310],
+      "max_service_C": 260,
+      "dielectric_strength_kV_per_mm": 80,
+      "dielectric_cond": "0.25 mm film, ASTM D149",
+      "volume_resistivity_ohm_m": 1e16,
+      "permittivity_rel": 2.1,
+      "permittivity_cond": "1 MHz",
+      "typical": ["E_GPa"],
+      "lower_bound": ["volume_resistivity_ohm_m"],
+      "cost_band": 5,
+      "cost_est": true,
+      "cost_note": "Estimate; no UK shop price found.",
       "notes": "",
+      "props_note": "PFA 440-type resin at 23 °C; E is the flexural modulus (no tensile value found). FEP is similar but melts near 260 °C and has a lower service limit.",
       "refs": [
-        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"},
+        {"label": "PFA 440 datasheet (ASTM methods)", "url": "https://www-eng.lbl.gov/~shuman/NEXT/MATERIALS&COMPONENTS/HV/PFA_440.pdf"},
+        {"label": "Professional Plastics — PTFE / FEP / PFA reference sheet", "url": "https://www.professionalplastics.com/professionalplastics/content/downloads/PTFE_FEP_PFA.pdf"},
+        {"label": "Fluorotherm — PFA properties (CTE, k, specific heat)", "url": "https://www.fluorotherm.com/materials/pfa-properties/"}
       ]
     },
     {
@@ -1818,10 +1874,31 @@ window.MDG_MATERIALS = {
       "cti_V": 600,
       "cti_range": "≥600",
       "cti_group": "I",
+      "density_kg_m3": 950,
+      "E_GPa": 1.0,
+      "yield_MPa": 22,
+      "ultimate_MPa": 30.5,
+      "cte_um_per_mK": 190,
+      "k_W_per_mK": 0.4,
+      "specific_heat_J_per_kgK": 1900,
+      "melting_C": [130, 135],
+      "max_service_C": 80,
+      "dielectric_strength_kV_per_mm": 40,
+      "volume_resistivity_ohm_m": 1e12,
+      "permittivity_rel": 2.4,
+      "typical": ["cte_um_per_mK"],
+      "lower_bound": ["E_GPa", "yield_MPa", "dielectric_strength_kV_per_mm", "volume_resistivity_ohm_m"],
+      "cost_band": 3,
+      "cost_note": "Rod, about £18/kg ex VAT (25 mm, Plastock).",
+      "cost_ref": {"label": "Plastock — PE300 (HDPE) natural rod", "url": "https://www.plastock.co.uk/pe300-hdpe-extruded-natural-rod"},
       "notes": "",
+      "props_note": "HDPE (PE-HD 300 type); E, yield, dielectric strength and resistivity are printed minima, and CTE is the mid-point of 150 to 230. LDPE is much weaker (E about 0.3 GPa, UTS about 7 MPa).",
       "refs": [
         {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"},
-        {"label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/"}
+        {"label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/"},
+        {"label": "Röchling — Polystone G HD white (PE-HD 300) datasheet", "url": "https://www.roechling.com/ko/industrial/%EC%86%8C%EC%9E%AC/thermoplastics/industrial-plastics/pe/pe-hd-pe-300/polystone-g-hd-white-591212"},
+        {"label": "Plastics International — HDPE datasheet (UTS)", "url": "https://www.plasticsintl.com/media/bf1geqtj/hdpe-data-sheet.pdf"},
+        {"label": "MakeItFrom — LDPE (comparison)", "url": "https://www.makeitfrom.com/material-properties/Low-Density-Polyethylene-LDPE"}
       ]
     },
     {
@@ -1835,9 +1912,35 @@ window.MDG_MATERIALS = {
       "cti_V": 600,
       "cti_range": "≥600",
       "cti_group": "I",
+      "density_kg_m3": 1150,
+      "E_GPa": 3.5,
+      "G_GPa": 1.26,
+      "poisson": 0.39,
+      "yield_MPa": 84,
+      "ultimate_MPa": 85,
+      "cte_um_per_mK": 120,
+      "k_W_per_mK": 0.36,
+      "specific_heat_J_per_kgK": 1500,
+      "melting_C": [258, 258],
+      "tg_C": 47,
+      "max_service_C": 100,
+      "dielectric_strength_kV_per_mm": 27,
+      "volume_resistivity_ohm_m": 1e13,
+      "permittivity_rel": 3.0,
+      "permittivity_cond": "1 MHz",
+      "typical": ["G_GPa", "volume_resistivity_ohm_m"],
+      "cost_band": 3,
+      "cost_est": true,
+      "cost_note": "Estimate from PA6 rod, about £19 to 23/kg ex VAT (Plastock); no PA66 price found.",
+      "cost_ref": {"label": "Plastock — Nylon 6 extruded natural rod", "url": "https://www.plastock.co.uk/products/nylon-6-extruded-natural-rod"},
       "notes": "Glass-filled and flame-retardant nylon grades drop well below this — see the general filler caveat above.",
+      "props_note": "PA66 values; conditioning is not stated on the main source, and resistivity is an order-of-magnitude dry figure. PA6 is slightly lower (E 3.3 GPa, melts 221 °C).",
       "refs": [
-        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"},
+        {"label": "Ensinger — TECAMID 66 natural datasheet", "url": "https://www.ensingerplastics.com/en/shapes/tecamid-66-natural"},
+        {"label": "MakeItFrom — Dry unfilled PA 6/6 (dielectric strength, resistivity, permittivity)", "url": "https://www.makeitfrom.com/material-properties/Dry-Unfilled-PA-6-6"},
+        {"label": "Ensinger — TECAMID 6 natural datasheet (PA6 comparison)", "url": "https://www.ensingerplastics.com/en/shapes/tecamid-6-natural"},
+        {"label": "AmesWeb — Poisson's ratio of polymers", "url": "https://amesweb.info/Materials/Poissons_Ratio_of_Polymers.aspx"}
       ]
     },
     {
@@ -1851,9 +1954,32 @@ window.MDG_MATERIALS = {
       "cti_V": 600,
       "cti_range": "≥600",
       "cti_group": "I",
+      "density_kg_m3": 1350,
+      "E_GPa": null,
+      "poisson": 0.49,
+      "yield_MPa": null,
+      "ultimate_MPa": 8.0,
+      "cte_um_per_mK": 230,
+      "k_W_per_mK": 0.23,
+      "specific_heat_J_per_kgK": 1590,
+      "tg_C": -130,
+      "max_service_C": 200,
+      "dielectric_strength_kV_per_mm": 23,
+      "volume_resistivity_ohm_m": 5e13,
+      "permittivity_rel": 2.9,
+      "permittivity_cond": "frequency not stated",
+      "typical": ["poisson", "cte_um_per_mK", "k_W_per_mK", "specific_heat_J_per_kgK", "tg_C"],
+      "cost_band": 4,
+      "cost_est": true,
+      "cost_note": "Estimate from a 3 mm sheet price; no per-kg listing found.",
       "notes": "General engineering figure — not read from either cited datasheet table directly; verify against the specific compound's own CTI test data.",
+      "props_note": "70 Shore A VMQ for density, UTS and service temperature; ν, CTE, k, specific heat and Tg are generic silicone or rubber values. No Young's modulus found, so E and G are blank.",
       "refs": [
-        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit", "typical": true}
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit", "typical": true},
+        {"label": "Angst+Pfister — VMQ 70.10-01 datasheet (70 Shore A)", "url": "https://www.apsoparts.com/media/downloads/asset//std.lang.all/0-/01/VMQ_70_10-01.pdf"},
+        {"label": "Wacker — ELASTOSIL LR 3003/60 A/B (60 Shore A comparison)", "url": "https://protolabs.com/media/vtqhvauu/elastosil-lr-3003-60-a-b.pdf"},
+        {"label": "MakeItFrom — Silicone rubber PMQ/PVMQ/VMQ (k, specific heat, Tg)", "url": "https://makeitfrom.com/material-properties/Silicone-Rubber-PMQ-PVMQ-VMQ"},
+        {"label": "Engineering ToolBox — Poisson's ratio (rubber)", "url": "https://www.engineeringtoolbox.com/poissons-ratio-d_1224.html"}
       ]
     },
     {
@@ -1865,9 +1991,31 @@ window.MDG_MATERIALS = {
       "cti_V": 600,
       "cti_range": "≥600",
       "cti_group": "I",
+      "density_kg_m3": 2500,
+      "E_GPa": 72,
+      "G_GPa": 29.27,
+      "poisson": 0.23,
+      "yield_MPa": null,
+      "ultimate_MPa": 41,
+      "cte_um_per_mK": 8.6,
+      "k_W_per_mK": 0.937,
+      "specific_heat_J_per_kgK": 880,
+      "max_service_C": 300,
+      "dielectric_strength_kV_per_mm": 13,
+      "permittivity_rel": 7.4,
+      "permittivity_cond": "1 MHz",
+      "typical": ["G_GPa"],
+      "cost_band": 1,
+      "cost_note": "Toughened 10 mm float glass, about £2.6/kg ex VAT; annealed is cheaper.",
+      "cost_ref": {"label": "FHB Rundle — 10 mm clear float toughened glass, per m²", "url": "https://www.fhbrundle.co.uk/products/185510M__10mm_Clear_Float_Toughened_Glass_Panel_Per_Square_Metre_price"},
       "notes": "General engineering figure for inorganic glass — not read from either cited datasheet table directly; verify against the specific glass's own CTI test data.",
+      "props_note": "Annealed soda-lime float glass; strength depends heavily on surface condition, and softening is near 726 °C. Volume resistivity is omitted because sources disagree by orders of magnitude; borosilicate has a lower CTE and higher service limit.",
       "refs": [
-        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit", "typical": true}
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit", "typical": true},
+        {"label": "Continental Trade — soda-lime glass properties", "url": "https://www.continentaltrade.com.pl/en/download/WhfvdEYg1jSqsBXM5x9dRJnJfIPvp1gO/soda-lime-glass-properties.pdf"},
+        {"label": "Valley Design — soda-lime float glass properties", "url": "https://valleydesign.com/sodalime/"},
+        {"label": "MakeItFrom — Annealed soda-lime glass (UTS, service temperature, dielectric)", "url": "https://makeitfrom.com/material-properties/Annealed-Soda-Lime-Glass"},
+        {"label": "Schott — BOROFLOAT 33 technical details (borosilicate comparison)", "url": "https://www.schott.com/en-gb/products/borofloat/technical-details"}
       ]
     },
     {
@@ -1879,9 +2027,32 @@ window.MDG_MATERIALS = {
       "cti_V": 600,
       "cti_range": "≥600",
       "cti_group": "I",
+      "density_kg_m3": 3700,
+      "E_GPa": 303,
+      "G_GPa": 125.21,
+      "poisson": 0.21,
+      "yield_MPa": null,
+      "ultimate_MPa": null,
+      "cte_um_per_mK": 6.5,
+      "k_W_per_mK": 24.0,
+      "specific_heat_J_per_kgK": 1100,
+      "max_service_C": 1620,
+      "dielectric_strength_kV_per_mm": 8.3,
+      "volume_resistivity_ohm_m": 1e12,
+      "permittivity_rel": 9.3,
+      "permittivity_cond": "1 MHz",
+      "typical": ["G_GPa", "specific_heat_J_per_kgK", "dielectric_strength_kV_per_mm"],
+      "lower_bound": ["volume_resistivity_ohm_m"],
+      "cost_band": 5,
+      "cost_est": true,
+      "cost_note": "Estimate; only a 99.7% alumina plate price found (about $570/kg).",
       "notes": "General engineering figure for technical ceramics — not read from either cited datasheet table directly; verify against the specific ceramic's own CTI test data.",
+      "props_note": "96% alumina; no tensile strength found (flexural 296 to 365 MPa), CTE is at 300 °C, and service limit is the no-load maximum. Specific heat and dielectric strength differ between sources (0.78 to 1.1 J/g·K; 8 to 27 kV/mm); steatite has E about 110 GPa and k about 6 W/m·K.",
       "refs": [
-        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit", "typical": true}
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit", "typical": true},
+        {"label": "CeramTec — materials table (614 = 96% alumina; 645/665 steatite)", "url": "https://www.ceramtec-group.com/fileadmin/user_upload/Corporate/11_Downloads/05_Ceramaseal/CeramTec_ctna_materials.pdf"},
+        {"label": "Morgan Advanced Materials — AL600 (96% Al2O3) datasheet", "url": "https://morgantechnicalceramics.com/media/2296/al600.pdf"},
+        {"label": "Kyocera — AO476O alumina datasheet", "url": "https://www.kyocera-fineceramics.de/fileadmin/user_upload/Download/werkstoffdatenblaetter/aluminiumoxid/Kyocera_Fineceramics_Europe_AO476O.pdf"}
       ]
     },
     {
@@ -1894,9 +2065,31 @@ window.MDG_MATERIALS = {
       "cti_V": 500,
       "cti_range": "400–599",
       "cti_group": "II",
+      "density_kg_m3": 1360,
+      "E_GPa": 3.1,
+      "yield_MPa": 79,
+      "ultimate_MPa": 79,
+      "cte_um_per_mK": 80,
+      "k_W_per_mK": 0.31,
+      "specific_heat_J_per_kgK": 1200,
+      "melting_C": [244, 254],
+      "tg_C": 81,
+      "max_service_C": 110,
+      "dielectric_strength_kV_per_mm": 15.7,
+      "dielectric_cond": "ASTM D149, thickness not stated",
+      "volume_resistivity_ohm_m": 1e13,
+      "permittivity_rel": 3.4,
+      "permittivity_cond": "60 Hz",
+      "cost_band": 3,
+      "cost_note": "Rod, about £26/kg ex VAT (40 mm, RS).",
+      "cost_ref": {"label": "RS — PET rod 1 m × 40 mm", "url": "https://uk.rs-online.com/web/p/plastic-rods/2820531"},
       "notes": "",
+      "props_note": "Semi-crystalline PET-P (machined stock); UTS equals yield. Biaxially oriented film (Mylar A, 50 µm) is stronger: UTS 190 to 210 MPa, E 3.8 to 4.1 GPa.",
       "refs": [
-        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"},
+        {"label": "Ensinger — TECAPET white datasheet", "url": "https://www.ensingerplastics.com/en/shapes/tecapet-white"},
+        {"label": "Plastics International — TECAPET datasheet (ASTM values)", "url": "https://plasticsintl.com/media/ocglsyfe/pet-tecapet-data-sheet.pdf"},
+        {"label": "Easy Composites — Mylar A 50 to 125 µm datasheet (film)", "url": "https://media.easycomposites.co.uk/datasheets/Mylar_A_50_to_125mic.pdf"}
       ]
     },
     {
@@ -1909,9 +2102,31 @@ window.MDG_MATERIALS = {
       "cti_V": 500,
       "cti_range": "400–599",
       "cti_group": "II",
+      "density_kg_m3": 1310,
+      "E_GPa": 2.93,
+      "yield_MPa": 62,
+      "ultimate_MPa": 64.8,
+      "cte_um_per_mK": 84,
+      "k_W_per_mK": 0.21,
+      "specific_heat_J_per_kgK": 1200,
+      "melting_C": [224, 230],
+      "tg_C": 40,
+      "max_service_C": 110,
+      "dielectric_strength_kV_per_mm": 26,
+      "volume_resistivity_ohm_m": 1e13,
+      "permittivity_rel": 3.4,
+      "permittivity_cond": "1 Hz",
+      "typical": ["yield_MPa", "k_W_per_mK", "specific_heat_J_per_kgK", "tg_C", "volume_resistivity_ohm_m", "permittivity_rel"],
+      "cost_band": 3,
+      "cost_est": true,
+      "cost_note": "Estimate by analogy with PET; no PBT stock price found.",
       "notes": "Glass-filled and flame-retardant PBT grades (the common connector-housing material) drop well below this, often into Group IIIa/IIIb — check the specific grade's datasheet rather than assuming unfilled PBT.",
+      "props_note": "Mixes three sources: Hydex natural (density, E, UTS), a UD-blue grade (yield, melting) and MakeItFrom (thermal, electrical). Resistivity is an order of magnitude and permittivity is quoted at 1 Hz.",
       "refs": [
-        {"label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/"}
+        {"label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/"},
+        {"label": "Ensinger — HYDEX 4101 PBT natural datasheet", "url": "https://modernplastics.com//wp-content/uploads/2015/04/HYDEX-4101.pdf"},
+        {"label": "Ensinger — TECADUR PBT UD blue datasheet", "url": "https://www.ensingerplastics.com/en/shapes/ultra-detectable-polyester-tecadur-pbt-ud-blue"},
+        {"label": "MakeItFrom — Unfilled PBT", "url": "https://www.makeitfrom.com/material-properties/Unfilled-PBT"}
       ]
     },
     {
@@ -1925,9 +2140,25 @@ window.MDG_MATERIALS = {
       "cti_V": 500,
       "cti_range": "400–599",
       "cti_group": "II",
+      "density_kg_m3": 2050,
+      "E_GPa": 30,
+      "yield_MPa": null,
+      "ultimate_MPa": 450,
+      "max_service_C": 180,
+      "dielectric_strength_kV_per_mm": 13,
+      "dielectric_cond": "90 °C in oil, through thickness, IEC 60243",
+      "volume_resistivity_ohm_m": 1e12,
+      "permittivity_rel": 5,
+      "permittivity_cond": "50 Hz",
+      "typical": ["density_kg_m3", "E_GPa", "ultimate_MPa", "max_service_C", "dielectric_strength_kV_per_mm", "volume_resistivity_ohm_m", "permittivity_rel"],
+      "cost_band": 5,
+      "cost_est": true,
+      "cost_note": "Estimate; no UK price found for a high-CTI laminate.",
       "notes": "A special high-CTI resin system, not standard FR-4 (see that separate entry below) — confirm the laminate's actual CTI on its own datasheet before relying on this.",
+      "props_note": "Not a CTI 400 to 599 datasheet: values are Röchling Durostone EPC 205 (CTI 600 glass-epoxy), the nearest laminate found. E is flexural, UTS is parallel to the laminations, and no CTE, k or specific heat was found.",
       "refs": [
-        {"label": "JLCPCB — Choosing the Right CTI Value for Safer High-Voltage PCBs", "url": "https://jlcpcb.com/blog/cti-value-high-voltage-pcb"}
+        {"label": "JLCPCB — Choosing the Right CTI Value for Safer High-Voltage PCBs", "url": "https://jlcpcb.com/blog/cti-value-high-voltage-pcb"},
+        {"label": "Röchling — Durostone EPC 205 product page", "url": "https://roechling.com/industrial/materials/composites/gfk/gfk-ep/durostone-epc-205-716632"}
       ]
     },
     {
@@ -1941,10 +2172,33 @@ window.MDG_MATERIALS = {
       "cti_V": 200,
       "cti_range": "175–399",
       "cti_group": "IIIa",
+      "density_kg_m3": 1850,
+      "E_GPa": 23.7,
+      "G_GPa": 9.95,
+      "poisson": 0.191,
+      "yield_MPa": null,
+      "ultimate_MPa": 432,
+      "cte_um_per_mK": 13,
+      "k_W_per_mK": 0.343,
+      "tg_C": 170,
+      "max_service_C": 130,
+      "dielectric_strength_kV_per_mm": 13.2,
+      "dielectric_cond": "90 °C in oil, through thickness, ≥3 mm, IEC 60243-1",
+      "volume_resistivity_ohm_m": 9e11,
+      "permittivity_rel": 4.4,
+      "permittivity_cond": "1 MHz",
+      "typical": ["G_GPa", "E_GPa", "poisson", "cte_um_per_mK", "k_W_per_mK", "tg_C", "volume_resistivity_ohm_m"],
+      "cost_band": 5,
+      "cost_note": "Single-sheet retail price about £180/kg ex VAT; cut-to-size stockists are likely lower.",
+      "cost_ref": {"label": "RS — FR-4 epoxy glass sheet 420 × 297 × 4 mm", "url": "https://uk.rs-online.com/web/p/thermal-insulation/2035183"},
       "notes": "Most standard FR-4 sits around CTI 175, at the bottom of this group — not adequate for a mains-voltage, Pollution-Degree-3 PCB design without checking the laminate's actual CTI.",
+      "props_note": "Mechanical and electrical values are from an EP GC 202 S sheet; ν, CTE (X/Y), k, Tg and resistivity are from Isola FR406. E is flexural; through-thickness CTE is about 60 µm/m·K below Tg.",
       "refs": [
         {"label": "JLCPCB — Choosing the Right CTI Value for Safer High-Voltage PCBs", "url": "https://jlcpcb.com/blog/cti-value-high-voltage-pcb"},
-        {"label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/"}
+        {"label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/"},
+        {"label": "EP GC 202 S product data sheet", "url": "https://cdn.shopify.com/s/files/1/0309/0107/6101/files/Epoxy_plaat.pdf"},
+        {"label": "Isola — FR406 data sheet (ν, CTE, k, Tg, resistivity)", "url": "https://www.epectec.com/downloads/Isola-FR406-Data-Sheet.pdf"},
+        {"label": "The Gund Company — NEMA FR4 data sheet", "url": "https://thegundcompany.com/wp-content/uploads/2024/03/NEMA-FR4-Glass-Epoxy-Laminate-by-The-Gund-Co.pdf"}
       ]
     },
     {
@@ -1957,9 +2211,33 @@ window.MDG_MATERIALS = {
       "cti_V": 200,
       "cti_range": "175–250",
       "cti_group": "IIIa",
+      "density_kg_m3": 1190,
+      "E_GPa": 2.2,
+      "G_GPa": 0.81,
+      "poisson": 0.36,
+      "yield_MPa": 69,
+      "ultimate_MPa": 69,
+      "cte_um_per_mK": 80,
+      "k_W_per_mK": 0.25,
+      "specific_heat_J_per_kgK": 1300,
+      "tg_C": 149,
+      "max_service_C": 120,
+      "dielectric_strength_kV_per_mm": 14.9,
+      "dielectric_cond": "ASTM D149, thickness not stated",
+      "volume_resistivity_ohm_m": 1e12,
+      "permittivity_rel": 2.96,
+      "permittivity_cond": "1 MHz",
+      "typical": ["G_GPa", "poisson", "volume_resistivity_ohm_m"],
+      "cost_band": 3,
+      "cost_note": "Clear sheet, about £22/kg ex VAT (5 mm, RS).",
+      "cost_ref": {"label": "RS — clear polycarbonate sheet 500 × 500 × 5 mm", "url": "https://uk.rs-online.com/web/p/plastic-sheets/0794129"},
       "notes": "",
+      "props_note": "Unfilled PC (TECANAT); UTS equals yield, and ν is a generic table value. Resistivity (printed 10^14 Ω·cm, no standard) may be a floor figure.",
       "refs": [
-        {"label": "Battery Design — Comparative Tracking Index", "url": "https://www.batterydesign.net/comparative-tracking-index/"}
+        {"label": "Battery Design — Comparative Tracking Index", "url": "https://www.batterydesign.net/comparative-tracking-index/"},
+        {"label": "Ensinger — TECANAT natural datasheet", "url": "https://www.ensingerplastics.com/en/shapes/polycarbonate-tecanat-natural"},
+        {"label": "Curbell — TECANAT datasheet (ASTM values)", "url": "https://www.curbellplastics.com/wp-content/uploads/2022/11/TECANAT-Polycarbonate-Data-Sheet.pdf"},
+        {"label": "AmesWeb — Poisson's ratio of polymers", "url": "https://amesweb.info/Materials/Poissons_Ratio_of_Polymers.aspx"}
       ]
     },
     {
@@ -1972,9 +2250,30 @@ window.MDG_MATERIALS = {
       "cti_V": 200,
       "cti_range": "175–249",
       "cti_group": "IIIa",
+      "density_kg_m3": 1360,
+      "E_GPa": 4.1,
+      "yield_MPa": 103,
+      "ultimate_MPa": 103,
+      "cte_um_per_mK": 50,
+      "k_W_per_mK": 0.25,
+      "specific_heat_J_per_kgK": 1000,
+      "melting_C": [281, 281],
+      "tg_C": 97,
+      "max_service_C": 230,
+      "dielectric_strength_kV_per_mm": 24,
+      "volume_resistivity_ohm_m": 1e12,
+      "permittivity_rel": 3.0,
+      "permittivity_cond": "1 kHz",
+      "typical": ["volume_resistivity_ohm_m"],
+      "cost_band": 5,
+      "cost_est": true,
+      "cost_note": "Estimate; the only UK rod price found was a filled black grade.",
       "notes": "",
+      "props_note": "Ensinger TECATRON metric page; the US-units page gives E 5.8 GPa and yield 95 MPa. UTS equals yield, and resistivity may be a floor figure.",
       "refs": [
-        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"},
+        {"label": "Ensinger — TECATRON natural PPS datasheet (metric)", "url": "https://ensingerplastics.com/en-gb/shapes/products/tecatron-natural"},
+        {"label": "Ensinger — TECATRON PPS natural (US units)", "url": "https://www.ensingerplastics.com/en-us/shapes/tecatron-natural"}
       ]
     },
     {
@@ -1987,9 +2286,28 @@ window.MDG_MATERIALS = {
       "cti_V": 200,
       "cti_range": "175–249",
       "cti_group": "IIIa",
+      "density_kg_m3": 1360,
+      "E_GPa": 6.7,
+      "yield_MPa": null,
+      "ultimate_MPa": 245,
+      "cte_um_per_mK": 13,
+      "melting_C": [269, 269],
+      "tg_C": 155,
+      "max_service_C": 160,
+      "dielectric_strength_kV_per_mm": 248,
+      "dielectric_cond": "50 µm film, ASTM D149",
+      "volume_resistivity_ohm_m": 1e16,
+      "permittivity_rel": 3.22,
+      "permittivity_cond": "1 kHz",
+      "cost_band": 4,
+      "cost_est": true,
+      "cost_note": "Estimate; only lab-sample prices found.",
       "notes": "",
+      "props_note": "Biaxially oriented Kaladex film, machine direction; dielectric strength falls with thickness (390 kV/mm at 16 µm, 163 at 125 µm). No k, specific heat or ν found.",
       "refs": [
-        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"},
+        {"label": "Mylar Specialty Films — Kaladex PEN brochure", "url": "https://cn.mylar.com/wp-content/uploads/2024/02/Mylar-Specialty-Films-Kaladex-PEN-Brochure.pdf"},
+        {"label": "Mueller Ahlhorn — Teonex Q51 datasheet (cross-check)", "url": "https://www.mueller-ahlhorn.com/wp-content/uploads/2024/04/Teonex-Q51-TC-00141-ENG.pdf"}
       ]
     },
     {
@@ -2003,9 +2321,29 @@ window.MDG_MATERIALS = {
       "cti_V": 125,
       "cti_range": "100–174",
       "cti_group": "IIIb",
+      "density_kg_m3": 1340,
+      "E_GPa": 7.6,
+      "yield_MPa": null,
+      "ultimate_MPa": 103.4,
+      "cte_um_per_mK": 14.4,
+      "k_W_per_mK": 0.2,
+      "max_service_C": 120,
+      "dielectric_strength_kV_per_mm": 19.7,
+      "dielectric_cond": "3.2 mm, perpendicular to laminations",
+      "permittivity_rel": 5.5,
+      "permittivity_cond": "1 MHz",
+      "typical": ["E_GPa", "cte_um_per_mK", "dielectric_strength_kV_per_mm"],
+      "cost_band": 2,
+      "cost_note": "Sheet, about £10/kg ex VAT (6 mm, generic paper-phenolic, Sparks Direct).",
+      "cost_ref": {"label": "Sparks Direct — paxoline sheet 1200 × 600 × 6 mm", "url": "https://www.sparksdirect.co.uk/product/1200mm-x-600mm-x-6mm-paxoline-sheet-pax1200-phenolic-paper-laminate-paxoline-sheet"},
       "notes": "",
+      "props_note": "Paper-phenolic NEMA XX, lengthwise; E is flexural, and k and service limit are from IEC PF CP 203 sheets. Sources disagree on dielectric strength (20 to 30 kV/mm), CTE (12 to 20) and service limit (120 to 140 °C).",
       "refs": [
-        {"label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/"}
+        {"label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/"},
+        {"label": "Engineers Edge — phenolic plastics engineering data table (NEMA XX)", "url": "https://ns2.engineersedge.com/materials/phenolic_plastics_engineering_data_table_13470.htm"},
+        {"label": "Trident Plastics — NEMA XX paper phenolic sheet", "url": "https://plastics.tridentplastics.com/compare/phenolic-laminate/nema-xx-paper-phenolic-sheet-natural"},
+        {"label": "Mueller Ahlhorn — Pertinax RI 40002 (IEC 60893 PF CP 203)", "url": "https://www.mueller-ahlhorn.com/wp-content/uploads/2024/04/Pertinax-RI-40002-ENG.pdf"},
+        {"label": "Polymershapes — Acculam Phenolkraft paper XX/XXX", "url": "https://www.polymershapes.com/wp-content/uploads/2020/04/Polymershapes_Accurate_DataSheet-Acculam-Phenolkraft-Paper-XX-XXX.pdf"}
       ]
     },
     {
@@ -2019,9 +2357,30 @@ window.MDG_MATERIALS = {
       "cti_V": 150,
       "cti_range": "100–174",
       "cti_group": "IIIb",
+      "density_kg_m3": 1420,
+      "E_GPa": 2.5,
+      "G_GPa": 0.93,
+      "poisson": 0.34,
+      "yield_MPa": null,
+      "ultimate_MPa": 231,
+      "cte_um_per_mK": 20,
+      "k_W_per_mK": 0.12,
+      "specific_heat_J_per_kgK": 1090,
+      "tg_C": 385,
+      "dielectric_strength_kV_per_mm": 240,
+      "dielectric_cond": "50 µm film, 60 Hz",
+      "volume_resistivity_ohm_m": 1.5e15,
+      "permittivity_rel": 3.4,
+      "permittivity_cond": "1 kHz",
+      "typical": ["G_GPa", "tg_C"],
+      "cost_band": 5,
+      "cost_est": true,
+      "cost_note": "Estimate; only lab-sample and tape prices found.",
       "notes": "",
+      "props_note": "DuPont Kapton HN; no continuous service rating is printed (used up to 400 °C) and Tg is the mid-point of a 360 to 410 °C transition. Dielectric strength falls with thickness (303 kV/mm at 25 µm).",
       "refs": [
-        {"label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/"}
+        {"label": "Mueller Ahlhorn — Comparative Tracking Index (CTI), typical values by material", "url": "https://www.mueller-ahlhorn.com/en/comparative-tracking-index-cti/"},
+        {"label": "DuPont — Kapton HN datasheet", "url": "https://www.epectec.com/downloads/DuPont-Kapton-HN-Polyimide-Film.pdf"}
       ]
     },
     {
@@ -2034,9 +2393,31 @@ window.MDG_MATERIALS = {
       "cti_V": 140,
       "cti_range": "100–174",
       "cti_group": "IIIb",
+      "density_kg_m3": 1300,
+      "E_GPa": 4.0,
+      "yield_MPa": 98,
+      "ultimate_MPa": null,
+      "cte_um_per_mK": 55,
+      "k_W_per_mK": 0.29,
+      "specific_heat_J_per_kgK": 1100,
+      "melting_C": [343, 343],
+      "tg_C": 150,
+      "max_service_C": 260,
+      "dielectric_strength_kV_per_mm": 23,
+      "dielectric_cond": "2 mm, IEC 60243-1",
+      "volume_resistivity_ohm_m": 1e14,
+      "permittivity_rel": 3.1,
+      "permittivity_cond": "1 kHz",
+      "typical": ["specific_heat_J_per_kgK"],
+      "cost_band": 5,
+      "cost_note": "Rod, about £240/kg ex VAT (30 mm, RS).",
+      "cost_ref": {"label": "RS — PEEK rod 300 mm × 30 mm", "url": "https://st1-uk.rs-online.com/web/p/plastic-rods/0129729"},
       "notes": "",
+      "props_note": "Victrex 450G; specific heat and the 260 °C long-term limit are Ensinger TECAPEEK figures (Victrex RTI is 180 to 260 °C). No break stress or ν found.",
       "refs": [
-        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"},
+        {"label": "Victrex — PEEK 450G datasheet", "url": "https://www.victrex.com/en/downloads/datasheets/victrex-peek-450g"},
+        {"label": "Ensinger — TECAPEEK natural datasheet", "url": "https://www.ensingerplastics.com/en/shapes/peek-tecapeek-natural"}
       ]
     },
     {
@@ -2049,9 +2430,32 @@ window.MDG_MATERIALS = {
       "cti_V": 140,
       "cti_range": "100–174",
       "cti_group": "IIIb",
+      "density_kg_m3": 1270,
+      "E_GPa": 3.58,
+      "G_GPa": 1.32,
+      "poisson": 0.36,
+      "yield_MPa": 110,
+      "ultimate_MPa": null,
+      "cte_um_per_mK": 55.8,
+      "k_W_per_mK": 0.22,
+      "specific_heat_J_per_kgK": 1200,
+      "tg_C": 217,
+      "max_service_C": 170,
+      "dielectric_strength_kV_per_mm": 32.7,
+      "dielectric_cond": "1.6 mm in air, ASTM D149",
+      "volume_resistivity_ohm_m": 1e15,
+      "permittivity_rel": 3.15,
+      "permittivity_cond": "1 kHz",
+      "typical": ["G_GPa", "specific_heat_J_per_kgK"],
+      "cost_band": 4,
+      "cost_est": true,
+      "cost_note": "Estimate; no UK small-lot price found.",
       "notes": "",
+      "props_note": "SABIC Ultem 1000; specific heat is an Ensinger TECAPEI figure, and service limit is the UL 746B RTI. Dielectric strength is 19.7 kV/mm for 3.2 mm in oil; no break stress found.",
       "refs": [
-        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"},
+        {"label": "SABIC — Ultem 1000 technical data sheet", "url": "https://protolabs.com/media/1020056/ultem-resin_1000_americas_technical_data_sheet.pdf"},
+        {"label": "Ensinger — TECAPEI natural datasheet", "url": "https://www.ensingerplastics.com/en/shapes/tecapei-natural"}
       ]
     },
     {
@@ -2064,9 +2468,30 @@ window.MDG_MATERIALS = {
       "cti_V": 140,
       "cti_range": "100–174",
       "cti_group": "IIIb",
+      "density_kg_m3": 1240,
+      "E_GPa": 2.48,
+      "yield_MPa": 70.3,
+      "ultimate_MPa": null,
+      "cte_um_per_mK": 56,
+      "k_W_per_mK": 0.21,
+      "specific_heat_J_per_kgK": 1200,
+      "tg_C": 188,
+      "max_service_C": 149,
+      "dielectric_strength_kV_per_mm": 17,
+      "dielectric_cond": "ASTM D149, thickness not stated",
+      "volume_resistivity_ohm_m": 3e14,
+      "permittivity_rel": 3.02,
+      "permittivity_cond": "1 MHz",
+      "typical": ["yield_MPa", "k_W_per_mK", "specific_heat_J_per_kgK", "tg_C"],
+      "cost_band": 3,
+      "cost_est": true,
+      "cost_note": "Estimate; no UK small-lot price found.",
       "notes": "",
+      "props_note": "Solvay Udel P-1700 for mechanical and electrical values; k, specific heat and Tg are from Ensinger TECASON S. The Udel sheet labels 70.3 MPa only as tensile strength, used here as yield.",
       "refs": [
-        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"}
+        {"label": "cmc.de — CTI (Kriechstromfestigkeit) by polymer family", "url": "https://www.cmc.de/en/cti-kriechstromfestigkeit"},
+        {"label": "Solvay — Udel P-1700 datasheet", "url": "https://eldonjames.com/wp-content/uploads/2017/02/TDS_UdelP-1700.pdf"},
+        {"label": "Ensinger — TECASON S natural datasheet", "url": "https://www.ensingerplastics.com/en/shapes/tecason-s-natural-"}
       ]
     }
   ]

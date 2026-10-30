@@ -65,7 +65,7 @@
   .type-group h3 span { font-size: 0.78rem; font-weight: 400; color: var(--mdg-text-muted); }
   .tbl-wrap { overflow-x: auto; border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius); background: var(--mdg-surface); }
   table.mdg-table { border-collapse: collapse; width: 100%; min-width: 760px; table-layout: fixed; font-variant-numeric: tabular-nums; }
-  table.mdg-table.cti { min-width: 560px; }
+  table.mdg-table.cti { min-width: 1000px; }
   table.mdg-table th, table.mdg-table td { padding: 0.45rem 0.65rem; text-align: left; font-size: 0.85rem; border-bottom: 1px solid var(--mdg-border); }
   table.mdg-table thead th { background: var(--mdg-bg); font-weight: 600; font-size: 0.78rem; white-space: nowrap; }
   table.mdg-table td.num, table.mdg-table th.num { text-align: right; }
@@ -89,7 +89,7 @@
   .basis { display: inline-block; padding: 0.1rem 0.5rem; border: 1px solid var(--mdg-border); border-radius: 999px; font-size: 0.72rem; color: var(--mdg-text-muted); white-space: nowrap; }
   .na { color: var(--mdg-text-muted); }
   tr.detail-row > td { background: var(--detail-bg); padding: 0.9rem 1rem 1rem 2.1rem; }
-  .detail { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 1.25rem; }
+  .detail { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 1.25rem; position: sticky; left: 0; width: min(100%, calc(100vw - 4.5rem)); }
   @media (max-width: 760px) { .detail { grid-template-columns: minmax(0, 1fr); } tr.detail-row > td { padding-left: 1rem; } }
   .props { width: 100%; border-collapse: collapse; }
   .props th, .props td { padding: 0.3rem 0.5rem; font-size: 0.82rem; border: 1px solid var(--mdg-border); text-align: left; background: var(--mdg-surface); }
@@ -162,14 +162,14 @@
       </div>
       <div class="count" id="count"></div>
     </div>
-    <div class="key"><span>Italic value = typical, not from the grade's own data</span><span>N/A = no value published</span><span>– = not entered</span><span>Click a column header to sort (ascending, descending, off); click more headers to add tie-break sorts</span><span>Cost band = approximate £/kg of a small-lot stock piece, ex VAT: £ under 6, ££ 6 to 12, £££ 12 to 30, ££££ 30 to 70, £££££ over 70. ~ italic = estimate. Not live</span></div>
+    <div class="key"><span>Italic value = typical, not from the grade's own data</span><span>N/A = no value published</span><span>&gt; = source prints a minimum</span><span>– = not entered</span><span>Click a column header to sort (ascending, descending, off); click more headers to add tie-break sorts</span><span>Cost band = approximate £/kg of a small-lot stock piece, ex VAT: £ under 6, ££ 6 to 12, £££ 12 to 30, ££££ 30 to 70, £££££ over 70. ~ italic = estimate. Not live</span></div>
   </div>
 
   <div id="library"></div>
 
   <div class="mdg-card mdg-footer">
     <p><strong>Not a substitute for MMPDS.</strong> Values were re-keyed by hand from MMPDS-14 design tables<sup><a href="#ref1">1</a></sup> and manufacturer datasheets, converted to metric. MMPDS values are shown for the L (longitudinal) direction with the basis stated (S, A or B); the handbook's full allowables, directions and conditions are not reproduced. For certified or safety-critical structure use MMPDS or the material specification itself.</p>
-    <p>Where a grade's own data gives no value (most often G, ν, density, CTE or melting range), a typical value for the material family is used, shown in <span class="typical">italics</span> with its source. CTI values for insulating materials are typical figures per IEC 60112<sup><a href="#ref2">2</a></sup>; verify against the grade's datasheet before relying on a material group.</p>
+    <p>Where a grade's own data gives no value (most often G, ν, density, CTE or melting range), a typical value for the material family is used, shown in <span class="typical">italics</span> with its source. CTI values for insulating materials are typical figures per IEC 60112<sup><a href="#ref2">2</a></sup>; verify against the grade's datasheet before relying on a material group. Insulating-material properties are typical datasheet values for the unfilled or named grade at about 23 °C (sources per row); filled and flame-retardant grades differ, and dielectric strength and permittivity depend on thickness and frequency, shown where stated.</p>
     <p>Cost bands are approximate, small-lot UK stock prices from shop listings where one was found, otherwise estimates (shown with ~). They are a relative guide to material and form, not quotes, and are not live.</p>
     <p style="margin-top:0.75rem;"><strong>Applicable design standards</strong></p>
     <ul class="ref-list">
@@ -177,7 +177,7 @@
       <li id="ref1"><a href="https://www.mmpds.org/">MMPDS-14</a> — Metallic Materials Properties Development and Standardization.</li>
     </ul>
     <p>Per-grade sources are listed in each row's detail view.</p>
-    <p>Last updated: 2026-10-29 &middot; Rev 8</p>
+    <p>Last updated: 2026-10-29 &middot; Rev 9</p>
   </div>
 
 </main>
@@ -199,6 +199,21 @@
   function basisOf(g) { return g.basis || (isCti(g) ? 'Typical' : 'Datasheet'); }
   function ital(g, key, text) { return (g.typical && g.typical.indexOf(key) >= 0) ? '<span class="typical">' + text + '</span>' : text; }
   function nc(g, key, dp) { return ital(g, key, num(g[key], dp)); }
+  function lbd(g, key) { return (g.lower_bound && g.lower_bound.indexOf(key) >= 0) ? '&gt; ' : ''; }
+  function has(g, key) { return typeof g[key] === 'number'; }
+  function edp(v) { return v >= 10 ? 1 : 2; }
+  function ng(g, key) { return ital(g, key, num(g[key], typeof g[key] === 'number' ? edp(g[key]) : 2)); }
+  function sci(v) {
+    if (typeof v !== 'number') return '–';
+    var e = Math.floor(Math.log10(v)), m = v / Math.pow(10, e);
+    return (Math.abs(m - 1) < 1e-9 ? '10' : (Math.round(m * 100) / 100) + ' × 10') + '<sup>' + e + '</sup>';
+  }
+  function cond(s) { return s ? ' <span class="na">(' + esc(s) + ')</span>' : ''; }
+  function melt(g) {
+    if (!g.melting_C) return '–';
+    var a = g.melting_C[0], b = g.melting_C[1];
+    return ital(g, 'melting_C', (a === b ? a : a + '–' + b) + ' °C');
+  }
 
   var TYPES = DATA.types.slice().sort(function (a, b) { return cmp(a.title, b.title); });
   function gradesOf(slug) {
@@ -239,6 +254,7 @@
     return '<h4>Also known as</h4><p>' + (g.aka ? esc(g.aka) : '<span class="na">–</span>') + '</p>' +
       '<h4>Similar, not interchangeable</h4><p>' + (g.similar ? esc(g.similar) : '<span class="na">–</span>') + '</p>' +
       (g.notes ? '<p class="note" style="margin-top:0;">' + esc(g.notes) + '</p>' : '') +
+      (g.props_note ? '<p class="note"><strong>Properties:</strong> ' + esc(g.props_note) + '</p>' : '') +
       (g.cost_note ? '<p class="note"><strong>Cost:</strong> ' + esc(g.cost_note) + '</p>' : '') + sources(g);
   }
 
@@ -253,7 +269,23 @@
         ['Designation', esc(g.designation)],
         ['Comparative Tracking Index (CTI)', num(g.cti_V, 0) + ' V (typical)'],
         ['CTI range for group', esc(g.cti_range || '–')],
-        ['IEC 60664-1 material group', esc(g.cti_group)]
+        ['IEC 60664-1 material group', esc(g.cti_group)],
+        ['Density', nc(g, 'density_kg_m3', 0) + ' kg/m³'],
+        ['Elastic modulus, E', ng(g, 'E_GPa') + ' GPa'],
+        ['Shear modulus, G', ng(g, 'G_GPa') + ' GPa'],
+        ["Poisson's ratio, ν", nc(g, 'poisson', 3)],
+        ['Yield strength', g.yield_MPa === null ? '<span class="na">N/A</span>' : lbd(g, 'yield_MPa') + ital(g, 'yield_MPa', num(g.yield_MPa, 0)) + ' MPa'],
+        ['Ultimate tensile strength', lbd(g, 'ultimate_MPa') + ital(g, 'ultimate_MPa', num(g.ultimate_MPa, 0)) + ' MPa'],
+        ['CTE', nc(g, 'cte_um_per_mK', 1) + ' µm/m·K'],
+        ['Thermal conductivity', nc(g, 'k_W_per_mK', 2) + ' W/m·K'],
+        ['Specific heat', ital(g, 'specific_heat_J_per_kgK', num(g.specific_heat_J_per_kgK, 0)) + ' J/kg·K'],
+        ['Melting point / range', melt(g)],
+        ['Glass transition, Tg', has(g, 'tg_C') ? ital(g, 'tg_C', num(g.tg_C, 0)) + ' °C' : '–'],
+        ['Max continuous service temperature', has(g, 'max_service_C') ? ital(g, 'max_service_C', num(g.max_service_C, 0)) + ' °C' : '–'],
+        ['Dielectric strength', has(g, 'dielectric_strength_kV_per_mm') ? lbd(g, 'dielectric_strength_kV_per_mm') + ital(g, 'dielectric_strength_kV_per_mm', num(g.dielectric_strength_kV_per_mm, 1)) + ' kV/mm' + cond(g.dielectric_cond) : '–'],
+        ['Volume resistivity', has(g, 'volume_resistivity_ohm_m') ? lbd(g, 'volume_resistivity_ohm_m') + ital(g, 'volume_resistivity_ohm_m', sci(g.volume_resistivity_ohm_m)) + ' Ω·m' : '–'],
+        ['Relative permittivity', has(g, 'permittivity_rel') ? ital(g, 'permittivity_rel', num(g.permittivity_rel, 2)) + cond(g.permittivity_cond) : '–'],
+        ['Cost band', typeof g.cost_band === 'number' ? g.cost_band + ' of 5, ' + BANDS[g.cost_band - 1] + (g.cost_est ? ' (estimate)' : '') : '–']
       ];
     } else {
       rows = [
@@ -294,7 +326,13 @@
     if (isCti(g)) {
       html = '<tr class="grade-row" tabindex="0" role="button" data-id="' + esc(g.id) + '" aria-expanded="' + isOpen + '">' + nameCell(g, mi) +
         '<td><span class="basis">' + esc(basisOf(g)) + '</span></td>' +
-        '<td class="num">' + num(g.cti_V, 0) + '</td><td class="num">' + esc(g.cti_range || '–') + '</td><td>' + esc(CTI_GROUP_LABEL[g.cti_group] || g.cti_group) + '</td></tr>';
+        '<td class="num">' + num(g.cti_V, 0) + '</td><td>' + esc(CTI_GROUP_LABEL[g.cti_group] || g.cti_group) + '</td>' +
+        '<td class="num">' + (g.yield_MPa === null ? '<span class="na">N/A</span>' : lbd(g, 'yield_MPa') + ital(g, 'yield_MPa', num(g.yield_MPa, 0))) + '</td>' +
+        '<td class="num">' + lbd(g, 'ultimate_MPa') + ital(g, 'ultimate_MPa', num(g.ultimate_MPa, 0)) + '</td>' +
+        '<td class="num">' + lbd(g, 'E_GPa') + ng(g, 'E_GPa') + '</td>' +
+        '<td class="num">' + nc(g, 'cte_um_per_mK', 1) + '</td>' +
+        '<td class="num">' + nc(g, 'density_kg_m3', 0) + '</td>' +
+        '<td class="num">' + costCell(g) + '</td></tr>';
     } else {
       html = '<tr class="grade-row" tabindex="0" role="button" data-id="' + esc(g.id) + '" aria-expanded="' + isOpen + '">' + nameCell(g, mi) +
         '<td><span class="basis">' + esc(basisOf(g)) + '</span></td>' +
@@ -310,10 +348,11 @@
   }
 
   var MECH_COLS = '<colgroup><col style="width:27%"><col style="width:12%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:10%"><col style="width:10%"><col style="width:17%"></colgroup>';
-  var CTI_COLS = '<colgroup><col style="width:44%"><col style="width:14%"><col style="width:14%"><col style="width:14%"><col style="width:14%"></colgroup>';
+  var CTI_COLS = '<colgroup><col style="width:21%"><col style="width:8%"><col style="width:7%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:7%"><col style="width:10%"><col style="width:10%"><col style="width:13%"></colgroup>';
   var MECH_FIELDS = [['name', 'Grade and condition', 0], ['basis', 'Basis', 0], ['yield_MPa', 'Yield (MPa)', 1], ['ultimate_MPa', 'UTS (MPa)', 1], ['E_GPa', 'E (GPa)', 1],
     ['cte_um_per_mK', 'CTE (µm/m·K)', 1], ['density_kg_m3', 'Density (kg/m³)', 1], ['cost_band', 'Cost band', 1]];
-  var CTI_FIELDS = [['name', 'Material and condition', 0], ['basis', 'Basis', 0], ['cti_V', 'CTI (V)', 1], ['cti_range', 'CTI range', 1], ['cti_group', 'IEC 60664-1 group', 0]];
+  var CTI_FIELDS = [['name', 'Material and condition', 0], ['basis', 'Basis', 0], ['cti_V', 'CTI (V)', 1], ['cti_group', 'IEC group', 0],
+    ['yield_MPa', 'Yield (MPa)', 1], ['ultimate_MPa', 'UTS (MPa)', 1], ['E_GPa', 'E (GPa)', 1], ['cte_um_per_mK', 'CTE (µm/m·K)', 1], ['density_kg_m3', 'Density (kg/m³)', 1], ['cost_band', 'Cost band', 1]];
   var CTI_ORDER = ['I', 'II', 'IIIa', 'IIIb'];
 
   // Column sort, per table: a stack of { k, dir }; the first entry is the primary sort, later ones break ties.
@@ -375,7 +414,7 @@
       var html = '<div class="type-group"><h3>' + esc(t.title) + '<span>' + list.length + ' shown</span>' +
         (sorted ? '<button type="button" class="sort-clear mdg-no-print" data-type="' + esc(t.slug) + '">Clear sort</button>' : '') +
         '</h3><div class="tbl-wrap"><table class="mdg-table' + (cti ? ' cti' : '') + '">' +
-        (cti ? CTI_COLS + head(CTI_FIELDS, t.slug) : MECH_COLS + head(MECH_FIELDS, t.slug)) + '<tbody>' + list.map(function (g) { return rowHtml(g, q, cti ? 5 : 8); }).join('') + '</tbody></table></div></div>';
+        (cti ? CTI_COLS + head(CTI_FIELDS, t.slug) : MECH_COLS + head(MECH_FIELDS, t.slug)) + '<tbody>' + list.map(function (g) { return rowHtml(g, q, cti ? 10 : 8); }).join('') + '</tbody></table></div></div>';
       lib.insertAdjacentHTML('beforeend', html);
     });
     if (!shown) lib.innerHTML = '<div class="mdg-card empty">No grade matches. Try a UNS number, EN or DIN designation, or a trade name.</div>';
