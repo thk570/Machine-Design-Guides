@@ -7,8 +7,8 @@
 // meant to be a short summary, fully visible, not the page's full feature list. Longer detail belongs
 // on the page itself.
 window.MDG_MANIFEST = {
-  "rev": 10,
-  "updated": "2026-10-29",
+  "rev": 11,
+  "updated": "2026-10-30",
   "categories": [
     {
       "slug": "fits",
@@ -54,9 +54,9 @@ window.MDG_MANIFEST = {
       "path": "calculators/materials/material-library.html",
       "standard": "MMPDS-14 (hand re-keyed) / datasheets",
       "description": "Density, modulus, strength, thermal and electrical properties by material and grade, basis stated — shared by other calculators.",
-      "tags": ["materials", "MMPDS", "properties", "density", "elastic modulus", "yield strength", "CTE", "thermal conductivity", "cost", "insulating", "polymer", "dielectric strength", "steel", "tool steel", "aluminum", "titanium", "copper"],
+      "tags": ["materials", "MMPDS", "properties", "density", "elastic modulus", "yield strength", "CTE", "thermal conductivity", "cost", "compare", "insulating", "polymer", "dielectric strength", "steel", "tool steel", "aluminum", "titanium", "copper"],
       "status": "done",
-      "rev": 9
+      "rev": 10
     },
     {
       "id": "hardness-converter",

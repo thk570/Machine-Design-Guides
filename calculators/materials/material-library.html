@@ -11,6 +11,7 @@
     --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
     --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #5b5b5b;
     --input-bg: #eeeeec; --input-border: #c9c9c3; --row-hover: #f1f1ee; --detail-bg: #fafaf8;
+    --cmp-better: #0f6b3a; --cmp-worse: #e8603c;
     --mdg-radius: 8px;
     --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
@@ -19,12 +20,14 @@
       --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
       --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
       --input-bg: #2a2a2d; --input-border: #4a4a4f; --row-hover: #28272b; --detail-bg: #1b1b1d;
+    --cmp-better: #6fdc96; --cmp-worse: #d9533a;
     }
   }
   :root[data-theme="dark"] {
     --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
     --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
     --input-bg: #2a2a2d; --input-border: #4a4a4f; --row-hover: #28272b; --detail-bg: #1b1b1d;
+    --cmp-better: #6fdc96; --cmp-worse: #d9533a;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
@@ -97,6 +100,42 @@
   .alias h4 { margin: 0 0 0.15rem; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--mdg-text-muted); font-weight: 600; }
   .alias p { margin: 0 0 0.7rem; font-size: 0.84rem; line-height: 1.4; }
   .empty { padding: 1.5rem; text-align: center; color: var(--mdg-text-muted); font-size: 0.88rem; }
+  .cmp-toggle { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; align-self: center; }
+  .cmp-toggle input { accent-color: var(--mdg-accent); width: 1rem; height: 1rem; }
+  .cmp-pickers { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: end; margin-bottom: 0.8rem; }
+  .cmp-pickers > div { flex: 1 1 16rem; min-width: 0; }
+  .cmp-pickers label { display: block; font-size: 0.78rem; color: var(--mdg-text-muted); margin-bottom: 0.25rem; }
+  .combo { position: relative; }
+  .combo input[type=search] { width: 100%; }
+  .combo ul { position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 2px); max-height: 18rem; overflow-y: auto; margin: 0; padding: 0.25rem 0;
+    list-style: none; background: var(--mdg-surface); border: 1px solid var(--mdg-border); border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+  .combo li { padding: 0.35rem 0.6rem; font-size: 0.85rem; cursor: pointer; }
+  .combo li.grp { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--mdg-text-muted); cursor: default; padding-top: 0.5rem; }
+  .combo li.opt[aria-selected="true"], .combo li.opt:hover { background: var(--row-hover); }
+  .combo li .via { display: inline; margin-left: 0.4rem; }
+  .cmp-panel { margin-top: 0.9rem; padding-top: 0.9rem; border-top: 1px solid var(--mdg-border); }
+  .cost-cmp { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+  .add-cmp { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.05rem 0.5rem; margin-right: auto; background: var(--mdg-surface);
+    color: var(--mdg-text-muted); font-size: 0.7rem; cursor: pointer; font-family: var(--mdg-font); white-space: nowrap; vertical-align: 1px; }
+  .add-cmp:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  .add-cmp:focus-visible { outline: 2px solid var(--mdg-accent); outline-offset: 1px; }
+  .add-cmp.in { border-color: var(--mdg-accent); color: var(--mdg-text); font-weight: 600; }
+  .cmp-swap { border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.4rem 0.7rem; background: var(--mdg-surface); color: var(--mdg-text);
+    font-size: 0.85rem; cursor: pointer; font-family: var(--mdg-font); }
+  .cmp-swap:hover { border-color: var(--mdg-accent); }
+  .cmp-swap:focus-visible { outline: 2px solid var(--mdg-accent); outline-offset: 1px; }
+  .props.cmp { min-width: 520px; table-layout: fixed; font-variant-numeric: tabular-nums; }
+  .props.cmp th { width: 32%; }
+  .props.cmp thead th { background: var(--mdg-bg); font-size: 0.78rem; }
+  .props.cmp td { width: 30%; }
+  .props.cmp th.dir, .props.cmp td.dir { width: 8%; text-align: center; }
+  .props.cmp td.dir { font-size: 1rem; line-height: 1; color: var(--mdg-accent); font-weight: 700; }
+  .props.cmp td.dir .arr { width: 1rem; height: 1.15rem; fill: var(--mdg-text-muted); vertical-align: middle; }
+  .props.cmp td.dir.better .arr { fill: var(--cmp-better); }
+  .props.cmp td.dir.worse .arr { fill: var(--cmp-worse); }
+  .cmp-key { display: inline-flex; align-items: center; gap: 0.2rem; white-space: nowrap; }
+  .cmp-key .arr { width: 0.8rem; height: 0.9rem; }
+  .props.cmp td.dir.eq { color: var(--mdg-text-muted); font-size: 0.85rem; }
   .key { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.7rem; font-size: 0.76rem; color: var(--mdg-text-muted); }
   @media print { .mdg-header, .mdg-no-print { display: none !important; } tr.detail-row { break-inside: avoid; } }
   /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). Forces a light,
@@ -160,7 +199,17 @@
         <label for="basisFilter">Basis</label>
         <select id="basisFilter"><option value="">All</option></select>
       </div>
+      <label class="cmp-toggle mdg-no-print" for="cmpOn"><input type="checkbox" id="cmpOn"> Compare</label>
       <div class="count" id="count"></div>
+    </div>
+    <div class="cmp-panel" id="compare" hidden>
+      <div class="cmp-pickers">
+        <div><label for="cmpAq">Material A</label><div class="combo"><input type="search" id="cmpAq" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="cmpAlist" autocomplete="off" placeholder="Search grade, designation or alias"><ul id="cmpAlist" role="listbox" hidden></ul></div></div>
+        <div><label for="cmpBq">Material B</label><div class="combo"><input type="search" id="cmpBq" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="cmpBlist" autocomplete="off" placeholder="Search grade, designation or alias"><ul id="cmpBlist" role="listbox" hidden></ul></div></div>
+        <button type="button" class="cmp-swap mdg-no-print" id="cmpSwap">Swap A and B</button>
+      </div>
+      <div class="tbl-wrap" id="cmpTable"></div>
+      <p class="note">Add to Compare on a row fills A first, then B. Arrows show B against A: <span class="cmp-key"><svg class="arr" viewBox="0 0 14 16" aria-hidden="true" style="fill:var(--cmp-better)"><path d="M7 1 L13 8 H9.2 V15 H4.8 V8 H1 Z"/></svg>green = better</span>, <span class="cmp-key"><svg class="arr" viewBox="0 0 14 16" aria-hidden="true" style="fill:var(--cmp-worse)"><path d="M7 1 L13 8 H9.2 V15 H4.8 V8 H1 Z"/></svg>red = worse</span>, grey = depends on the application (ν, CTE, conductivity, specific heat, permittivity). Better means higher strength, stiffness, temperature and insulation limits, lower density and cost.</p>
     </div>
     <div class="key"><span>Italic value = typical, not from the grade's own data</span><span>N/A = no value published</span><span>&gt; = source prints a minimum</span><span>– = not entered</span><span>Click a column header to sort (ascending, descending, off); click more headers to add tie-break sorts</span><span>Cost band = approximate £/kg of a small-lot stock piece, ex VAT: £ under 6, ££ 6 to 12, £££ 12 to 30, ££££ 30 to 70, £££££ over 70. ~ italic = estimate. Not live</span></div>
   </div>
@@ -177,7 +226,7 @@
       <li id="ref1"><a href="https://www.mmpds.org/">MMPDS-14</a> — Metallic Materials Properties Development and Standardization.</li>
     </ul>
     <p>Per-grade sources are listed in each row's detail view.</p>
-    <p>Last updated: 2026-10-29 &middot; Rev 9</p>
+    <p>Last updated: 2026-10-30 &middot; Rev 10</p>
   </div>
 
 </main>
@@ -262,7 +311,7 @@
     return '<table class="props"><tbody>' + rows.map(function (r) { return '<tr><th>' + r[0] + '</th><td>' + r[1] + '</td></tr>'; }).join('') + '</tbody></table>';
   }
 
-  function detail(g) {
+  function detailRows(g) {
     var rows;
     if (isCti(g)) {
       rows = [
@@ -304,6 +353,11 @@
       if (typeof g.conductivity_pct_IACS === 'number') rows.push(['Electrical conductivity', g.conductivity_pct_IACS + '% IACS']);
       rows.push(['Cost band', typeof g.cost_band === 'number' ? g.cost_band + ' of 5, ' + BANDS[g.cost_band - 1] + (g.cost_est ? ' (estimate)' : '') : '–']);
     }
+    return rows;
+  }
+
+  function detail(g) {
+    var rows = detailRows(g);
     return '<div class="detail"><div>' + propsTable(rows) + '</div><div class="alias">' + aliasBlock(g) + '</div></div>';
   }
 
@@ -321,6 +375,12 @@
       (mi.via ? '<span class="via">' + mi.via + '</span>' : '') + '</td>';
   }
 
+  function costCmpCell(g) {
+    var slot = sel.A === g.id ? 'A' : (sel.B === g.id ? 'B' : '');
+    return '<td class="num"><span class="cost-cmp"><button type="button" class="add-cmp mdg-no-print' + (slot ? ' in' : '') + '" data-id="' + esc(g.id) + '">' +
+      (slot ? 'In Compare: ' + slot : 'Add to Compare') + '</button>' + costCell(g) + '</span></td>';
+  }
+
   function rowHtml(g, q, cols) {
     var mi = matchInfo(g, q), isOpen = !!open[g.id], html;
     if (isCti(g)) {
@@ -332,7 +392,7 @@
         '<td class="num">' + lbd(g, 'E_GPa') + ng(g, 'E_GPa') + '</td>' +
         '<td class="num">' + nc(g, 'cte_um_per_mK', 1) + '</td>' +
         '<td class="num">' + nc(g, 'density_kg_m3', 0) + '</td>' +
-        '<td class="num">' + costCell(g) + '</td></tr>';
+        costCmpCell(g) + '</tr>';
     } else {
       html = '<tr class="grade-row" tabindex="0" role="button" data-id="' + esc(g.id) + '" aria-expanded="' + isOpen + '">' + nameCell(g, mi) +
         '<td><span class="basis">' + esc(basisOf(g)) + '</span></td>' +
@@ -341,14 +401,14 @@
         '<td class="num">' + nc(g, 'E_GPa', 1) + '</td>' +
         '<td class="num">' + nc(g, 'cte_um_per_mK', 1) + '</td>' +
         '<td class="num">' + nc(g, 'density_kg_m3', 0) + '</td>' +
-        '<td class="num">' + costCell(g) + '</td></tr>';
+        costCmpCell(g) + '</tr>';
     }
     if (isOpen) html += '<tr class="detail-row"><td colspan="' + cols + '">' + detail(g) + '</td></tr>';
     return html;
   }
 
-  var MECH_COLS = '<colgroup><col style="width:27%"><col style="width:12%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:10%"><col style="width:10%"><col style="width:17%"></colgroup>';
-  var CTI_COLS = '<colgroup><col style="width:21%"><col style="width:8%"><col style="width:7%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:7%"><col style="width:10%"><col style="width:10%"><col style="width:13%"></colgroup>';
+  var MECH_COLS = '<colgroup><col style="width:24%"><col style="width:11%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:10%"><col style="width:10%"><col style="width:21%"></colgroup>';
+  var CTI_COLS = '<colgroup><col style="width:19%"><col style="width:8%"><col style="width:7%"><col style="width:7%"><col style="width:7%"><col style="width:7%"><col style="width:7%"><col style="width:9%"><col style="width:9%"><col style="width:20%"></colgroup>';
   var MECH_FIELDS = [['name', 'Grade and condition', 0], ['basis', 'Basis', 0], ['yield_MPa', 'Yield (MPa)', 1], ['ultimate_MPa', 'UTS (MPa)', 1], ['E_GPa', 'E (GPa)', 1],
     ['cte_um_per_mK', 'CTE (µm/m·K)', 1], ['density_kg_m3', 'Density (kg/m³)', 1], ['cost_band', 'Cost band', 1]];
   var CTI_FIELDS = [['name', 'Material and condition', 0], ['basis', 'Basis', 0], ['cti_V', 'CTI (V)', 1], ['cti_group', 'IEC group', 0],
@@ -399,6 +459,115 @@
     else st.splice(i, 1);
   }
 
+  // Compare (REQ-0015): two searchable grade pickers under the search box; property rows are the union of both grades' detail rows.
+  // Add to Compare on a row: fills A while A is empty, otherwise B; ticks Compare.
+  var sel = { A: '', B: '' };
+  var cmpOn = document.getElementById('cmpOn'), cmpBox = document.getElementById('compare');
+  var BYID = {}; DATA.grades.forEach(function (g) { BYID[g.id] = g; });
+  function gLabel(g) { return g.grade + (g.condition ? ' — ' + g.condition : ''); }
+  function typeOf(g) { var t = DATA.types.filter(function (x) { return x.slug === g.type; })[0]; return t ? t.title : g.type; }
+  var ORDERED = []; TYPES.forEach(function (t) { ORDERED = ORDERED.concat(gradesOf(t.slug)); });
+
+  function combo(slot) {
+    var inp = document.getElementById('cmp' + slot + 'q'), ul = document.getElementById('cmp' + slot + 'list'), hits = [], act = -1;
+    function close() { ul.hidden = true; inp.setAttribute('aria-expanded', 'false'); act = -1; }
+    function show() {
+      var q = inp.value.trim(), lastType = null, html = '';
+      if (sel[slot] && q === gLabel(BYID[sel[slot]])) q = '';
+      hits = ORDERED.map(function (g) { return { g: g, mi: matchInfo(g, q) }; }).filter(function (h) { return h.mi.hit; }).slice(0, 40);
+      if (!hits.length) { ul.innerHTML = '<li class="grp">No grade matches</li>'; }
+      else hits.forEach(function (h, i) {
+        if (h.g.type !== lastType) { lastType = h.g.type; html += '<li class="grp" role="presentation">' + esc(typeOf(h.g)) + '</li>'; }
+        html += '<li class="opt" role="option" id="cmp' + slot + 'o' + i + '" data-i="' + i + '" aria-selected="' + (i === act) + '">' + esc(gLabel(h.g)) +
+          (h.mi.via ? '<span class="via">' + h.mi.via + '</span>' : '') + '</li>';
+      });
+      if (hits.length) ul.innerHTML = html;
+      ul.hidden = false; inp.setAttribute('aria-expanded', 'true');
+    }
+    function pick(i) { if (!hits[i]) return; setSlot(slot, hits[i].g.id); close(); }
+    inp.addEventListener('input', function () { act = -1; show(); });
+    inp.addEventListener('focus', function () { inp.select(); show(); });
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault(); if (ul.hidden) show();
+        act = Math.max(0, Math.min(hits.length - 1, act + (e.key === 'ArrowDown' ? 1 : -1))); show();
+        var o = document.getElementById('cmp' + slot + 'o' + act); if (o) { o.scrollIntoView({ block: 'nearest' }); inp.setAttribute('aria-activedescendant', o.id); }
+      } else if (e.key === 'Enter') { e.preventDefault(); pick(act >= 0 ? act : 0); }
+      else if (e.key === 'Escape') { close(); sync(); }
+    });
+    ul.addEventListener('mousedown', function (e) { var li = e.target.closest('li.opt'); if (li) { e.preventDefault(); pick(+li.dataset.i); } });
+    inp.addEventListener('blur', function () {
+      if (!inp.value.trim()) { setSlot(slot, ''); } else sync();
+      close();
+    });
+    function sync() { inp.value = sel[slot] ? gLabel(BYID[sel[slot]]) : ''; }
+    return { sync: sync };
+  }
+  var combos = { A: combo('A'), B: combo('B') };
+
+  function setSlot(slot, id) {
+    sel[slot] = id || '';
+    combos[slot].sync(); renderCompare(); render();
+  }
+  function setCompare(on) { cmpOn.checked = on; cmpBox.hidden = !on; if (on) renderCompare(); }
+
+  // B vs A arrow: numeric value behind each compared property row (melting uses the lower bound).
+  var CMP_NUM = {
+    'Comparative Tracking Index (CTI)': 'cti_V', 'Density': 'density_kg_m3', 'Elastic modulus, E': 'E_GPa', 'Shear modulus, G': 'G_GPa',
+    "Poisson's ratio, ν": 'poisson', 'Yield strength': 'yield_MPa', 'Ultimate tensile strength': 'ultimate_MPa', 'CTE': 'cte_um_per_mK',
+    'Thermal conductivity': 'k_W_per_mK', 'Specific heat': 'specific_heat_J_per_kgK', 'Glass transition, Tg': 'tg_C',
+    'Max continuous service temperature': 'max_service_C', 'Dielectric strength': 'dielectric_strength_kV_per_mm',
+    'Volume resistivity': 'volume_resistivity_ohm_m', 'Relative permittivity': 'permittivity_rel', 'Electrical conductivity': 'conductivity_pct_IACS',
+    'Cost band': 'cost_band'
+  };
+  var CMP_ALIAS = { 'Melting point / range': 'Melting range' };
+  function cmpNum(g, lbl) {
+    if (!g) return null;
+    if (lbl === 'Melting range') return g.melting_C ? g.melting_C[0] : null;
+    var k = CMP_NUM[lbl]; return (k && typeof g[k] === 'number') ? g[k] : null;
+  }
+  // Bold arrow: wide filled head on a short stem, drawn in the accent colour.
+  var ARROW_PATH = '<path d="M7 1 L13 8 H9.2 V15 H4.8 V8 H1 Z"/>';
+  var ARROW_UP = '<svg class="arr" viewBox="0 0 14 16" aria-hidden="true">' + ARROW_PATH + '</svg>';
+  var ARROW_DN = '<svg class="arr" viewBox="0 0 14 16" aria-hidden="true" style="transform:rotate(180deg)">' + ARROW_PATH + '</svg>';
+  // Which way is better: +1 higher is better, -1 lower is better; unlisted = depends on the application (grey arrow).
+  var CMP_BETTER = {
+    'Comparative Tracking Index (CTI)': 1, 'Density': -1, 'Elastic modulus, E': 1, 'Shear modulus, G': 1, 'Yield strength': 1,
+    'Ultimate tensile strength': 1, 'Melting range': 1, 'Glass transition, Tg': 1, 'Max continuous service temperature': 1,
+    'Dielectric strength': 1, 'Volume resistivity': 1, 'Electrical conductivity': 1, 'Cost band': -1
+  };
+  function dirCell(a, b, lbl) {
+    var x = cmpNum(a, lbl), y = cmpNum(b, lbl);
+    if (x === null || y === null) return '<td class="dir"></td>';
+    if (y === x) return '<td class="dir eq" aria-label="B equals A">=</td>';
+    var pref = CMP_BETTER[lbl], up = y > x, cls = pref ? ((up ? 1 : -1) === pref ? ' better' : ' worse') : '';
+    var say = 'B ' + (up ? 'higher' : 'lower') + ' than A' + (cls ? ', ' + cls.trim() : '');
+    return '<td class="dir' + cls + '" title="' + say + '" aria-label="' + say + '">' + (up ? ARROW_UP : ARROW_DN) + '</td>';
+  }
+
+  function renderCompare() {
+    var a = BYID[sel.A], b = BYID[sel.B], out = document.getElementById('cmpTable');
+    if (!a && !b) { out.innerHTML = '<div class="empty">Search for two grades, or use Add to Compare on a row.</div>'; return; }
+    var ra = a ? detailRows(a) : [], rb = b ? detailRows(b) : [], order = [], va = {}, vb = {};
+    function add(rows, into) { rows.forEach(function (r) { var l = CMP_ALIAS[r[0]] || r[0]; if (order.indexOf(l) < 0) order.push(l); into[l] = r[1]; }); }
+    add(ra, va); add(rb, vb);
+    function cell(g, v, lbl) { return g ? (v[lbl] !== undefined ? v[lbl] : '<span class="na">–</span>') : ''; }
+    out.innerHTML = '<table class="props cmp"><thead><tr><th>Property</th><th>A' + (a ? ': ' + esc(gLabel(a)) : '') + '</th><th>B' + (b ? ': ' + esc(gLabel(b)) : '') + '</th><th class="dir" title="B relative to A">B vs A</th></tr></thead><tbody>' +
+      '<tr><th>Material type</th><td>' + (a ? esc(typeOf(a)) : '') + '</td><td>' + (b ? esc(typeOf(b)) : '') + '</td><td class="dir"></td></tr>' +
+      '<tr><th>Basis</th><td>' + (a ? '<span class="basis">' + esc(basisOf(a)) + '</span>' : '') + '</td><td>' + (b ? '<span class="basis">' + esc(basisOf(b)) + '</span>' : '') + '</td><td class="dir"></td></tr>' +
+      order.map(function (lbl) { return '<tr><th>' + lbl + '</th><td>' + cell(a, va, lbl) + '</td><td>' + cell(b, vb, lbl) + '</td>' + dirCell(a, b, lbl) + '</tr>'; }).join('') +
+      '</tbody></table>';
+  }
+  function addToCompare(id) {
+    if (sel.A === id || sel.B === id) { setCompare(true); return; }
+    var slot = sel.A ? 'B' : 'A';
+    setCompare(true);
+    setSlot(slot, id);
+    if (slot === 'B') cmpBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  cmpOn.addEventListener('change', function () { setCompare(cmpOn.checked); });
+  document.getElementById('cmpSwap').addEventListener('click', function () { var t = sel.A; sel.A = sel.B; sel.B = t; combos.A.sync(); combos.B.sync(); renderCompare(); render(); });
+
   function render() {
     var q = document.getElementById('search').value.trim();
     var tf = typeSel.value, bf = basisSel.value;
@@ -428,6 +597,7 @@
     if (sb) { var k = sb.dataset.k, ty = sb.dataset.type; cycleSort(ty, k); render();
       var b2 = document.querySelector('.sort-btn[data-type="' + ty + '"][data-k="' + k + '"]'); if (b2) b2.focus(); return; }
     if (sc) { delete sorts[sc.dataset.type]; render(); return; }
+    var ac = e.target.closest('.add-cmp'); if (ac) { addToCompare(ac.dataset.id); return; }
     var row = e.target.closest('tr.grade-row'); if (!row) return;
     open[row.dataset.id] = !open[row.dataset.id]; render();
   });
