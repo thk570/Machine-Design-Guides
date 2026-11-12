@@ -7,8 +7,8 @@
 // meant to be a short summary, fully visible, not the page's full feature list. Longer detail belongs
 // on the page itself.
 window.MDG_MANIFEST = {
-  "rev": 11,
-  "updated": "2026-10-30",
+  "rev": 12,
+  "updated": "2026-11-12",
   "categories": [
     {
       "slug": "fits",
@@ -57,6 +57,17 @@ window.MDG_MANIFEST = {
       "tags": ["materials", "MMPDS", "properties", "density", "elastic modulus", "yield strength", "CTE", "thermal conductivity", "cost", "compare", "insulating", "polymer", "dielectric strength", "steel", "tool steel", "aluminum", "titanium", "copper"],
       "status": "done",
       "rev": 10
+    },
+    {
+      "id": "supplier-library",
+      "title": "Supplier Library",
+      "category": "libraries",
+      "path": "calculators/components/supplier-library.html",
+      "standard": "Supplier homepages",
+      "description": "Searchable UK and online suppliers by supply type: fasteners, mechanical, hydraulic and pneumatic, materials, tooling.",
+      "tags": ["suppliers", "vendors", "sourcing", "distributor", "fasteners", "bearings", "springs", "seals", "O-rings", "pneumatic", "electrical components", "raw materials", "stockholder", "tooling", "lifting", "plating"],
+      "status": "done",
+      "rev": 1
     },
     {
       "id": "hardness-converter",
