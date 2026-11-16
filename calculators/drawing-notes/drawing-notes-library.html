@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var s=null,t=0,m;try{s=localStorage.getItem('mdg-theme');t=+localStorage.getItem('mdg-theme-ts')||0;}catch(e){}m=/^mdg-theme=(auto|light|dark)@(\d+)$/.exec(window.name||'');if(m&&+m[2]>t){s=m[1];}if(s==='light'||s==='dark'){document.documentElement.setAttribute('data-theme',s);}}catch(e){}})();</script>
+<title>Drawing Notes Library — Machine Design Guides</title>
+<style>
+  /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained); Libraries grey accent #5b5b5b --- */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #5b5b5b;
+    --input-bg: #eeeeec; --input-border: #c9c9c3; --row-hover: #f1f1ee; --detail-bg: #fafaf8;
+    --mark-bg: #ffe9a8; --mark-fg: #1c1c1a; --flash: #d9d6a8;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent: #8a8a8a;
+      --input-bg: #2a2a2d; --input-border: #4a4a4f; --row-hover: #28272b; --detail-bg: #1b1b1d;
+      --mark-bg: #6b5a1c; --mark-fg: #f4efe0; --flash: #4a4730;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent: #8a8a8a;
+    --input-bg: #2a2a2d; --input-border: #4a4a4f; --row-hover: #28272b; --detail-bg: #1b1b1d;
+    --mark-bg: #6b5a1c; --mark-fg: #f4efe0; --flash: #4a4730;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font);
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    padding: 0.9rem 0; border-bottom: 1px solid var(--mdg-border); max-width: 1180px; margin: 0 auto; }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: #fff; background: #5b5b5b; }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem; font-size: 0.78rem; cursor: pointer;
+    background: var(--mdg-surface); color: var(--mdg-text-muted); font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 1180px; margin: 0 auto; padding: 1.25rem 0 3rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .mdg-card p { margin: 0 0 0.6rem; font-size: 0.9rem; line-height: 1.5; }
+  .note { font-size: 0.82rem; color: var(--mdg-text-muted); margin: 0.5rem 0 0; line-height: 1.45; }
+  .typical { font-style: italic; }
+  .na { color: var(--mdg-text-muted); }
+
+  .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(19rem, 100%), 1fr)); gap: 0.9rem 1.1rem; align-items: start; }
+  .controls > div { min-width: 0; }
+  .controls label.lbl { display: block; font-size: 0.78rem; color: var(--mdg-text-muted); margin-bottom: 0.25rem; }
+  .controls .hint-line { font-size: 0.74rem; color: var(--mdg-text-muted); margin-top: 0.25rem; line-height: 1.35; }
+  input[type=search], input[type=text] { padding: 0.4rem 0.55rem; border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg);
+    color: var(--mdg-text); font-size: 0.9rem; font-family: var(--mdg-font); width: 100%; }
+  input[type=search]:focus, input[type=text]:focus { outline: none; border-color: var(--mdg-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--mdg-accent) 35%, transparent); }
+  .kw-box { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; padding: 0.25rem 0.4rem; border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); }
+  .kw-box:focus-within { border-color: var(--mdg-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--mdg-accent) 35%, transparent); }
+  .kw-box input { flex: 1 1 8rem; min-width: 6rem; width: auto; border: none; background: transparent; padding: 0.2rem 0.15rem; box-shadow: none !important; }
+  .kw-box input:focus { box-shadow: none; }
+  .kw { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.1rem 0.2rem 0.1rem 0.55rem; border-radius: 999px; background: var(--mdg-surface); border: 1px solid var(--mdg-border); font-size: 0.8rem; }
+  .x { all: unset; cursor: pointer; width: 1.1rem; height: 1.1rem; line-height: 1.05rem; text-align: center; border-radius: 50%; color: var(--mdg-text-muted); font-size: 0.95rem; }
+  .x:hover { background: var(--row-hover); color: var(--mdg-text); }
+  .x:focus-visible { outline: 2px solid var(--mdg-accent); }
+  .combo { position: relative; }
+  .combo ul { position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 2px); max-height: 17rem; overflow-y: auto; margin: 0; padding: 0.25rem 0; list-style: none;
+    background: var(--mdg-surface); border: 1px solid var(--mdg-border); border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,0.14); }
+  .combo li { padding: 0.35rem 0.6rem; font-size: 0.85rem; cursor: pointer; }
+  .combo li.grp { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--mdg-text-muted); cursor: default; padding-top: 0.5rem; }
+  .combo li.hintli { color: var(--mdg-text-muted); cursor: default; font-size: 0.78rem; }
+  .combo li.opt[aria-selected="true"], .combo li.opt:hover { background: var(--row-hover); }
+  .combo li .via { font-size: 0.72rem; color: var(--mdg-text-muted); margin-left: 0.4rem; }
+  .matchip { display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.4rem; padding: 0.15rem 0.25rem 0.15rem 0.65rem; border-radius: 999px; border: 1px solid var(--mdg-accent); font-size: 0.82rem; }
+  .status { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; justify-content: space-between; margin-top: 0.9rem; padding-top: 0.7rem; border-top: 1px solid var(--mdg-border); font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .linkbtn { all: unset; cursor: pointer; color: var(--mdg-accent); font-size: 0.8rem; text-decoration: underline; text-underline-offset: 2px; }
+  .linkbtn:hover { color: var(--mdg-text); }
+  .linkbtn:focus-visible { outline: 2px solid var(--mdg-accent); outline-offset: 2px; }
+  .key { display: flex; gap: 0.4rem 1.2rem; flex-wrap: wrap; margin-top: 0.7rem; font-size: 0.76rem; color: var(--mdg-text-muted); }
+
+  .results { background: var(--mdg-surface); border: 1px solid var(--mdg-accent); border-radius: var(--mdg-radius); margin-bottom: 1rem; }
+  .res-head { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; padding: 0.65rem 1rem; border-bottom: 1px solid var(--mdg-border); font-size: 0.9rem; }
+  .res-head .sub { font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .res-head .linkbtn { margin-left: auto; }
+  .res-list { list-style: none; margin: 0; padding: 0; max-height: 21rem; overflow-y: auto; }
+  .res { padding: 0.65rem 1rem; border-bottom: 1px solid var(--mdg-border); }
+  .res:last-child { border-bottom: none; }
+  .res-top { display: flex; align-items: baseline; gap: 0.5rem 0.75rem; flex-wrap: wrap; }
+  .res-title { font-weight: 600; font-size: 0.9rem; }
+  .res-sec { font-size: 0.74rem; color: var(--mdg-text-muted); }
+  .res-actions { margin-left: auto; display: flex; gap: 0.4rem; }
+  .res-types { margin-top: 0.3rem; display: flex; gap: 0.3rem; flex-wrap: wrap; }
+  .res-snip { margin: 0.35rem 0 0; font-size: 0.8rem; line-height: 1.45; color: var(--mdg-text); white-space: pre-line; }
+  .res-empty { padding: 1.1rem 1rem; color: var(--mdg-text-muted); font-size: 0.88rem; }
+  mark { background: var(--mark-bg); color: var(--mark-fg); border-radius: 2px; padding: 0 1px; }
+  .mini { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.1rem 0.6rem; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-size: 0.72rem; cursor: pointer; font-family: var(--mdg-font); white-space: nowrap; }
+  .mini:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  .mini:focus-visible { outline: 2px solid var(--mdg-accent); outline-offset: 1px; }
+  .chip { display: inline-block; padding: 0.08rem 0.5rem; border: 1px solid var(--mdg-border); border-radius: 999px; font-size: 0.72rem; color: var(--mdg-text-muted); white-space: nowrap; }
+  .chip.hit { border-color: var(--mdg-accent); color: var(--mdg-text); font-weight: 600; }
+
+  .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius); background: var(--mdg-surface); margin: 0.7rem 0; }
+  .mdg-collapsible > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.9rem; font-size: 0.92rem; font-weight: 600; user-select: none; }
+  .mdg-collapsible > summary::-webkit-details-marker { display: none; }
+  .mdg-collapsible > summary::before { content: ''; flex: none; width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+    border-left: 6px solid var(--mdg-text-muted); transition: transform 0.18s ease; }
+  .mdg-collapsible[open] > summary::before { transform: rotate(90deg); }
+  .mdg-collapsible > summary .hint { font-weight: 400; font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .mdg-collapsible > summary:focus-visible { outline: 2px solid var(--mdg-accent); outline-offset: -2px; }
+  .mdg-collapsible-body { padding: 0 0.9rem 0.9rem; }
+  .tbl-bar { display: flex; justify-content: space-between; align-items: center; min-height: 1.4rem; margin-bottom: 0.4rem; font-size: 0.78rem; color: var(--mdg-text-muted); }
+
+  .mdg-scroll { overflow-x: auto; border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius); background: var(--mdg-surface); }
+  table.mdg-table { border-collapse: collapse; width: 100%; min-width: 1080px; table-layout: fixed; }
+  table.mdg-table th, table.mdg-table td { padding: 0.5rem 0.65rem; text-align: left; font-size: 0.84rem; border-bottom: 1px solid var(--mdg-border); vertical-align: top; }
+  table.mdg-table thead th { background: var(--mdg-bg); font-weight: 600; font-size: 0.78rem; white-space: nowrap; }
+  table.mdg-table tr:last-child > td { border-bottom: none; }
+  table.mdg-table tbody tr:hover { background: var(--row-hover); }
+  th.sortable { padding: 0 !important; }
+  .sort-btn { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 0.3rem; width: 100%; padding: 0.5rem 0.65rem; cursor: pointer; font: inherit; }
+  .sort-btn:hover { color: var(--mdg-accent); }
+  .sort-btn:focus-visible { outline: 2px solid var(--mdg-accent); outline-offset: -2px; }
+  .sort-ind { font-size: 0.68rem; color: var(--mdg-accent); white-space: nowrap; }
+  .topic { font-weight: 600; }
+  .ntext { font-size: 0.79rem; line-height: 1.45; letter-spacing: 0.01em; background: var(--detail-bg); border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.4rem 0.55rem; overflow-wrap: anywhere; white-space: pre-line; }
+  .ntext + .ntext { margin-top: 0.4rem; }
+  .ntext .tl { display: block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--mdg-text-muted); margin-bottom: 0.15rem; }
+  .prompt { font-size: 0.8rem; color: var(--mdg-text-muted); font-style: italic; }
+  .copy-row { margin-top: 0.35rem; }
+  .topt { display: flex; align-items: flex-start; gap: 0.4rem; padding: 0.12rem 0; font-size: 0.82rem; line-height: 1.35; cursor: pointer; }
+  .topt input { margin: 0.15rem 0 0; width: 0.95rem; height: 0.95rem; accent-color: var(--mdg-accent); flex: none; }
+  .topt.on span { font-weight: 600; }
+  .cm { font-size: 0.8rem; line-height: 1.45; }
+  .cm + .cm { margin-top: 0.4rem; }
+  .cm b { font-weight: 600; }
+  .mats { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+  .cost { white-space: nowrap; }
+  .cost + .cost { display: block; }
+  .empty { padding: 1.4rem; text-align: center; color: var(--mdg-text-muted); font-size: 0.88rem; }
+  tr.flash td { animation: flash 1.8s ease-out; }
+  @keyframes flash { 0%, 55% { background: var(--flash); } 100% { background: transparent; } }
+  @media (prefers-reduced-motion: reduce) { tr.flash td { animation: none; background: var(--flash); } .mdg-collapsible > summary::before { transition: none; } }
+
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border); font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .mdg-footer p { font-size: 0.8rem; }
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0 0 0.6rem; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.3rem; }
+
+  /* Print and Save-as-PDF (see MDG/structure-and-conventions.md). Unlike other pages, Save PDF opens every
+     section's table (the tables are this page's content) and keeps the current search and material filter. */
+  @media print {
+    .mdg-header, .mdg-no-print { display: none !important; }
+    .mdg-collapsible:not([open]) { display: block; }
+    .mdg-collapsible > summary::before { display: none; }
+    .mdg-collapsible-body { display: block !important; }
+  }
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header, .mdg-print-filter { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --detail-bg: #ffffff; --row-hover: #ffffff;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; padding-left: 0; padding-right: 0; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-no-print,
+  html.mdg-pdf-mode .tbl-bar,
+  html.mdg-pdf-mode .mini,
+  html.mdg-pdf-mode .copy-row { display: none !important; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+  html.mdg-pdf-mode .mdg-print-filter { display: block; margin: -0.4rem 0 0.8rem; font-size: 0.78rem; color: #6b6b64; }
+  html.mdg-pdf-mode .mdg-print-filter:empty { display: none; }
+  html.mdg-pdf-mode table.mdg-table { min-width: 0; }
+  html.mdg-pdf-mode .topt:not(.on) { display: none; }
+  html.mdg-pdf-mode tr { break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem;">
+      <strong>Drawing Notes Library</strong>
+      <span class="mdg-tag">Libraries</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">Standard drawing notes (BS 8888 style)</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Drawing Notes Library<span class="mdg-print-tag">Libraries</span></div>
+    <div class="mdg-print-meta">Standard drawing notes (BS 8888 style) &middot; <span id="mdg-print-date"></span></div>
+  </div>
+  <div class="mdg-print-filter" id="mdg-print-filter"></div>
+
+  <div class="mdg-card mdg-no-print">
+    <p>Copy-ready drawing notes grouped by process. Each section is a table, closed by default. Where a note has several types, the first is ticked. Tick the type you need and the note, comments, materials and cost update to match.</p>
+    <div class="controls">
+      <div>
+        <label class="lbl" for="q">Search notes (exact phrase)</label>
+        <input type="search" id="q" placeholder="e.g. AMS 2700 method*" autocomplete="off" spellcheck="false">
+        <div class="hint-line">Matches the text as typed, spaces included. <b>*</b> = any characters, <b>?</b> = one character.</div>
+      </div>
+      <div>
+        <label class="lbl" for="kwInput">Keywords (up to 5, all must match)</label>
+        <div class="kw-box" id="kwBox"><span id="kwChips"></span><input type="text" id="kwInput" placeholder="Type a word, press Enter" autocomplete="off" spellcheck="false" aria-label="Add keyword"></div>
+        <div class="hint-line"><span id="kwCount">0 of 5</span> used. Words can be in any order and any part of the note. Wildcards work.</div>
+      </div>
+      <div>
+        <label class="lbl" for="matQ">Part material (from the Material Library)</label>
+        <div class="combo">
+          <input type="search" id="matQ" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="matList" autocomplete="off" placeholder="Type or pick a material type or grade, e.g. 6082, 17-4PH">
+          <ul id="matList" role="listbox" hidden></ul>
+        </div>
+        <div id="matChip"></div>
+        <div class="hint-line" id="matHint">Hides processes that do not apply to your material.</div>
+      </div>
+    </div>
+    <div class="status">
+      <span id="statusText"></span>
+      <button type="button" class="linkbtn" id="clearAll" hidden>Clear search and material</button>
+    </div>
+    <div class="key">
+      <span>Both searches can run together: a note must satisfy the phrase and every keyword</span>
+      <span>Click a column header to sort (ascending, descending, off); click more headers to add tie-break sorts</span>
+      <span>In a note: [ ] = value to fill in, [A | B] = pick one, [COMPANY] = company name</span>
+      <span>Approx. cost = relative process cost per part for a small lot: £ lowest to £££££ highest. ~ italic = estimate, not live</span>
+    </div>
+  </div>
+
+  <section class="results" id="results" hidden aria-live="polite" aria-label="Search results">
+    <div class="res-head"><strong>Search results</strong><span class="sub" id="resCount"></span><button type="button" class="linkbtn" id="clearSearch">Clear search</button></div>
+    <ul class="res-list" id="resList"></ul>
+  </section>
+
+  <div id="sections"></div>
+
+  <div class="mdg-card mdg-footer">
+    <p>Notes come from the shared library (data/drawing-notes.js) and materials from data/materials.js. Comments, applicable materials and cost bands are drafted guidance and have not been checked against the standards they mention.</p>
+    <p><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li><a href="https://knowledge.bsigroup.com/products/bs-8888-technical-product-documentation-and-specification">BS 8888</a> — Technical product documentation and specification.</li>
+      <li><a href="https://www.iso.org/standard/55979.html">ISO 8015</a> — Geometrical product specifications (GPS) — Fundamentals — Concepts, principles and rules.</li>
+    </ul>
+    <p>This page does not reproduce the text of any standard. Check the specification called up in a note for conformance-critical work.</p>
+    <p><strong>References</strong></p>
+    <ol class="ref-list">
+      <li id="ref1">Equipmake H55 drawings (internal, gold-standard set) — wording of notes found on H55 drawings.</li>
+      <li id="ref2">Equipmake legacy D and M-T part drawings (internal) — wording of notes found only on the older drawings.</li>
+    </ol>
+    <p>Last updated: 2026-11-16 &middot; Rev 2</p>
+  </div>
+
+</main>
+
+<script src="../../data/drawing-notes.js"></script>
+<script src="../../data/materials.js"></script>
+<script>
+(function () {
+  'use strict';
+  var SRC = window.MDG_DRAWING_NOTES, LIB = window.MDG_MATERIALS;
+  if (!SRC) {
+    document.getElementById('sections').innerHTML = '<div class="mdg-card"><div class="empty">data/drawing-notes.js did not load, so the notes are unavailable.</div></div>';
+    return;
+  }
+  var DATA = { sections: SRC.sections, extra: SRC.extra || [], libTypes: [], grades: [] };
+  if (LIB) {
+    DATA.libTypes = LIB.types.map(function (t) { return { slug: t.slug, title: t.title }; });
+    DATA.grades = LIB.grades.map(function (g) { return { id: g.id, name: g.grade + (g.condition ? ' — ' + g.condition : ''), type: g.type }; });
+  }
+  var METAL_SLUGS = ['steel-carbon-alloy', 'stainless-steel', 'tool-steel', 'aluminum', 'magnesium', 'titanium', 'copper-alloy'];
+  var COST_TIP = ['Lowest', 'Low', 'Medium', 'High', 'Highest'];
+  var MAXKW = 5;
+
+  function cmp(a, b) { return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }); }
+  function esc(s) { return String(s === null || s === undefined ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function $(id) { return document.getElementById(id); }
+  function squash(s) { return String(s || '').replace(/\s+/g, ' ').trim(); }
+
+  // ---------- data prep: types alphabetical within each note, notes alphabetical by topic
+  var NOTES = [], SEC = {};
+  DATA.sections.forEach(function (sec) {
+    sec.notes.sort(function (a, b) { return cmp(a.topic, b.topic); });
+    sec.notes.forEach(function (n) {
+      n.types.sort(function (a, b) { return cmp(a.name, b.name); });
+      n.sec = sec; NOTES.push(n);
+    });
+    SEC[sec.id] = sec;
+  });
+  var TITLE_OF = {};
+  DATA.libTypes.forEach(function (t) { TITLE_OF[t.slug] = t.title; });
+  DATA.extra.forEach(function (t) { TITLE_OF[t.slug] = t.title; });
+
+  // ---------- state
+  var state = { ticks: {}, sorts: {}, phrase: '', kws: [], mat: null };
+
+  // ---------- search helpers
+  function toRegex(q, flags) {
+    q = squash(q); if (!q) return null;
+    var src = '';
+    for (var i = 0; i < q.length; i++) {
+      var ch = q.charAt(i);
+      if (ch === '*') src += '.*'; else if (ch === '?') src += '.'; else if (ch === ' ') src += '\\s+';
+      else src += ch.replace(/[.+^${}()|[\]\\\/]/g, '\\$&');
+    }
+    try { return new RegExp(src, flags || 'i'); } catch (e) { return null; }
+  }
+  function searching() { return !!squash(state.phrase) || state.kws.length > 0; }
+  function passes(corpus) {
+    var re = toRegex(state.phrase);
+    if (re && !re.test(corpus)) return false;
+    for (var i = 0; i < state.kws.length; i++) { var k = toRegex(state.kws[i]); if (k && !k.test(corpus)) return false; }
+    return true;
+  }
+  function matLabels(list) { return (list || []).map(function (e) { return e.label; }).join(' '); }
+  function noteCorpus(n) { return squash([n.topic, n.sec.title, n.c, n.text || '', matLabels(n.m)].join(' ')); }
+  function typeCorpus(n, t) { return squash([n.topic, t.name, t.text, t.c || n.c, matLabels(t.m || n.m)].join(' ')); }
+
+  // ---------- material filter
+  function entryOk(e) {
+    var f = state.mat; if (!f) return true;
+    if (e.metals) return METAL_SLUGS.indexOf(f.slug) >= 0;
+    var slug = e.t;
+    if (slug !== f.slug) return false;
+    if (f.kind === 'grade' && e.g && e.g.length) {
+      var gn = f.grade.toLowerCase();
+      return e.g.some(function (p) { return gn.indexOf(p.toLowerCase()) >= 0; });
+    }
+    return true;
+  }
+  function matOk(list) { if (!state.mat) return true; if (!list || !list.length) return true; return list.some(entryOk); }
+  function typeMats(n, t) { return t.m || n.m; }
+
+  // ---------- note evaluation
+  function evalNote(n) {
+    var vis = [];
+    if (n.types.length) {
+      n.types.forEach(function (t, i) { if (matOk(typeMats(n, t))) vis.push(i); });
+      if (!vis.length) return null;
+    } else if (!matOk(n.m)) return null;
+    if (!searching()) return { vis: vis, matched: [] };
+    var corpus = noteCorpus(n) + ' ¶ ' + vis.map(function (i) { return typeCorpus(n, n.types[i]); }).join(' ¶ ');
+    if (!passes(corpus)) return null;
+    var matched = vis.filter(function (i) { return passes(typeCorpus(n, n.types[i])); });
+    return { vis: vis, matched: matched };
+  }
+
+  // ---------- display model for one note row
+  function view(n, ev) {
+    var vis = ev.vis, raw = state.ticks[n.id];
+    // first visible type is ticked until the user changes that note's ticks
+    if (raw === undefined) raw = n.types.length && vis.length ? [vis[0]] : [];
+    var tk = raw.filter(function (i) { return vis.indexOf(i) >= 0; }).sort(function (a, b) { return a - b; });
+    var v = { vis: vis, ticked: tk };
+    var pool = n.types.length ? (tk.length ? tk : vis) : [];
+    // text
+    v.texts = n.types.length ? tk.map(function (i) { return { label: n.types[i].name, text: n.types[i].text }; }) : (n.text ? [{ label: '', text: n.text }] : []);
+    // comments
+    if (n.types.length && tk.length) v.comments = tk.map(function (i) { return { label: n.types[i].name, text: n.types[i].c || n.c }; });
+    else v.comments = [{ label: '', text: n.c }];
+    // materials
+    var ml = [];
+    if (n.types.length) pool.forEach(function (i) { ml = ml.concat(typeMats(n, n.types[i])); }); else ml = n.m;
+    var seen = {}, labs = [];
+    (ml || []).forEach(function (e) { if (!seen[e.label]) { seen[e.label] = 1; labs.push({ label: e.label, hit: !!state.mat && entryOk(e) }); } });
+    labs.sort(function (a, b) { return cmp(a.label, b.label); });
+    v.mats = labs;
+    // cost
+    var costs = n.types.length ? pool.map(function (i) { return n.types[i].cost || n.cost; }) : [n.cost];
+    v.cmin = Math.min.apply(null, costs); v.cmax = Math.max.apply(null, costs);
+    return v;
+  }
+
+  function costHtml(min, max) {
+    var tip = COST_TIP[min - 1] + (max !== min ? ' to ' + COST_TIP[max - 1] : '') + ' relative process cost (estimate)';
+    if (min === max) return '<span class="typical cost" title="' + esc(tip) + '" aria-label="' + esc(tip) + '">~' + '£'.repeat(min) + '<span class="na" style="opacity:.45">' + '£'.repeat(5 - min) + '</span></span>';
+    return '<span class="typical cost" title="' + esc(tip) + '" aria-label="' + esc(tip) + '">~' + '£'.repeat(min) + ' – ' + '£'.repeat(max) + '</span>';
+  }
+
+  // ---------- sorting (per table, stackable; click cycles asc, desc, off; missing values last)
+  var COLS = [['topic', 'Topic / Title'], ['text', 'Note text'], ['type', 'Type'], ['c', 'Comments'], ['m', 'Applicable materials'], ['cost', 'Approx. cost']];
+  function sortVal(n, v, k) {
+    if (k === 'topic') return n.topic;
+    if (k === 'text') { var t = v.texts.length ? v.texts[0].text : (n.types.length ? null : n.text); return t ? t : null; }
+    if (k === 'type') { if (!n.types.length) return null; var i = v.ticked.length ? v.ticked[0] : v.vis[0]; return n.types[i].name; }
+    if (k === 'c') return v.comments[0].text || null;
+    if (k === 'm') return v.mats.length ? v.mats[0].label : null;
+    if (k === 'cost') return v.cmin;
+    return null;
+  }
+  function sortRows(items, secId) {
+    var st = state.sorts[secId] || [];
+    items.sort(function (a, b) {
+      for (var i = 0; i < st.length; i++) {
+        var va = sortVal(a.n, a.v, st[i].k), vb = sortVal(b.n, b.v, st[i].k);
+        var na = va === null || va === undefined, nb = vb === null || vb === undefined;
+        if (na && nb) continue; if (na) return 1; if (nb) return -1;
+        var r = (typeof va === 'number' && typeof vb === 'number') ? va - vb : cmp(va, vb);
+        if (r) return st[i].dir === 'asc' ? r : -r;
+      }
+      return cmp(a.n.topic, b.n.topic);
+    });
+    return items;
+  }
+  function toggleSort(secId, k) {
+    var st = state.sorts[secId] || (state.sorts[secId] = []), idx = -1;
+    st.forEach(function (s, i) { if (s.k === k) idx = i; });
+    if (idx < 0) st.push({ k: k, dir: 'asc' });
+    else if (st[idx].dir === 'asc') st[idx].dir = 'desc';
+    else st.splice(idx, 1);
+  }
+
+  // ---------- rendering
+  function headHtml(secId) {
+    var st = state.sorts[secId] || [];
+    return '<tr>' + COLS.map(function (c) {
+      var pos = -1; st.forEach(function (s, i) { if (s.k === c[0]) pos = i; });
+      var s = pos >= 0 ? st[pos] : null;
+      var ind = s ? (s.dir === 'asc' ? '▲' : '▼') + (st.length > 1 ? pos + 1 : '') : '';
+      return '<th class="sortable" aria-sort="' + (s && pos === 0 ? (s.dir === 'asc' ? 'ascending' : 'descending') : 'none') + '"><button type="button" class="sort-btn" data-sec="' + secId + '" data-k="' + c[0] + '" title="Sort by ' + esc(c[1]) + '">' + esc(c[1]) + '<span class="sort-ind">' + ind + '</span></button></th>';
+    }).join('') + '</tr>';
+  }
+  function rowHtml(n, v) {
+    var typeCell = '—';
+    if (n.types.length) {
+      typeCell = v.vis.map(function (i) {
+        var on = v.ticked.indexOf(i) >= 0;
+        return '<label class="topt' + (on ? ' on' : '') + '"><input type="checkbox" data-note="' + n.id + '" data-ti="' + i + '"' + (on ? ' checked' : '') + '><span>' + esc(n.types[i].name) + '</span></label>';
+      }).join('');
+    }
+    var textCell;
+    if (v.texts.length) {
+      textCell = v.texts.map(function (t) { return '<div class="ntext">' + (v.texts.length > 1 ? '<span class="tl">' + esc(t.label) + '</span>' : '') + esc(t.text) + '</div>'; }).join('') +
+        '<div class="copy-row"><button type="button" class="mini" data-copy-note="' + n.id + '">Copy note</button></div>';
+    } else textCell = '<span class="prompt">Tick a type to show its note</span>';
+    var cm = v.comments.map(function (c) { return '<div class="cm">' + (v.comments.length > 1 ? '<b>' + esc(c.label) + ':</b> ' : '') + esc(c.text) + '</div>'; }).join('');
+    var mats = v.mats.length ? v.mats.map(function (m) { return '<span class="chip' + (m.hit ? ' hit' : '') + '">' + esc(m.label) + '</span>'; }).join('') : '<span class="chip">Any material</span>';
+    return '<tr id="' + n.id + '"><td class="topic">' + esc(n.topic) + '</td><td>' + textCell + '</td><td>' + typeCell + '</td><td>' + cm + '</td><td><div class="mats">' + mats + '</div></td><td>' + costHtml(v.cmin, v.cmax) + '</td></tr>';
+  }
+  function renderSection(sec) {
+    // tables follow the material filter only; search results are shown separately
+    var matItems = [];
+    sec.notes.forEach(function (n) {
+      var vis = []; if (n.types.length) { n.types.forEach(function (t, i) { if (matOk(typeMats(n, t))) vis.push(i); }); if (!vis.length) return; } else if (!matOk(n.m)) return;
+      matItems.push({ n: n, v: view(n, { vis: vis }) });
+    });
+    sortRows(matItems, sec.id);
+    var total = sec.notes.length, shown = matItems.length;
+    $('hint-' + sec.id).textContent = (state.mat ? shown + ' of ' + total : total) + ' notes' + (state.mat ? ' for this material' : '');
+    var st = state.sorts[sec.id] || [];
+    $('bar-' + sec.id).innerHTML = '<span>' + shown + ' ' + (shown === 1 ? 'note' : 'notes') + '</span>' + (st.length ? '<button type="button" class="linkbtn" data-clear-sort="' + sec.id + '">Clear sort</button>' : '');
+    var body = matItems.length ? matItems.map(function (it) { return rowHtml(it.n, it.v); }).join('') : '<tr><td colspan="6"><div class="empty">No notes in this section apply to the selected material.</div></td></tr>';
+    $('tw-' + sec.id).innerHTML = '<table class="mdg-table"><colgroup><col style="width:12%"><col style="width:29%"><col style="width:15%"><col style="width:21%"><col style="width:14%"><col style="width:9%"></colgroup><thead>' + headHtml(sec.id) + '</thead><tbody>' + body + '</tbody></table>';
+  }
+  function buildSections() {
+    $('sections').innerHTML = DATA.sections.map(function (sec) {
+      return '<details class="mdg-collapsible" id="d-' + sec.id + '"><summary>' + sec.num + '. ' + esc(sec.title) + ' <span class="hint" id="hint-' + sec.id + '"></span></summary>' +
+        '<div class="mdg-collapsible-body"><div class="tbl-bar" id="bar-' + sec.id + '"></div><div class="mdg-scroll" id="tw-' + sec.id + '"></div></div></details>';
+    }).join('');
+  }
+
+  // ---------- search results list
+  var copyStore = [];
+  function hl(text) {
+    var out = esc(text), res = [];
+    var p = toRegex(state.phrase, 'gi'); if (p) res.push(p);
+    state.kws.forEach(function (k) { var r = toRegex(k, 'gi'); if (r) res.push(r); });
+    res.forEach(function (re) {
+      out = out.replace(/(<mark>|<\/mark>)|([^<>]+)/g, function (m, tag, txt) {
+        if (tag) return tag;
+        return txt.replace(re, function (x) { return x.length ? '<mark>' + x + '</mark>' : x; });
+      });
+    });
+    return out;
+  }
+  function renderResults() {
+    var box = $('results');
+    if (!searching()) { box.hidden = true; return; }
+    box.hidden = false;
+    var hits = [];
+    NOTES.forEach(function (n) { var ev = evalNote(n); if (ev) hits.push({ n: n, ev: ev }); });
+    hits.sort(function (a, b) { return cmp(a.n.topic, b.n.topic); });
+    copyStore = [];
+    $('resCount').textContent = hits.length + (hits.length === 1 ? ' note' : ' notes') + ', A to Z by title';
+    if (!hits.length) { $('resList').innerHTML = '<li class="res-empty">No notes match. Check the spelling, remove a keyword, or relax the material filter.</li>'; return; }
+    $('resList').innerHTML = hits.map(function (h) {
+      var n = h.n, mt = h.ev.matched, snipSrc;
+      if (n.types.length) { snipSrc = (mt.length ? mt : h.ev.vis).slice(0, 2).map(function (i) { return { label: n.types[i].name, text: n.types[i].text }; }); }
+      else snipSrc = n.text ? [{ label: '', text: n.text }] : [];
+      var copyText = snipSrc.map(function (s) { return s.text; }).join('\n\n');
+      copyStore.push(copyText);
+      var chips = n.types.length ? (mt.length ? mt : []).map(function (i) { return '<span class="chip hit">' + esc(n.types[i].name) + '</span>'; }).join('') : '';
+      var snips = snipSrc.map(function (s) { return '<p class="res-snip">' + (s.label ? '<b>' + esc(s.label) + ':</b> ' : '') + hl(s.text) + '</p>'; }).join('');
+      return '<li class="res"><div class="res-top"><span class="res-title">' + hl(n.topic) + '</span><span class="res-sec">' + n.sec.num + '. ' + esc(n.sec.title) + '</span>' +
+        '<span class="res-actions">' + (copyText ? '<button type="button" class="mini" data-copy-idx="' + (copyStore.length - 1) + '">Copy note</button>' : '') +
+        '<button type="button" class="mini" data-show="' + n.id + '" data-types="' + mt.join(',') + '">Show in table</button></span></div>' +
+        (chips ? '<div class="res-types">' + chips + '</div>' : '') + snips + '</li>';
+    }).join('');
+  }
+
+  function renderStatus() {
+    var bits = [], pf = [];
+    if (state.mat) { bits.push('Material: ' + state.mat.label); pf.push('Material: ' + state.mat.label); }
+    if (searching()) {
+      bits.push('Search active');
+      if (squash(state.phrase)) pf.push('Search: ' + squash(state.phrase));
+      if (state.kws.length) pf.push('Keywords: ' + state.kws.join(', '));
+    }
+    $('mdg-print-filter').textContent = pf.join('. ');
+    $('statusText').textContent = bits.length ? bits.join('. ') + '.' : 'Showing every note. Open a section to see its table.';
+    $('clearAll').hidden = !(state.mat || searching());
+    $('kwCount').textContent = state.kws.length + ' of ' + MAXKW;
+    $('kwInput').disabled = state.kws.length >= MAXKW;
+    $('kwInput').placeholder = state.kws.length >= MAXKW ? 'Keyword limit reached' : 'Type a word, press Enter';
+    $('kwChips').innerHTML = state.kws.map(function (k, i) { return '<span class="kw">' + esc(k) + '<button type="button" class="x" data-rm-kw="' + i + '" aria-label="Remove keyword ' + esc(k) + '">&times;</button></span>'; }).join('');
+    $('matChip').innerHTML = state.mat ? '<span class="matchip">' + esc(state.mat.label) + (state.mat.kind === 'grade' ? ' <span class="na">(' + esc(TITLE_OF[state.mat.slug]) + ')</span>' : '') + '<button type="button" class="x" id="rmMat" aria-label="Clear material filter">&times;</button></span>' : '';
+  }
+  function renderAll() {
+    var ae = document.activeElement, fk = null;
+    if (ae && ae.dataset) { if (ae.dataset.note) fk = 'input[data-note="' + ae.dataset.note + '"][data-ti="' + ae.dataset.ti + '"]'; else if (ae.dataset.k) fk = '.sort-btn[data-sec="' + ae.dataset.sec + '"][data-k="' + ae.dataset.k + '"]'; }
+    DATA.sections.forEach(renderSection);
+    renderStatus(); renderResults();
+    if (fk) { var el = document.querySelector(fk); if (el) el.focus(); }
+  }
+
+  // ---------- keywords
+  function addKw(raw) {
+    var w = squash(raw).replace(/[,;]+$/, ''); if (!w) return;
+    if (state.kws.length >= MAXKW) return;
+    if (state.kws.some(function (k) { return k.toLowerCase() === w.toLowerCase(); })) return;
+    state.kws.push(w);
+  }
+  $('kwInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ',' || e.key === ';') { e.preventDefault(); addKw(this.value); this.value = ''; renderAll(); }
+    else if (e.key === 'Backspace' && !this.value && state.kws.length) { state.kws.pop(); renderAll(); }
+  });
+  $('kwInput').addEventListener('blur', function () { if (this.value) { addKw(this.value); this.value = ''; renderAll(); } });
+  $('kwBox').addEventListener('click', function (e) { if (e.target === this) $('kwInput').focus(); });
+  $('q').addEventListener('input', function () { state.phrase = this.value; renderAll(); });
+
+  // ---------- material combobox (types and grades come from the Material Library data)
+  var matOpts = [], matIdx = 0;
+  function buildMatList() {
+    var q = squash($('matQ').value).toLowerCase(), opts = [], html = '';
+    var types = DATA.libTypes.concat(DATA.extra).filter(function (t) { return !q || t.title.toLowerCase().indexOf(q) >= 0; }).sort(function (a, b) { return cmp(a.title, b.title); });
+    if (types.length) { html += '<li class="grp" role="presentation">Material type</li>'; types.forEach(function (t) { opts.push({ kind: 'type', slug: t.slug, label: t.title }); html += '<li class="opt" role="option" data-i="' + (opts.length - 1) + '">' + esc(t.title) + (DATA.extra.some(function (x) { return x.slug === t.slug; }) ? '<span class="via">not in the library yet</span>' : '') + '</li>'; }); }
+    if (q) {
+      var gr = DATA.grades.filter(function (g) { return g.name.toLowerCase().indexOf(q) >= 0; }).sort(function (a, b) { return cmp(a.name, b.name); });
+      if (gr.length) { html += '<li class="grp" role="presentation">Grades</li>'; gr.slice(0, 25).forEach(function (g) { opts.push({ kind: 'grade', slug: g.type, grade: g.name, label: g.name }); html += '<li class="opt" role="option" data-i="' + (opts.length - 1) + '">' + esc(g.name) + '<span class="via">' + esc(TITLE_OF[g.type]) + '</span></li>'; }); if (gr.length > 25) html += '<li class="hintli">' + (gr.length - 25) + ' more: keep typing</li>'; }
+    } else html += '<li class="hintli">Type to search the ' + DATA.grades.length + ' library grades</li>';
+    if (!opts.length) html = '<li class="hintli">No material matches. Try a type such as aluminium.</li>';
+    matOpts = opts; matIdx = 0;
+    var ul = $('matList'); ul.innerHTML = html; ul.hidden = false; $('matQ').setAttribute('aria-expanded', 'true');
+    var first = ul.querySelector('.opt'); if (first) first.setAttribute('aria-selected', 'true');
+  }
+  function closeMat() { $('matList').hidden = true; $('matQ').setAttribute('aria-expanded', 'false'); }
+  function pickMat(i) { var o = matOpts[i]; if (!o) return; state.mat = o; $('matQ').value = ''; closeMat(); renderAll(); }
+  $('matQ').addEventListener('input', buildMatList);
+  $('matQ').addEventListener('focus', buildMatList);
+  $('matQ').addEventListener('keydown', function (e) {
+    var items = $('matList').querySelectorAll('.opt');
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault(); if (!items.length) return;
+      items[matIdx] && items[matIdx].removeAttribute('aria-selected');
+      matIdx = (matIdx + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+      items[matIdx].setAttribute('aria-selected', 'true'); items[matIdx].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') { e.preventDefault(); if (items[matIdx]) pickMat(+items[matIdx].dataset.i); }
+    else if (e.key === 'Escape') closeMat();
+  });
+  $('matList').addEventListener('mousedown', function (e) { var li = e.target.closest('.opt'); if (li) { e.preventDefault(); pickMat(+li.dataset.i); } });
+  document.addEventListener('click', function (e) { if (!e.target.closest('.combo')) closeMat(); });
+
+  // ---------- copy
+  function copyText(txt, btn) {
+    function done() { if (!btn) return; var o = btn.textContent; btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = o; }, 1400); }
+    function fallback() {
+      var ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {} document.body.removeChild(ta);
+    }
+    try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, fallback); else fallback(); } catch (e) { fallback(); }
+  }
+
+  // ---------- delegated events
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    var sb = t.closest && t.closest('.sort-btn'); if (sb) { toggleSort(sb.dataset.sec, sb.dataset.k); renderAll(); return; }
+    var cs = t.closest && t.closest('[data-clear-sort]'); if (cs) { delete state.sorts[cs.dataset.clearSort]; renderAll(); return; }
+    var rk = t.closest && t.closest('[data-rm-kw]'); if (rk) { state.kws.splice(+rk.dataset.rmKw, 1); renderAll(); return; }
+    if (t.id === 'rmMat') { state.mat = null; renderAll(); return; }
+    var cn = t.closest && t.closest('[data-copy-note]');
+    if (cn) {
+      var n = NOTES.filter(function (x) { return x.id === cn.dataset.copyNote; })[0];
+      var vis = []; n.types.forEach(function (ty, i) { if (matOk(typeMats(n, ty))) vis.push(i); });
+      var v = view(n, { vis: vis }); copyText(v.texts.map(function (x) { return x.text; }).join('\n\n'), cn); return;
+    }
+    var ci = t.closest && t.closest('[data-copy-idx]'); if (ci) { copyText(copyStore[+ci.dataset.copyIdx], ci); return; }
+    var sh = t.closest && t.closest('[data-show]');
+    if (sh) {
+      var id = sh.dataset.show, note = NOTES.filter(function (x) { return x.id === id; })[0];
+      var ty = sh.dataset.types ? sh.dataset.types.split(',').filter(Boolean).map(Number) : [];
+      if (ty.length) state.ticks[id] = ty;
+      $('d-' + note.sec.id).open = true; renderAll();
+      var row = $(id); if (row) { row.scrollIntoView({ behavior: 'smooth', block: 'center' }); row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash'); }
+      return;
+    }
+    if (t.id === 'clearSearch') { state.phrase = ''; state.kws = []; $('q').value = ''; $('kwInput').value = ''; renderAll(); return; }
+    if (t.id === 'clearAll') { state.phrase = ''; state.kws = []; state.mat = null; $('q').value = ''; $('kwInput').value = ''; renderAll(); return; }
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.matches && t.matches('input[data-note]')) {
+      var id = t.dataset.note, ti = +t.dataset.ti, nn = NOTES.filter(function (x) { return x.id === id; })[0];
+      if (state.ticks[id] === undefined) { var vv = []; nn.types.forEach(function (ty, i) { if (matOk(typeMats(nn, ty))) vv.push(i); }); state.ticks[id] = vv.length ? [vv[0]] : []; }
+      var arr = state.ticks[id], at = arr.indexOf(ti);
+      if (t.checked && at < 0) arr.push(ti); else if (!t.checked && at >= 0) arr.splice(at, 1);
+      renderAll();
+    }
+  });
+
+  if (!LIB) { $('matHint').textContent = 'data/materials.js did not load, so only the general material classes are listed.'; }
+  buildSections();
+  renderAll();
+})();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  var root = document.documentElement;
+  function current(){
+    var t = root.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  // Newest saved choice: localStorage (shared by same-origin pages) vs window.name (follows the tab,
+  // covers browsers that give each file:// page its own storage). Timestamps decide which is newer.
+  function saved(){
+    var s = null, t = 0, m;
+    try { s = localStorage.getItem('mdg-theme'); t = +localStorage.getItem('mdg-theme-ts') || 0; } catch (e) {}
+    m = /^mdg-theme=(auto|light|dark)@(\d+)$/.exec(window.name || '');
+    if (m && +m[2] > t) { s = m[1]; }
+    return STATES.indexOf(s) > -1 ? s : null;
+  }
+  function show(state){
+    if (state === 'auto') { root.removeAttribute('data-theme'); }
+    else { root.setAttribute('data-theme', state); }
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  function save(state){
+    var ts = Date.now();
+    try { localStorage.setItem('mdg-theme', state); localStorage.setItem('mdg-theme-ts', String(ts)); } catch (e) {}
+    if (!window.name || /^mdg-theme=/.test(window.name)) { window.name = 'mdg-theme=' + state + '@' + ts; }
+  }
+  // Re-apply the saved choice when the page is shown from the back/forward cache, when the tab regains
+  // focus, or when another tab changes it, so the toggle never shows a stale state.
+  function sync(){ var s = saved(); if (s && s !== current()) { show(s); } }
+  show(current());
+  sync();
+  window.addEventListener('pageshow', sync);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) { sync(); } });
+  window.addEventListener('storage', function(e){ if (!e.key || e.key.indexOf('mdg-theme') === 0) { sync(); } });
+  if (btn) {
+    btn.addEventListener('click', function(){
+      var next = STATES[(STATES.indexOf(current()) + 1) % STATES.length];
+      show(next);
+      save(next);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  // Legibility floor: never shrink below this, even if that means the page then
+  // spills onto a 2nd (or 3rd) sheet. A handful of very long pages (e.g. the
+  // Material Library table, the O-Ring groove-design page) would otherwise need
+  // to zoom out well below half size to fit a single sheet, which prints too
+  // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
+  var MIN_SCALE = 0.65;  // the full library runs to many pages at this floor, as the Material Library does
+
+  // This page's tables sit in collapsed sections: open them all for the PDF (and for Ctrl+P), then restore.
+  var opened = [];
+  function openAll(){
+    Array.prototype.forEach.call(document.querySelectorAll('details.mdg-collapsible'), function(d){
+      if (!d.open) { d.open = true; opened.push(d); }
+    });
+  }
+  function restoreAll(){
+    opened.forEach(function(d){ d.open = false; });
+    opened = [];
+  }
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    openAll();
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    restoreAll();
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('beforeprint', function(){ if (!document.documentElement.classList.contains('mdg-pdf-mode')) openAll(); });
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
+</body>
+</html>

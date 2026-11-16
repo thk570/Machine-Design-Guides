@@ -7,8 +7,8 @@
 // meant to be a short summary, fully visible, not the page's full feature list. Longer detail belongs
 // on the page itself.
 window.MDG_MANIFEST = {
-  "rev": 12,
-  "updated": "2026-11-12",
+  "rev": 14,
+  "updated": "2026-11-16",
   "categories": [
     {
       "slug": "fits",
@@ -288,6 +288,17 @@ window.MDG_MANIFEST = {
       "tags": ["shaft seal", "radial shaft seal", "rotary seal", "oil seal", "lip seal", "SKF", "HMS5", "HMSA10", "CRW1", "NBR", "FKM", "DIN 3760", "ISO 6194", "COTS"],
       "status": "done",
       "rev": 6
+    },
+    {
+      "id": "drawing-notes-library",
+      "title": "Drawing Notes Library",
+      "category": "libraries",
+      "path": "calculators/drawing-notes/drawing-notes-library.html",
+      "standard": "BS 8888 style · internal drawing notes",
+      "description": "Copy-ready drawing notes by process, with types, comments, applicable materials and cost. Search by phrase, keyword or material.",
+      "tags": ["drawing notes", "notes", "drawing", "BS 8888", "coating", "anodise", "plating", "heat treatment", "NDT", "part marking", "engraving", "casting", "3D printing", "VPI", "composites", "laminations", "magnets", "pressure test"],
+      "status": "done",
+      "rev": 2
     }
   ]
 };
