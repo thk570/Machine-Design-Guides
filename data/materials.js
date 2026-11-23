@@ -1576,7 +1576,7 @@ window.MDG_MATERIALS = {
       "cost_band": 3,
       "cost_est": true,
       "cost_note": "Estimate, about £12 to 16/kg bar; tracks the copper price.",
-      "notes": "C101/CW004A is the UK/BS designation for electrolytic tough pitch (ETP) copper — materially the same alloy as UNS C11000 already in this library (see that entry), added here under its UK designation as the default busbar-calculator grade since Equipmake drawings commonly reference C101. Yield/UTS reused from the C11000 soft/annealed entry since the C101 datasheet used here doesn't break out mechanical properties by temper; shear modulus and Poisson's ratio are typical copper values.",
+      "notes": "C101/CW004A is the UK/BS designation for electrolytic tough pitch (ETP) copper — materially the same alloy as UNS C11000 already in this library (see that entry), added here under its UK designation as the default busbar-calculator grade since UK drawings commonly reference C101. Yield/UTS reused from the C11000 soft/annealed entry since the C101 datasheet used here doesn't break out mechanical properties by temper; shear modulus and Poisson's ratio are typical copper values.",
       "refs": [
         {"label": "Metelec — Data Sheet ETP Copper C101/CW004A (density, elastic modulus, conductivity, resistivity, thermal conductivity, specific heat, CTE, melting point)", "url": "https://www.metelec.com/wp-content/uploads/2023/05/Metelec_Data_Sheet_C101_CW004A_1.pdf"},
         {"label": "Copper Development Association — Alloy C11000 (soft/annealed yield/UTS cross-reference)", "url": "https://alloys.copper.org/alloy/C11000"}

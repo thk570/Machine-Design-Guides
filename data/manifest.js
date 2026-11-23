@@ -7,8 +7,8 @@
 // meant to be a short summary, fully visible, not the page's full feature list. Longer detail belongs
 // on the page itself.
 window.MDG_MANIFEST = {
-  "rev": 14,
-  "updated": "2026-11-16",
+  "rev": 15,
+  "updated": "2026-11-23",
   "categories": [
     {
       "slug": "fits",
@@ -100,7 +100,7 @@ window.MDG_MANIFEST = {
       "description": "Hole-basis fit classes and limit dimensions to ISO 286, plus an interference-fit assembly and press-off force estimate.",
       "tags": ["fit", "tolerance", "ISO 286", "limits", "clearance", "interference", "press fit", "force estimate"],
       "status": "done",
-      "rev": 9
+      "rev": 10
     },
     {
       "id": "iso2768-general-tolerances",
@@ -199,7 +199,7 @@ window.MDG_MANIFEST = {
       "description": "Busbar cross-section from target current density, aspect-ratio options, a skin-depth check and a dimensioned diagram.",
       "tags": ["busbar", "current density", "cross section", "aspect ratio", "skin effect", "skin depth", "IEC 60943", "IEC 61439", "copper", "aluminium", "C101", "1350", "6101"],
       "status": "done",
-      "rev": 8
+      "rev": 9
     },
     {
       "id": "capacitor-discharge",
@@ -298,7 +298,7 @@ window.MDG_MANIFEST = {
       "description": "Copy-ready drawing notes by process, with types, comments, applicable materials and cost. Search by phrase, keyword or material.",
       "tags": ["drawing notes", "notes", "drawing", "BS 8888", "coating", "anodise", "plating", "heat treatment", "NDT", "part marking", "engraving", "casting", "3D printing", "VPI", "composites", "laminations", "magnets", "pressure test"],
       "status": "done",
-      "rev": 2
+      "rev": 3
     }
   ]
 };
