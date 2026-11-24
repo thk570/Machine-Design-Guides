@@ -7,8 +7,8 @@
 // meant to be a short summary, fully visible, not the page's full feature list. Longer detail belongs
 // on the page itself.
 window.MDG_MANIFEST = {
-  "rev": 15,
-  "updated": "2026-11-23",
+  "rev": 16,
+  "updated": "2026-11-24",
   "categories": [
     {
       "slug": "fits",
@@ -298,7 +298,7 @@ window.MDG_MANIFEST = {
       "description": "Copy-ready drawing notes by process, with types, comments, applicable materials and cost. Search by phrase, keyword or material.",
       "tags": ["drawing notes", "notes", "drawing", "BS 8888", "coating", "anodise", "plating", "heat treatment", "NDT", "part marking", "engraving", "casting", "3D printing", "VPI", "composites", "laminations", "magnets", "pressure test"],
       "status": "done",
-      "rev": 3
+      "rev": 4
     }
   ]
 };
