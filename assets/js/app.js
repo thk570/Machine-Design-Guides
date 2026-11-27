@@ -62,6 +62,7 @@ function mdgRender(manifest, query) {
     const sortedPages = [...pages].sort((a, b) => a.title.localeCompare(b.title));
     const section = document.createElement('div');
     section.className = 'category' + (cat.slug === PINNED_LAST ? ' libraries' : '');
+    section.style.setProperty('--cat', cat.color);  // card borders take the category colour
     section.innerHTML = `<h2><span class="dot" style="background:${cat.color}"></span>${cat.title}</h2>`;
     const cards = document.createElement('div');
     cards.className = 'cards';
