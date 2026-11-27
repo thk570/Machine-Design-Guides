@@ -222,7 +222,7 @@
       </div>
       <div class="out-opts mdg-no-print">
         <label class="field" style="flex-direction:row; align-items:center; gap:0.4rem;">Wrap lines at
-          <span class="input-row"><input type="number" id="wrap" min="0" max="400" step="1" value="150"><span class="unit">characters (0 = off)</span></span>
+          <span class="input-row"><input type="number" id="wrap" min="0" max="400" step="1" value="100"><span class="unit">characters (0 = off)</span></span>
         </label>
       </div>
       <pre id="out"></pre>
@@ -243,7 +243,7 @@
       <li id="ref2"><a href="../materials/material-library.html">Material Library</a> — internal (<code>data/materials.js</code>; material types and grades).</li>
     </ol>
 
-    <p>Last updated: 2026-11-27 &middot; Rev 3</p>
+    <p>Last updated: 2026-11-27 &middot; Rev 4</p>
   </div>
 
 </main>
@@ -317,7 +317,7 @@
   });
   var CLASS_BY = {}; CLASSES.forEach(function (c) { CLASS_BY[c.id] = c; });
 
-  var state = { mat: null, company: '', cards: [], wrap: 150 };
+  var state = { mat: null, company: '', cards: [], wrap: 100 };
 
   // ---------- material filter (same rules as the library page, plus class level)
   function entryOk(e) {
