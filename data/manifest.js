@@ -7,7 +7,7 @@
 // meant to be a short summary, fully visible, not the page's full feature list. Longer detail belongs
 // on the page itself.
 window.MDG_MANIFEST = {
-  "rev": 17,
+  "rev": 20,
   "updated": "2026-11-27",
   "categories": [
     {
@@ -44,6 +44,11 @@ window.MDG_MANIFEST = {
       "slug": "thermal",
       "title": "Thermal & Fluids",
       "color": "#2b8799"
+    },
+    {
+      "slug": "drawings",
+      "title": "Drawings",
+      "color": "#a5893b"
     }
   ],
   "pages": [
@@ -78,7 +83,7 @@ window.MDG_MANIFEST = {
       "description": "Convert HRC, HRB, Brinell and Vickers hardness for non-austenitic steel, plus Shore A/D rubber and plastics lookup.",
       "tags": ["hardness", "conversion", "Rockwell", "HRC", "HRB", "Brinell", "HB", "Vickers", "HV", "ASTM E140", "Shore A", "Shore D", "durometer", "ASTM D2240", "steel"],
       "status": "done",
-      "rev": 3
+      "rev": 4
     },
     {
       "id": "o-ring-sizing",
@@ -89,7 +94,7 @@ window.MDG_MANIFEST = {
       "description": "Material and cross-section selection, Parker-style groove/gland design for four seal types, and thermal-fit sizing.",
       "tags": ["o-ring", "seal", "metric", "groove", "gland", "elastomer", "working fluid", "thermal expansion", "CTE", "cost"],
       "status": "done",
-      "rev": 12
+      "rev": 13
     },
     {
       "id": "hole-basis-fits",
@@ -111,7 +116,7 @@ window.MDG_MANIFEST = {
       "description": "Permissible deviations for untoleranced linear, external radius/chamfer and angular dimensions by ISO 2768-1 class f, m, c or v.",
       "tags": ["general tolerances", "ISO 2768", "ISO 2768-1", "DIN ISO 2768", "untoleranced dimensions", "title block", "linear", "angular", "chamfer", "radius", "fine", "medium", "coarse", "very coarse"],
       "status": "done",
-      "rev": 2
+      "rev": 3
     },
     {
       "id": "creepage-clearance",
@@ -122,7 +127,7 @@ window.MDG_MANIFEST = {
       "description": "Minimum clearance and creepage distance for equipment insulation, with altitude and pollution-degree correction.",
       "tags": ["creepage", "clearance", "IEC 60664", "insulation", "pollution degree", "CTI", "overvoltage category", "altitude correction", "substrate material"],
       "status": "done",
-      "rev": 5
+      "rev": 6
     },
     {
       "id": "keyways",
@@ -133,7 +138,7 @@ window.MDG_MANIFEST = {
       "description": "Parallel key and keyway sizing by shaft diameter to DIN 6885-1, plus a torque-capacity check for minimum key length.",
       "tags": ["keyway", "key", "shaft", "DIN 6885", "ISO 773", "spline", "torque capacity", "shear stress", "bearing stress", "factor of safety"],
       "status": "done",
-      "rev": 9
+      "rev": 10
     },
     {
       "id": "splines-din5480",
@@ -144,7 +149,7 @@ window.MDG_MANIFEST = {
       "description": "DIN 5480 hub and shaft drawing data with a Pass/Fail stress check, plus a finder for library sizes capable of a given torque.",
       "tags": ["spline", "involute spline", "DIN 5480", "module", "pin diameter", "base tangent", "Wk", "M1", "M2", "profile shift", "flank centred", "shaft connection", "torque capacity", "shear stress", "wear", "size finder", "drawing data"],
       "status": "done",
-      "rev": 4
+      "rev": 5
     },
     {
       "id": "screw-torque",
@@ -155,7 +160,7 @@ window.MDG_MANIFEST = {
       "description": "Tightening torque for bolted, PEM clinch-nut and tapped-hole joints, plus clamp load design for the number of screws.",
       "tags": ["screw", "bolt", "torque", "preload", "ISO 898", "ISO 3506", "nyloc", "rivnut", "self-clinching nut", "PEM", "clinch nut", "pullout", "thread stripping", "NASA", "fine pitch", "Stover", "prevailing torque", "all-metal lock nut", "clamp load"],
       "status": "done",
-      "rev": 15
+      "rev": 17
     },
     {
       "id": "fastener-library",
@@ -166,7 +171,7 @@ window.MDG_MANIFEST = {
       "description": "Metric screw reference, M3–M30: head/drive dimensions, thread geometry, tap drills, clearance holes and strengths.",
       "tags": ["fastener", "screw", "bolt", "socket head cap screw", "button head", "countersunk", "low head", "hex head", "flange bolt", "Torx", "hexalobular", "hex key", "property class", "ISO 898", "ISO 3506", "ISO 4762", "ISO 7380", "ISO 10642", "DIN 7984", "ISO 4017", "ISO 4162", "ISO 10664", "clearance hole", "counterbore", "countersink", "tap drill", "fine pitch"],
       "status": "done",
-      "rev": 9
+      "rev": 10
     },
     {
       "id": "din76-thread-undercuts",
@@ -177,7 +182,7 @@ window.MDG_MANIFEST = {
       "description": "Thread run-out and undercut reference: pick a size, pitch and relief form for a dimensioned diagram and standard values.",
       "tags": ["DIN 76", "thread undercut", "thread relief", "thread run-out", "groove", "neck", "shaft end", "tapped hole"],
       "status": "done",
-      "rev": 7
+      "rev": 8
     },
     {
       "id": "hv-cable-sizing",
@@ -199,7 +204,7 @@ window.MDG_MANIFEST = {
       "description": "Busbar cross-section from target current density, aspect-ratio options, a skin-depth check and a dimensioned diagram.",
       "tags": ["busbar", "current density", "cross section", "aspect ratio", "skin effect", "skin depth", "IEC 60943", "IEC 61439", "copper", "aluminium", "C101", "1350", "6101"],
       "status": "done",
-      "rev": 9
+      "rev": 10
     },
     {
       "id": "capacitor-discharge",
@@ -210,7 +215,7 @@ window.MDG_MANIFEST = {
       "description": "Bleed resistor and discharge time for a capacitor, with power, energy, a discharge curve and TT resistor selection.",
       "tags": ["capacitor", "discharge", "bleed resistor", "bleeder", "RC time constant", "DC link", "stored energy", "safe voltage", "TT electronics", "Welwyn", "HV"],
       "status": "done",
-      "rev": 2
+      "rev": 3
     },
     {
       "id": "gdt-tightness-guide",
@@ -221,7 +226,7 @@ window.MDG_MANIFEST = {
       "description": "Achievability of each GD&T characteristic — tolerance band, typical processes and relative cost — plus a characteristic dictionary.",
       "tags": ["GD&T", "geometric tolerancing", "ASME Y14.5", "ISO 1101", "position", "flatness", "circularity", "cylindricity", "profile", "angularity", "perpendicularity", "parallelism", "concentricity", "symmetry", "runout", "achievability", "process capability", "dictionary", "tolerance zone", "datum", "MMC"],
       "status": "done",
-      "rev": 6
+      "rev": 7
     },
     {
       "id": "thermal-expansion",
@@ -232,7 +237,7 @@ window.MDG_MANIFEST = {
       "description": "X/Y dimensions at two target temperatures from a reference size, with an optional second material to compare growth.",
       "tags": ["thermal expansion", "CTE", "linear expansion", "temperature", "shrink fit", "differential expansion", "ASTM E228", "material comparison"],
       "status": "done",
-      "rev": 7
+      "rev": 8
     },
     {
       "id": "pipe-pressure-drop",
@@ -243,7 +248,7 @@ window.MDG_MANIFEST = {
       "description": "Pressure drop, velocity and Reynolds number for liquid flow in a round pipe, with water, glycol and oil properties by temperature.",
       "tags": ["pressure drop", "pipe flow", "Darcy-Weisbach", "Swamee-Jain", "friction factor", "Reynolds number", "head loss", "minor losses", "coolant", "ethylene glycol", "water", "hydraulic oil", "ATF", "gear oil", "viscosity", "ASTM D341"],
       "status": "done",
-      "rev": 5
+      "rev": 6
     },
     {
       "id": "bearing-library",
@@ -265,7 +270,7 @@ window.MDG_MANIFEST = {
       "description": "Industrial cardan shafts: torque ratings, joint angle, flange, length, mass, inertia and stiffness. GWB series 390–687/688.",
       "tags": ["driveshaft", "cardan shaft", "universal joint", "propshaft", "GWB", "Dana", "Spicer", "length compensation", "slip spline", "flange", "COTS"],
       "status": "done",
-      "rev": 1
+      "rev": 2
     },
     {
       "id": "wave-spring-library",
@@ -287,7 +292,7 @@ window.MDG_MANIFEST = {
       "description": "SKF KM, KMFE and KMT lock nut library, M10–M60, with MB lock washers, shaft-slot size and axial load capacity.",
       "tags": ["lock nut", "locknut", "KM", "KMFE", "KMT", "MB", "lock washer", "SKF", "shaft nut", "bearing retention", "DIN 981", "COTS"],
       "status": "done",
-      "rev": 6
+      "rev": 7
     },
     {
       "id": "shaft-seal-library",
@@ -309,7 +314,18 @@ window.MDG_MANIFEST = {
       "description": "Copy-ready drawing notes by process, with types, comments, applicable materials and cost. Search by phrase, keyword or material.",
       "tags": ["drawing notes", "notes", "drawing", "BS 8888", "coating", "anodise", "plating", "heat treatment", "NDT", "part marking", "engraving", "casting", "3D printing", "VPI", "composites", "laminations", "magnets", "pressure test"],
       "status": "done",
-      "rev": 4
+      "rev": 5
+    },
+    {
+      "id": "drawing-notes-generator",
+      "title": "Drawing Notes Generator",
+      "category": "drawings",
+      "path": "calculators/drawing-notes/drawing-notes-generator.html",
+      "standard": "BS 8888 style · Drawing Notes Library",
+      "description": "Build a drawing notes block from material and process choices, fill values, drag to order, and copy for CAD.",
+      "tags": ["drawing notes", "notes", "drawing", "generator", "BS 8888", "CAD", "process", "part marking", "polymer", "3D printing"],
+      "status": "done",
+      "rev": 1
     }
   ]
 };

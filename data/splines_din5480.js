@@ -6,9 +6,9 @@ window.MDG_SPLINES_DIN5480 = (function () {
     standard: 'DIN 5480',
     pressure_angle: 30,
     scraped: '2026-10-19',
-    notes: 'Preferred sizes, measuring-pin diameters (DM), teeth measured (k) and Wk reliability flags are keyed from DIN 5480-2:2006-05 Tables 2-33 (English translation, 721 rows, 16 modules, m 0.5-10). Tolerance, deviation and form-clearance tables are keyed from DIN 5480-1:2006-03 Tables 4, 7 and 9. Wk is not stored: it is calculated and agrees with every table value to 0.002 mm. Cold-rolled shafts, diameter-centred fits and the individual-deviation guide values are not included.',
+    notes: 'Preferred sizes, measuring-pin diameters (DM), teeth measured (k) and Wk reliability flags are keyed from DIN 5480-2:2006-05 Tables 2-33 (English translation, 721 rows, 16 modules, m 0.5-10). Tolerance, deviation and form-clearance tables are keyed from DIN 5480-1:2006-03 Tables 4, 7 and 9. Wk is not stored: it is calculated and agrees with every table value to 0.002 mm. Cold-rolled shafts, diameter-centred fits and the individual-deviation guide values are not included. nonPreferred (2026-11-27): 54x1.5, 185x5, 290x8 (GWB slip splines, catalogue 05/2022) are not in DIN 5480-2; z and x*m are calculated from DIN 5480-1, both z kept for 54x1.5 and 185x5, no DM or k. Not shown in the Splines page pickers.',
     refs: [
-      { label: 'DIN 5480-1:2006-03 (translated PDF supplied by user)', backs: 'Tables 4, 7, 9; basic rack profile; fit system' },
+      { label: 'DIN 5480-1:2006-03 (translated PDF supplied by user)', backs: 'Tables 4, 7, 9; basic rack profile; fit system; nonPreferred z and x*m' },
       { label: 'DIN 5480-2:2006-05 (translation read via scribd.com/document/379274426)', url: 'https://www.scribd.com/document/379274426/DIN-5480-2', domain: 'scribd.com', backs: 'Tables 2-33: preferred sizes, DM, k, reliability flag' }
     ],
     fields: { dB: ['Reference diameter', 'dB', 'mm'], m: ['Module', 'm', 'mm'], z: ['Number of teeth', 'z', ''],
@@ -32,6 +32,13 @@ window.MDG_SPLINES_DIN5480 = (function () {
       "6": "48,6,10.5,22,2;50,7,10,14,2;52,7,10.5,16,2;55,8,10,12,2;58,8,10.5,16,2;60,8,10.5,18,2a;62,9,10.5,14,2;65,9,10.5,16,2a;68,10,10.5,14,2;70,10,10.5,14,2a;72,10,10.5,16,3a;75,11,10.5,14,3a;78,11,10.5,15,3;78,12,10.5,12,2a;80,12,10.5,12,3;82,12,10.5,14,3;85,13,10.5,12,3;88,13,10.5,14,3;90,13,10.5,14,3;90,14,10.5,12,3;92,14,10.5,12,3;95,14,10.5,14,3;98,15,10.5,12,3;100,15,10.5,12,3a;105,16,10.5,12,3a;110,17,10.5,12,3a;120,18,10.5,14,4;130,20,10.5,12,4;140,22,10.5,12,4;150,24,10.5,12,4a;160,25,10.5,12,5;170,27,10.5,12,5;180,28,10.5,12,6;190,30,10.5,12,6;200,32,10.5,12,6;210,34,10.5,12,6;220,35,10.5,12,7;240,38,10.5,12,7a;250,40,10.5,12,7a;260,42,10.5,12,8;280,45,10.5,12,8a;300,48,10.5,12,9;320,52,11,11,9a;340,55,11,11,10;360,58,11,11,11;380,62,11,11,11;400,65,11,11,12;420,68,11,11,12a;440,72,11,11,13;450,74,11,11,13;460,75,11,11,13a;480,78,11,11,14;500,82,11,11,14a",
       "8": "60,6,14,22,2;65,7,13,16,2;70,7,14,22,2;75,8,14,18,2;80,8,14,22,2a;85,9,14,20,2;90,10,14,16,2;95,10,14,20,3a;100,11,14,18,3a;105,12,14,16,3a;110,12,14,18,3;120,13,14,20,3;120,14,14,16,3;130,15,14,16,3;140,16,14,16,3a;150,17,14,18,4;160,18,14,18,4;170,20,14,16,4;180,21,14,16,4;190,22,14,16,5a;200,24,14,16,4a;210,25,14,16,5;220,26,14,16,5;240,28,14,16,6;250,30,14,16,6;260,31,14,16,6;280,34,14,16,6;300,36,14,16,7;320,38,14,16,7a;340,41,14,16,8a;360,44,14,16,8;380,46,14,16,8a;400,48,14,16,9;420,51,14,16,9;440,54,14,16,9a;450,55,14,16,10;460,56,14,16,10;480,58,14,16,11;500,61,14,16,11",
       "10": "80,6,18,35,2;85,7,18,25,2;90,7,18,30,2;95,8,18,25,2;100,8,18,28,2a;105,9,18,25,2;110,9,18,28,2a;120,10,18,25,3a;130,11,18,25,3;130,12,18,22,2a;140,12,18,25,3;150,13,18,25,3;150,14,18,22,3;160,14,18,25,3a;170,15,18,22,3a;170,16,18,22,3;180,16,18,22,4a;190,17,18,22,4;190,18,18,20,3a;200,18,18,22,4;210,20,18,20,4;220,20,18,22,4a;240,22,18,22,5;250,24,18,20,4a;260,24,18,20,5;280,26,18,20,5a;300,28,18,20,6;320,30,18,20,6;340,32,18,20,6a;360,34,18,20,7;380,36,18,20,7;400,38,18,20,7a;420,40,18,20,8;440,42,18,20,8;450,44,18,20,8;460,44,18,20,8a;480,46,18,20,9;500,48,18,20,9"
+    },
+    // rows not in DIN 5480-2 preferred tables; z and x*m derived from DIN 5480-1 (dB = m*z + 2*x*m + 1.1*m, -0.05 <= x <= +0.45), DM and k not given
+    // nonPreferred[m] = "dB,z,xm" ; both z listed where both fit (as DIN 5480-2 does at the boundary)
+    nonPreferred: {
+      "1.5": "54,34,0.675;54,35,-0.075",
+      "5": "185,35,2.25;185,36,-0.25",
+      "8": "290,35,0.6"
     },
     // Table 4 – minimum form clearance cFmin (um): bands of dB (upper limit, mm) x module band (0.5-1.5 | 1.75-4 | 5-10); null = not offered
     cFmin: { dBmax: [12, 25, 50, 100, 200, 400, Infinity], um: [[25, null, null], [28, 30, null], [30, 35, 40], [35, 40, 45], [40, 45, 50], [null, 50, 55], [null, null, 65]] },
@@ -71,6 +78,10 @@ window.MDG_SPLINES_DIN5480 = (function () {
   L.diameters = () => { const s = new Set(); L.modules.forEach(m => L.list(m).forEach(r => s.add(r.dB))); return [...s].sort((a, b) => a - b); };
   L.modulesFor = dB => L.modules.filter(m => L.list(m).some(r => r.dB === dB));
   L.teethFor = (dB, m) => L.list(m).filter(r => r.dB === dB);
+  // preferred rows for the size, else calculated non-preferred rows ({dB, z, xm, calculated: true})
+  const npCache = {};
+  L.nonPreferredList = m => npCache[m] || (npCache[m] = (L.nonPreferred[m] || '').split(';').filter(Boolean).map(r => { const f = r.split(','); return { dB: +f[0], z: +f[1], xm: +f[2], calculated: true }; }));
+  L.teethForAny = (dB, m) => { const p = L.teethFor(dB, m); return p.length ? p : L.nonPreferredList(m).filter(r => r.dB === dB); };
   // tolerance values (mm) for a hub class like '8H' and shaft class like '8f' at this size
   L.params = (dB, m, hubCls, shaftCls) => {
     const d = dBand(dB), mb = mBand(m), col = 9 - (d + mb);
