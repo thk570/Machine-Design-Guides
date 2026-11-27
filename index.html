@@ -43,9 +43,9 @@
   .category h2 { font-size: 1rem; margin: 0 0 0.6rem; display: flex; align-items: center; gap: 0.5rem; }
   .dot { width: 0.65rem; height: 0.65rem; border-radius: 50%; display: inline-block; }
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 420px)); gap: 0.75rem; }
-  .card { background: var(--mdg-surface); border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
+  .card { background: var(--mdg-surface); border: 2px solid var(--cat, var(--mdg-border)); border-radius: var(--mdg-radius);
     padding: 0.9rem 1rem; text-decoration: none; color: var(--mdg-text); display: block; }
-  .card:hover { border-color: var(--mdg-accent); }
+  .card:hover { box-shadow: 0 0 0 1px var(--cat, var(--mdg-accent)); }
   .card .title { font-weight: 600; font-size: 0.95rem; }
   .card .std { color: var(--mdg-text-muted); font-size: 0.78rem; margin-top: 0.15rem; }
   .card .desc { color: var(--mdg-text-muted); font-size: 0.82rem; margin-top: 0.4rem; line-height: 1.4; }
