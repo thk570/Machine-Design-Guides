@@ -6,7 +6,7 @@
 //   tags     : optional free-text tags (shown on the card, searchable).
 //   url      : supplier homepage. Links are checked by hand; a broken link is fixed here.
 window.MDG_SUPPLIERS = {
-  "updated": "2026-11-12",
+  "updated": "2026-11-27",
   "categories": [
     { "id": "elec", "title": "Electrical Components", "desc": "Connectors, wiring and electronic components." },
     { "id": "fasteners", "title": "Fasteners", "desc": "Specialist and standard fasteners." },
@@ -30,6 +30,7 @@ window.MDG_SUPPLIERS = {
     { "name": "Eastern Seals (O-rings)", "category": "fluid", "also": [], "tags": ["Seals"], "desc": "O-rings, O-ring cord, back-up rings, bonded seals, oil seals and moulded parts.", "url": "https://www.easternseals.co.uk" },
     { "name": "Farnell", "category": "elec", "also": [], "tags": [], "desc": "Electronic and electrical components, connectors and test equipment.", "url": "https://uk.farnell.com" },
     { "name": "Festo", "category": "fluid", "also": [], "tags": ["Automation"], "desc": "Pneumatic and electric automation: cylinders, valves, grippers, drives.", "url": "https://www.festo.com/gb/en/" },
+    { "name": "GWB driveshafts (Allison Off-Highway, formerly Dana Spicer)", "category": "mech", "also": [], "tags": ["Driveshafts"], "desc": "Industrial cardan shafts, series 390 to 687/688. Data in the Driveshaft Library.", "url": "https://gwbdriveshaft.com" },
     { "name": "Lee Springs", "category": "mech", "also": [], "tags": ["Springs"], "desc": "Stock compression, extension and torsion springs, plus wire forms.", "url": "https://www.leespring.co.uk" },
     { "name": "Materials Direct", "category": "raw", "also": [], "tags": [], "desc": "Engineering materials stock. Range to be confirmed.", "url": "https://www.materialsdirect.co.uk" },
     { "name": "Metals4U", "category": "raw", "also": [], "tags": [], "desc": "Steel, stainless, aluminium, brass and copper cut to size online.", "url": "https://www.metals4u.co.uk" },

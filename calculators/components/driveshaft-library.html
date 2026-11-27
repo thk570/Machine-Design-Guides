@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var s=null,t=0,m;try{s=localStorage.getItem('mdg-theme');t=+localStorage.getItem('mdg-theme-ts')||0;}catch(e){}m=/^mdg-theme=(auto|light|dark)@(\d+)$/.exec(window.name||'');if(m&&+m[2]>t){s=m[1];}if(s==='light'||s==='dark'){document.documentElement.setAttribute('data-theme',s);}}catch(e){}})();</script>
+<title>Driveshaft Library — Machine Design Guides</title>
+<style>
+  /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #5b5b5b;
+    --mdg-accent-soft: rgba(91, 91, 91, 0.10);
+    --input-bg: #eeeeec; --input-border: #c9c9c3;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --poor: #b5484d; --good: #2e7d4f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent-soft: rgba(91, 91, 91, 0.26);
+      --poor: #e0696d; --good: #5cc28a;
+      --input-bg: #2a2a2d; --input-border: #4a4a4f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent-soft: rgba(91, 91, 91, 0.26);
+    --poor: #e0696d; --good: #5cc28a;
+    --input-bg: #2a2a2d; --input-border: #4a4a4f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); flex-wrap: wrap; }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .mdg-card h2 { margin: 0 0 0.75rem; font-size: 1.05rem; }
+  .mdg-card h3 { margin: 0.9rem 0 0.4rem; font-size: 0.92rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); line-height: 1.5; }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.35rem 0.55rem; text-align: left; font-size: 0.84rem; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  .mdg-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }  /* wide tables side-scroll on narrow screens (REQ-0019) */
+  table.mdg-table td.num, table.mdg-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.mdg-table tr.current td { font-weight: 600; background: var(--mdg-accent-soft); }
+  table.pick tbody tr { cursor: pointer; }
+  table.pick tbody tr:hover td { background: var(--mdg-accent-soft); }
+  table.mdg-table thead th { position: sticky; top: 0; z-index: 1; }
+  .scroll { max-height: 420px; overflow: auto; border: 1px solid var(--mdg-border); border-radius: 6px; }
+  .scroll table.mdg-table th, .scroll table.mdg-table td { border-top: 0; }
+  td.sym { font-style: italic; color: var(--mdg-text-muted); width: 4.2rem; white-space: nowrap; }
+  .note { font-size: 0.8rem; color: var(--mdg-text-muted); margin: 0.6rem 0 0; }
+  .lbl { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; }
+  select, input[type=number], input[type=text] { font-family: var(--mdg-font); font-size: 0.9rem; padding: 0.4rem 0.55rem;
+    border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); color: var(--mdg-text); }
+  input[type=number] { width: 6.5rem; }
+  .field { display: flex; flex-direction: column; }
+  .input-row { display: flex; align-items: center; gap: 0.4rem; }
+  .input-row input { flex: 0 1 auto; min-width: 0; }
+  .input-row .unit { font-size: 0.85rem; color: var(--mdg-text-muted); white-space: nowrap; }
+  .row { display: flex; gap: 1.1rem; flex-wrap: wrap; align-items: flex-end; margin-top: 0.8rem; }
+  .row:first-of-type { margin-top: 0; }
+  .seg { display: inline-flex; border: 1px solid var(--mdg-border); border-radius: 6px; overflow: hidden; flex-wrap: wrap; }
+  .seg button { padding: 0.4rem 0.7rem; font-size: 0.84rem; border: 0; border-right: 1px solid var(--mdg-border);
+    background: var(--mdg-bg); color: var(--mdg-text); cursor: pointer; font-family: var(--mdg-font); }
+  .seg button:last-child { border-right: 0; }
+  .seg button.on { background: var(--mdg-accent); color: #fff; }
+  .chk { font-size: 0.85rem; display: inline-flex; gap: 0.35rem; align-items: center; }
+  .count { font-size: 0.82rem; color: var(--mdg-text-muted); margin: 0 0 0.5rem; }
+  .designation { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    border-left: 4px solid var(--mdg-accent); padding-left: 0.9rem; }
+  .designation .big { font-size: 1.3rem; font-weight: 700; }
+  .designation .sub { font-size: 0.85rem; color: var(--mdg-text-muted); margin-top: 0.2rem; }
+  .designation a { color: var(--mdg-accent); font-size: 0.82rem; }
+  .kpis { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .kpi { border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.45rem 0.75rem; min-width: 110px; background: var(--mdg-bg); }
+  .kpi b { display: block; font-family: var(--mdg-font-mono); font-size: 1.0rem; font-weight: 600; }
+  .kpi span { font-size: 0.72rem; color: var(--mdg-text-muted); }
+  .warn { background: rgba(181,72,77,0.10); border: 1px solid var(--poor); border-radius: 6px;
+    padding: 0.5rem 0.75rem; font-size: 0.83rem; margin-top: 0.6rem; }
+  .info { background: var(--mdg-accent-soft); border: 1px solid var(--mdg-border); border-radius: 6px;
+    padding: 0.5rem 0.75rem; font-size: 0.83rem; margin-top: 0.6rem; }
+  .ok { color: var(--good); font-weight: 600; } .bad { color: var(--poor); font-weight: 600; }
+  .muted { color: var(--mdg-text-muted); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .grid-2 > .mdg-card { margin-bottom: 0; }
+  @media (max-width: 820px) { .grid-2 { grid-template-columns: 1fr; } }
+  .diagram svg { width: 100%; height: auto; display: block; max-height: 320px; }
+  #design-sel { max-width: 100%; }
+  .field { min-width: 0; max-width: 100%; }
+  .diag-row { display: grid; grid-template-columns: 3fr 2fr; gap: 1rem; align-items: center; }
+  @media (max-width: 820px) { .diag-row { grid-template-columns: 1fr; } }
+  .diagram text { font-family: var(--mdg-font); font-size: 12px; fill: var(--mdg-text); }
+  .diagram .dim { stroke: var(--mdg-accent); stroke-width: 1; fill: none; }
+  .diagram .dimtxt { fill: var(--mdg-accent); font-weight: 600; font-style: italic; }
+  .diagram .part { fill: var(--mdg-accent-soft); stroke: var(--mdg-text); stroke-width: 1.4; }
+  .diagram .solid { fill: var(--mdg-text-muted); stroke: var(--mdg-text); stroke-width: 1; opacity: 0.55; }
+  .diagram .env { fill: none; stroke: var(--mdg-text-muted); stroke-width: 1; }
+  .diagram .hatch { fill: url(#hatch); stroke: var(--mdg-text-muted); stroke-width: 1; }
+  .diagram .cl { stroke: var(--mdg-text-muted); stroke-width: 0.8; stroke-dasharray: 8 3 2 3; fill: none; }
+  .diagram .thin { stroke: var(--mdg-text-muted); stroke-width: 0.8; fill: none; }
+  .diagram .cap { fill: var(--mdg-text-muted); font-size: 11px; }
+  .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius);
+    background: var(--mdg-surface); margin: 0.75rem 0 0; }
+  .mdg-collapsible > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.65rem 0.9rem; font-size: 0.92rem; font-weight: 600; user-select: none; }
+  .mdg-collapsible > summary::-webkit-details-marker { display: none; }
+  .mdg-collapsible > summary::before { content: ''; flex: none; width: 0; height: 0;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+    border-left: 6px solid var(--mdg-text-muted); transition: transform 0.18s ease; }
+  .mdg-collapsible[open] > summary::before { transform: rotate(90deg); }
+  .mdg-collapsible > summary .hint { font-weight: 400; font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .mdg-collapsible-body { padding: 0 0.9rem 0.9rem; overflow-x: auto; }
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+  .ref-list li:target { color: var(--mdg-text); }
+  @media print {
+    .mdg-header, .mdg-no-print { display: none !important; }
+    .mdg-collapsible:not([open]) { display: block; }
+    .mdg-collapsible > summary::before { display: none; }
+    .mdg-collapsible-body { display: block !important; }
+    .scroll { max-height: none; overflow: visible; }
+  }
+  /* Save-as-PDF — see docs/00-structure-and-conventions.md ("Save as PDF"). */
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-collapsible,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .scroll { max-height: none; overflow: visible; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+      <strong>Driveshaft Library</strong>
+      <span class="mdg-tag">Libraries</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">Makers' catalogue data &middot; cardan shafts</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Driveshaft Library<span class="mdg-print-tag">Libraries</span></div>
+    <div class="mdg-print-meta">Makers' catalogue data &middot; cardan shafts &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+  <div class="mdg-card">
+    <p style="margin:0;">Industrial cardan shafts: torque ratings, joint angle, flange, length, mass, inertia and stiffness.
+      Filter, then pick a row for the full record. Data comes from the shared libraries <code>data/driveshafts_&lt;maker&gt;.js</code>
+      (listed in <code>data/driveshafts.js</code>), which the Cardan Shaft Bearing Loads page also reads.</p>
+    <p class="note" id="lib-note"></p>
+  </div>
+
+  <!-- ============ 1. SERIES ============ -->
+  <div class="mdg-card">
+    <h2>1. Series</h2>
+    <div class="mdg-scroll"><table class="mdg-table pick" id="series-table"></table></div>
+    <p class="note">Click a series to filter by it. Ranges cover the sizes listed below; μ is the spline friction coefficient where the maker gives one.</p>
+  </div>
+
+  <!-- ============ 2. FILTER ============ -->
+  <div class="mdg-card mdg-no-print">
+    <h2>2. Filter</h2>
+    <div class="row">
+      <div><span class="lbl">Maker</span><div class="seg" id="maker-seg"></div></div>
+      <div><span class="lbl">Length compensation</span><div class="seg" id="slip-seg"></div></div>
+    </div>
+    <div class="row">
+      <div class="field"><label class="lbl" for="series-sel">Series</label><select id="series-sel"></select></div>
+      <div class="field"><label class="lbl" for="design-sel">Design</label><select id="design-sel"></select></div>
+      <div class="field"><label class="lbl" for="tcs-min">Torque T<sub>CS</sub>, min</label>
+        <div class="input-row"><input type="number" id="tcs-min" min="0" step="1"><span class="unit">kN·m</span></div></div>
+      <div class="field"><label class="lbl" for="tdw-min">Torque T<sub>DW</sub>, min</label>
+        <div class="input-row"><input type="number" id="tdw-min" min="0" step="1"><span class="unit">kN·m</span></div></div>
+      <div class="field"><label class="lbl" for="beta-min">Joint angle β, min</label>
+        <div class="input-row"><input type="number" id="beta-min" min="0" step="1"><span class="unit">°</span></div></div>
+      <div class="field"><label class="lbl" for="a-max">Flange A, max</label>
+        <div class="input-row"><input type="number" id="a-max" min="0" step="5"><span class="unit">mm</span></div></div>
+      <div class="field"><label class="lbl" for="search">Search</label><input type="text" id="search" placeholder="e.g. 687/688.40"></div>
+    </div>
+  </div>
+
+  <!-- ============ 3. RESULTS ============ -->
+  <div class="mdg-card">
+    <h2>3. Matching shafts</h2>
+    <p class="count" id="count"></p>
+    <div class="scroll"><table class="mdg-table pick" id="results"></table></div>
+    <p class="note">G is the weight at L<sub>z</sub> (or L<sub>f</sub> for fixed-length designs); G<sub>R</sub> is added per 1000 mm of extra tube. Variants a–d are the maker's flange/tube columns for one size.</p>
+  </div>
+
+  <!-- ============ 4. SELECTED ============ -->
+  <div class="mdg-card" id="sel-card">
+    <h2>4. Selected shaft</h2>
+    <div class="designation">
+      <div><div class="big" id="des-main">–</div><div class="sub" id="des-sub">–</div></div>
+      <div class="kpis" id="kpis"></div>
+    </div>
+    <div id="flags"></div>
+    <h3>At operating length</h3>
+    <div class="row">
+      <div class="field"><label class="lbl" for="len">Length L (joint flange to flange)</label>
+        <div class="input-row"><input type="number" id="len" min="0" step="10"><span class="unit">mm</span></div></div>
+    </div>
+    <div class="mdg-scroll" style="margin-top:0.6rem;"><table class="mdg-table"><tbody id="len-body"></tbody></table></div>
+    <p class="note" id="len-note"></p>
+  </div>
+
+  <div class="mdg-card diagram">
+      <h2>5. Geometry</h2>
+      <div id="diagram"></div>
+      <p class="note">Schematic, not to scale; defines the symbols in section 6. Design shown: tubular with length compensation.</p>
+  </div>
+  <div class="mdg-card">
+      <h2>6. Full record</h2>
+      <div id="record"></div>
+  </div>
+
+  <!-- ============ 7. TECHNICAL INSTRUCTIONS ============ -->
+  <div class="mdg-card">
+    <h2>7. Maker's technical instructions and data notes</h2>
+    <details class="mdg-collapsible">
+      <summary>Formulas <span class="hint">bearing loads, axial (slip) force, life, length, speed</span></summary>
+      <div class="mdg-collapsible-body" id="formulas"></div>
+    </details>
+    <details class="mdg-collapsible">
+      <summary>Data notes <span class="hint">extraction, omitted records, scope</span></summary>
+      <div class="mdg-collapsible-body" id="datanotes"></div>
+    </details>
+    <p class="note">The maker's own formulas, used by the Cardan Shaft Bearing Loads page. Check final designs with the maker.</p>
+  </div>
+
+  <div class="mdg-card mdg-footer">
+    <p><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li><strong>VDI 2722</strong> — Homokinetic joints for cardan shafts (universal joint kinematics)</li>
+      <li><strong>ISO 21940-11</strong> — Mechanical vibration — Rotor balancing — Part 11: Procedures and tolerances for rotors with rigid behaviour (replaces ISO 1940-1)</li>
+      <li><strong>ISO 281</strong> — Rolling bearings — Dynamic load ratings and rating life</li>
+      <li><strong>DIN 5480-1</strong> — Involute splines based on reference diameters — Part 1: General</li>
+      <li><strong>DIN 15451</strong> — Flange connections for cardan shafts (dowel-pin connection)</li>
+    </ul>
+    <p>This page reproduces makers' catalogue data, not the standards' tables. Ratings differ between makers; check the current catalogue before release.</p>
+
+    <p style="margin-top:0.75rem;"><strong>References</strong></p>
+    <ol class="ref-list" id="ref-list"></ol>
+
+    <p>Last updated: 2026-11-27 &middot; Rev 1</p>
+  </div>
+
+</main>
+
+<script src="../../data/driveshafts.js"></script>
+<script>
+(function () {
+  // ---------- load every maker listed in data/driveshafts.js (MDG_DRIVESHAFT_FILES); each file pushes itself
+  // onto window.MDG_DRIVESHAFT_LIBS. Adding a maker = new data file + one line in driveshafts.js; this page is unchanged.
+  var files = window.MDG_DRIVESHAFT_FILES || [];
+  var pending = files.length;
+  function fail(msg) { document.querySelector('main').insertAdjacentHTML('afterbegin', '<div class="warn">' + msg + '</div>'); }
+  if (window.MDG_DRIVESHAFT_LIBS && window.MDG_DRIVESHAFT_LIBS.length && !pending) { start(); return; }
+  if (!pending) { fail('data/driveshafts.js could not be loaded — this page needs the shared driveshaft libraries.'); return; }
+  var missing = [];
+  files.forEach(function (f) {
+    var s = document.createElement('script');
+    s.src = '../../data/' + f;
+    s.onload = done; s.onerror = function () { missing.push(f); done(); };
+    document.body.appendChild(s);
+  });
+  function done() { if (--pending === 0) { if (missing.length) fail('Could not load: ' + missing.join(', ')); start(); } }
+
+  function start() {
+  var LIBS = (window.MDG_DRIVESHAFT_LIBS || []).slice().sort(function (a, b) { return ncmp(a.supplier, b.supplier); });
+  if (!LIBS.length) { fail('No driveshaft library loaded.'); return; }
+
+  // ---------- helpers ----------
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function ncmp(a, b) { return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }); }
+  function num(id) { var v = parseFloat($(id).value); return isNaN(v) ? null : v; }
+  var SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '-': '⁻' };
+  function fmt(v) {
+    if (v === null || v === undefined || v === '') return '–';
+    if (typeof v === 'boolean') return v ? 'Yes' : 'No';
+    if (typeof v !== 'number') return esc(v).replace(/ x /g, ' × ');
+    var a = Math.abs(v);
+    if (a >= 1e5 || (a > 0 && a < 1e-3)) {
+      var e = Math.floor(Math.log10(a)), m = v / Math.pow(10, e);
+      return String(+m.toFixed(2)) + ' × 10' + String(e).split('').map(function (c) { return SUP[c]; }).join('');
+    }
+    return Number(+v.toPrecision(6)).toLocaleString('en-GB', { maximumFractionDigits: 4 });
+  }
+  function sym(s) { if (!s) return ''; var p = s.split('_'); return esc(p[0]) + (p[1] ? '<sub>' + esc(p.slice(1).join(' ')) + '</sub>' : ''); }
+  function hdim(x1, x2, y, label) {
+    return '<path class="dim" d="M' + x1 + ' ' + y + ' H' + x2 + ' M' + x1 + ' ' + (y - 5) + ' V' + (y + 5) +
+      ' M' + x2 + ' ' + (y - 5) + ' V' + (y + 5) + '"/><text class="dimtxt" text-anchor="middle" x="' + ((x1 + x2) / 2) +
+      '" y="' + (y - 5) + '">' + label + '</text>';
+  }
+  function vdim(x, y1, y2, label, side) {
+    return '<path class="dim" d="M' + x + ' ' + y1 + ' V' + y2 + ' M' + (x - 5) + ' ' + y1 + ' H' + (x + 5) +
+      ' M' + (x - 5) + ' ' + y2 + ' H' + (x + 5) + '"/><text class="dimtxt" text-anchor="' + (side < 0 ? 'end' : 'start') +
+      '" x="' + (x + side * 8) + '" y="' + ((y1 + y2) / 2 + 4) + '">' + label + '</text>';
+  }
+
+  // ---------- references: page-sequential (catalogue data, series, then technical sections), per maker ----------
+  var ORDER = [], SRC = {};
+  LIBS.forEach(function (L) {
+    var keys = [L.refs[0]].concat(L.series.slice().sort(function (a, b) { return ncmp(a.id, b.id); }).map(function (s) { return s.src; }), L.refs.slice(1));
+    keys.forEach(function (k) { var id = L.id + ':' + k; if (ORDER.indexOf(id) < 0) { ORDER.push(id); SRC[id] = L.sources[k]; } });
+  });
+  function cite(L, keys) {
+    return '<sup>' + keys.map(function (k) { var n = ORDER.indexOf(L.id + ':' + k) + 1; return '<a href="#ref' + n + '">' + n + '</a>'; }).join(',') + '</sup>';
+  }
+  $('ref-list').innerHTML = ORDER.map(function (id, i) {
+    var s = SRC[id];
+    return '<li id="ref' + (i + 1) + '"><a href="' + s.url + '" target="_blank" rel="noopener">' + esc(s.label) + '</a> — ' + s.domain + ' (' + esc(s.backs) + ').</li>';
+  }).join('');
+  $('lib-note').innerHTML = LIBS.map(function (L) {
+    return esc(L.supplierFull || L.supplier) + ': ' + esc(L.range) + ', extracted ' + L.scraped + cite(L, [L.refs[0]]) + '.';
+  }).join(' ');
+
+  // ---------- rows ----------
+  var ROWS = [];
+  LIBS.forEach(function (L) {
+    L.rows.forEach(function (r, i) {
+      var o = { _lib: L, _i: ROWS.length };
+      L.columns.forEach(function (c, j) { o[c] = r[j]; });
+      ROWS.push(o);
+    });
+  });
+  function seriesOf(r) { return r._lib.series.filter(function (s) { return s.id === r.series; })[0]; }
+  function rowName(r) { return r._lib.supplier + ' ' + r.size + (r.design ? ' – ' + r.design : ''); }
+
+  var state = { maker: '', slip: '', series: '', design: '', sel: null };
+
+  // ---------- 1. series table ----------
+  function renderSeries() {
+    var h = '<thead><tr><th>Maker</th><th>Series</th><th>Use</th><th class="num">T<sub>CS</sub> max (kN·m)</th><th class="num">Flange A (mm)</th><th class="num">β max (°)</th><th>Spline</th><th class="num">μ</th></tr></thead><tbody>';
+    LIBS.forEach(function (L) {
+      L.series.slice().sort(function (a, b) { return ncmp(a.id, b.id); }).forEach(function (s) {
+        var sr = ROWS.filter(function (r) { return r._lib === L && r.series === s.id; });
+        function ext(k, f) { return f.apply(null, sr.map(function (r) { return r[k]; }).filter(function (v) { return typeof v === 'number'; })); }
+        var bmax = ext('beta', Math.max), tmax = ext('TCS', Math.max), amin = ext('A', Math.min), amax = ext('A', Math.max);
+        var on = state.series === L.id + '|' + s.id;
+        h += '<tr data-s="' + L.id + '|' + esc(s.id) + '"' + (on ? ' class="current"' : '') + '><td>' + esc(L.supplier) + '</td><td>' + esc(s.id) + cite(L, [s.src]) +
+          '</td><td>' + esc(s.desc) + '</td><td class="num">' + fmt(tmax) + '</td><td class="num">' + fmt(amin) + '–' + fmt(amax) +
+          '</td><td class="num">' + bmax + '</td><td>' + (s.spline ? esc(s.spline) : '–') + '</td><td class="num">' + (s.mu === null || s.mu === undefined ? '–' : s.mu) + '</td></tr>';
+      });
+    });
+    $('series-table').innerHTML = h + '</tbody>';
+    Array.prototype.forEach.call($('series-table').querySelectorAll('tbody tr'), function (tr) {
+      tr.onclick = function () { state.series = state.series === tr.dataset.s ? '' : tr.dataset.s; renderAll(); };
+    });
+  }
+
+  // ---------- 2. filter ----------
+  function seg(id, opts, key) {
+    $(id).innerHTML = opts.map(function (o) { return '<button type="button" data-v="' + o[0] + '"' + (state[key] === o[0] ? ' class="on"' : '') + '>' + o[1] + '</button>'; }).join('');
+    Array.prototype.forEach.call($(id).querySelectorAll('button'), function (b) { b.onclick = function () { state[key] = b.dataset.v; renderAll(); }; });
+  }
+  function renderFilter() {
+    seg('maker-seg', [['', 'All']].concat(LIBS.map(function (L) { return [L.id, esc(L.supplier)]; })), 'maker');
+    seg('slip-seg', [['', 'Any'], ['y', 'With'], ['n', 'Without']], 'slip');
+    var ser = [];
+    LIBS.forEach(function (L) { if (!state.maker || state.maker === L.id) L.series.forEach(function (s) { ser.push([L.id + '|' + s.id, (LIBS.length > 1 ? L.supplier + ' ' : '') + s.id]); }); });
+    ser.sort(function (a, b) { return ncmp(a[1], b[1]); });
+    $('series-sel').innerHTML = '<option value="">Any</option>' + ser.map(function (s) { return '<option value="' + esc(s[0]) + '"' + (s[0] === state.series ? ' selected' : '') + '>' + esc(s[1]) + '</option>'; }).join('');
+    var des = {};
+    LIBS.forEach(function (L) { if (!state.maker || state.maker === L.id) for (var k in L.designs) des[k] = L.designs[k].title; });
+    $('design-sel').innerHTML = '<option value="">Any</option>' + Object.keys(des).sort(ncmp).map(function (k) {
+      return '<option value="' + k + '"' + (k === state.design ? ' selected' : '') + '>' + k + ' — ' + esc(des[k].toLowerCase()) + '</option>'; }).join('');
+  }
+  $('series-sel').onchange = function () { state.series = this.value; renderAll(); };
+  $('design-sel').onchange = function () { state.design = this.value; renderAll(); };
+  ['tcs-min', 'tdw-min', 'beta-min', 'a-max', 'search'].forEach(function (id) { $(id).oninput = renderResults; });
+
+  function filtered() {
+    var tcs = num('tcs-min'), tdw = num('tdw-min'), bmin = num('beta-min'), amax = num('a-max');
+    var q = $('search').value.trim().toLowerCase();
+    return ROWS.filter(function (r) {
+      if (state.maker && r._lib.id !== state.maker) return false;
+      if (state.series && r._lib.id + '|' + r.series !== state.series) return false;
+      if (state.design && r.design !== state.design) return false;
+      if (state.slip === 'y' && r.slip !== true) return false;
+      if (state.slip === 'n' && r.slip !== false) return false;
+      if (tcs !== null && !(r.TCS >= tcs)) return false;
+      if (tdw !== null && !(r.TDW >= tdw)) return false;
+      if (bmin !== null && !(r.beta >= bmin)) return false;
+      if (amax !== null && !(r.A <= amax)) return false;
+      if (q && (rowName(r) + ' ' + r.series + ' ' + (r.S || '')).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+  }
+
+  // ---------- 3. results ----------
+  var COLS = ['size', 'var', 'design', 'opt', 'TCS', 'TDW', 'beta', 'A', 'S', 'Lz', 'La', 'Lf', 'G', 'GR'];
+  function renderResults() {
+    var rows = filtered().sort(function (x, y) {
+      return ncmp(x._lib.supplier, y._lib.supplier) || ncmp(x.size, y.size) || ncmp(x.var, y.var) || ncmp(x.design || '', y.design || '') || (x.opt || 0) - (y.opt || 0);
+    });
+    $('count').textContent = rows.length + ' of ' + ROWS.length + ' records' + (rows.length > 400 ? ' (first 400 shown)' : '');
+    var F = LIBS[0].fields;
+    var h = '<thead><tr>' + (LIBS.length > 1 ? '<th>Maker</th>' : '') + COLS.map(function (c) {
+      var f = F[c]; var n = c === 'size' ? 'Size' : c === 'var' ? 'Var.' : c === 'design' ? 'Design' : c === 'opt' ? 'Opt.' : sym(f[1]) + (f[2] ? ' (' + f[2] + ')' : '');
+      return '<th' + (['size', 'var', 'design', 'S'].indexOf(c) < 0 ? ' class="num"' : '') + '>' + n + '</th>';
+    }).join('') + '</tr></thead><tbody>';
+    rows.slice(0, 400).forEach(function (r) {
+      h += '<tr data-i="' + r._i + '"' + (state.sel === r._i ? ' class="current"' : '') + '>' + (LIBS.length > 1 ? '<td>' + esc(r._lib.supplier) + '</td>' : '') +
+        COLS.map(function (c) { return '<td' + (['size', 'var', 'design', 'S'].indexOf(c) < 0 ? ' class="num"' : '') + '>' + fmt(r[c]) + '</td>'; }).join('') + '</tr>';
+    });
+    $('results').innerHTML = h + '</tbody>';
+    Array.prototype.forEach.call($('results').querySelectorAll('tbody tr'), function (tr) {
+      tr.onclick = function () { state.sel = +tr.dataset.i; renderResults(); renderSel(); };
+    });
+  }
+
+  // ---------- 4–6. selected ----------
+  function renderSel() {
+    var r = ROWS[state.sel]; var L = r._lib, F = L.fields, s = seriesOf(r);
+    var d = r.design ? L.designs[r.design] : null;
+    $('des-main').textContent = rowName(r) + (r.opt ? ' (option ' + r.opt + ')' : '');
+    $('des-sub').innerHTML = esc(s.name) + ', variant ' + r.var + (d ? ' · ' + esc(d.title) : ' · lengths on request') +
+      ' · catalogue p. ' + r.p_dims + (r.p_len ? '–' + r.p_len : '') + cite(L, [s.src]);
+    var k = [['TCS', 'kN·m'], ['TDW', 'kN·m'], ['beta', '°'], [r.Lz !== null && r.Lz !== undefined ? 'Lz' : 'Lf', 'mm'], ['G', 'kg']];
+    $('kpis').innerHTML = k.map(function (p) { return '<div class="kpi"><b>' + fmt(r[p[0]]) + '</b><span>' + sym(F[p[0]][1]) + ' (' + p[1] + ')</span></div>'; }).join('') +
+      '<div class="kpi"><b>' + (r.slip === null || r.slip === undefined ? '–' : r.slip ? 'Yes' : 'No') + '</b><span>Length comp.</span></div>';
+    var fl = [];
+    if (r.slip && s.mu) fl.push('Spline ' + esc(s.spline.toLowerCase()) + ', μ = ' + s.mu + '; slip force F<sub>RL</sub> = T·μ/r<sub>m</sub>·cos β' + cite(L, ['cat_axial']) + '.');
+    if (r.slip && !s.mu && s.spline) fl.push('Spline ' + esc(s.spline.toLowerCase()) + '; the maker gives no μ for it' + cite(L, ['cat_axial']) + '.');
+    $('flags').innerHTML = fl.map(function (t) { return '<div class="info">' + t + '</div>'; }).join('');
+    renderLen();
+    // full record
+    $('record').innerHTML = L.groups.map(function (g) {
+      var keys = g[1].filter(function (k2) { return r[k2] !== null && r[k2] !== undefined; });
+      if (!keys.length) return '';
+      return '<h3>' + esc(g[0]) + '</h3><div class="mdg-scroll"><table class="mdg-table"><tbody>' + keys.map(function (k2) {
+        return '<tr><td class="sym">' + sym(F[k2][1]) + '</td><td>' + esc(F[k2][0]) + '</td><td class="num">' + fmt(r[k2]) + '</td><td class="muted">' + esc(F[k2][2]) + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+    }).join('');
+  }
+  function renderLen() {
+    var r = ROWS[state.sel]; if (!r) return;
+    var F = r._lib.fields;
+    var ref = (r.Lz !== null && r.Lz !== undefined) ? r.Lz : r.Lf;
+    if ($('len').dataset.for !== String(state.sel)) { $('len').value = ref === null || ref === undefined ? '' : ref; $('len').dataset.for = String(state.sel); }
+    var Lmm = num('len');
+    var tube = r.GR !== null && r.GR !== undefined;
+    var rows = [];
+    if (ref !== null && ref !== undefined && Lmm !== null) {
+      var dl = (Lmm - ref) / 1000;
+      var G = r.G !== null && r.G !== undefined ? r.G + (tube ? r.GR * dl : 0) : null;
+      var J = r.Jm !== null && r.Jm !== undefined ? r.Jm + (r.JmR ? r.JmR * dl : 0) : null;
+      var C = (r.Ct && r.CR) ? 1 / (1 / r.Ct + dl / r.CR) : (r.Ct && !tube ? r.Ct : null);
+      rows = [['G', G, 'kg'], ['Jm', J, 'kg·m²'], ['Ct', C, 'N·m/rad']];
+      if (r.slip && r.La) rows.push(['La', r.La, 'mm']);
+      $('len-body').innerHTML = rows.map(function (p) {
+        return '<tr><td class="sym">' + sym(F[p[0]][1]) + '</td><td>' + esc(F[p[0]][0].replace(/ \(at L[^)]*\)/, '')) + ' at L (calculated)</td><td class="num">' + fmt(p[1] === null ? null : +p[1].toPrecision(4)) + '</td><td class="muted">' + p[2] + '</td></tr>';
+      }).join('');
+      var warn = [];
+      if (Lmm < ref) warn.push('L is below the shortest length for this design.');
+      if (!tube && Lmm !== ref) warn.push('No per-metre data for this design: values are at its fixed length only.');
+      if (r.slip && r.La && Lmm > ref + r.La) warn.push('L exceeds L<sub>z</sub> + L<sub>a</sub>.');
+      $('len-note').innerHTML = (warn.length ? '<span class="bad">' + warn.join(' ') + '</span> ' : '') +
+        'Tube added at G<sub>R</sub>, J<sub>mR</sub> and C<sub>R</sub> per 1000 mm; stiffness in series. Best operating length L<sub>z</sub> + L<sub>a</sub>/3' + cite(r._lib, ['cat_length']) + '.';
+    } else {
+      $('len-body').innerHTML = '<tr><td class="muted">No length or mass data for this record.</td></tr>';
+      $('len-note').textContent = '';
+    }
+  }
+  $('len').oninput = renderLen;
+
+  function renderDiagram() {
+    var y0 = 150, x1 = 70, x2 = 590;
+    var s = '<svg viewBox="0 0 680 300" role="img" aria-label="Cardan shaft symbols">';
+    s += '<path class="cl" d="M20 ' + y0 + ' H660"/>';
+    // flanges
+    s += '<rect class="part" x="' + (x1 - 22) + '" y="' + (y0 - 70) + '" width="22" height="140"/><rect class="part" x="' + x2 + '" y="' + (y0 - 70) + '" width="22" height="140"/>';
+    // spigot
+    s += '<rect class="solid" x="' + (x1 - 34) + '" y="' + (y0 - 40) + '" width="12" height="80"/>';
+    // yokes and joints
+    [[x1 + 40, 1], [x2 - 40, -1]].forEach(function (j) {
+      s += '<path class="part" d="M' + (j[1] > 0 ? x1 : x2) + ' ' + (y0 - 55) + ' L' + (j[0] - 18 * j[1]) + ' ' + (y0 - 30) + ' V' + (y0 + 30) + ' L' + (j[1] > 0 ? x1 : x2) + ' ' + (y0 + 55) + ' Z"/>';
+      s += '<circle class="part" cx="' + j[0] + '" cy="' + y0 + '" r="22"/><path class="thin" d="M' + (j[0] - 22) + ' ' + y0 + ' H' + (j[0] + 22) + ' M' + j[0] + ' ' + (y0 - 22) + ' V' + (y0 + 22) + '"/>';
+    });
+    // spline and tube
+    s += '<rect class="hatch" x="135" y="' + (y0 - 20) + '" width="120" height="40"/>';
+    s += '<rect class="part" x="255" y="' + (y0 - 32) + '" width="270" height="64"/>';
+    // swing circle
+    s += '<path class="thin" stroke-dasharray="3 3" d="M' + (x2 - 40) + ' ' + (y0 - 62) + ' A62 62 0 0 1 ' + (x2 - 40) + ' ' + (y0 + 62) + '"/>';
+    // dims
+    s += hdim(x1, x2, 40, 'L<tspan baseline-shift="sub" font-size="9">z</tspan> (L<tspan baseline-shift="sub" font-size="9">f</tspan>)');
+    s += hdim(x1, x1 + 40, 70, 'M') + hdim(x2 - 40, x2, 70, 'M');
+    s += hdim(x1 - 34, x1 - 22, 245, 'F') + hdim(x1 - 22, x1, 275, 'G');
+    s += hdim(255 - 70, 255, 205, 'L<tspan baseline-shift="sub" font-size="9">a</tspan>');
+    s += vdim(x1 - 44, y0 - 70, y0 + 70, '∅A', -1) + vdim(x1 + 4, y0 - 40, y0 + 40, '', 1) + '<text class="dimtxt" x="' + (x1 + 2) + '" y="' + (y0 + 58) + '">∅C</text>';
+    s += vdim(195, y0 - 20, y0 + 20, '∅W', 1) + vdim(390, y0 - 32, y0 + 32, '∅S', 1) + vdim(x2 + 62, y0 - 62, y0 + 62, '∅K', 1);
+    // beta
+    s += '<path class="dim" d="M' + (x2 - 40) + ' ' + y0 + ' L' + (x2 + 50) + ' ' + (y0 + 40) + '"/><path class="dim" d="M' + (x2 + 30) + ' ' + y0 + ' A70 70 0 0 1 ' + (x2 + 24) + ' ' + (y0 + 28) + '"/>';
+    s += '<text class="dimtxt" x="' + (x2 + 34) + '" y="' + (y0 + 50) + '">β</text>';
+    s += '<text class="cap" x="135" y="' + (y0 + 38) + '">spline</text><text class="cap" x="360" y="' + (y0 + 50) + '">tube</text>';
+    // end view of flange (bolt pattern)
+    var cx = 640, cy = 250;
+    s += '</svg>';
+    s += '<svg viewBox="0 0 470 175" role="img" aria-label="Flange bolt pattern">';
+    s += '<circle class="part" cx="110" cy="85" r="70"/><circle class="thin" stroke-dasharray="6 3" cx="110" cy="85" r="52"/><circle class="solid" cx="110" cy="85" r="30"/>';
+    for (var i = 0; i < 8; i++) { var a = (i + 0.5) * Math.PI / 4; s += '<circle class="part" cx="' + (110 + 52 * Math.cos(a)) + '" cy="' + (85 + 52 * Math.sin(a)) + '" r="6"/>'; }
+    s += '<path class="dim" d="M110 85 L' + (110 + 52 * Math.cos(-0.4)) + ' ' + (85 + 52 * Math.sin(-0.4)) + '"/>';
+    s += '<text class="dimtxt" x="200" y="40">∅B  bolt-hole PCD (I holes)</text><text class="dimtxt" x="200" y="62">∅H  bolt-hole diameter</text>';
+    s += '<text class="dimtxt" x="200" y="84">∅C  spigot (H7)</text><text class="dimtxt" x="200" y="106">∅A  flange</text>';
+    s += '<text class="cap" x="200" y="132">Some series: dowel pins (B<tspan baseline-shift="sub" font-size="8">s</tspan>, H<tspan baseline-shift="sub" font-size="8">s</tspan>, I<tspan baseline-shift="sub" font-size="8">s</tspan>),</text><text class="cap" x="200" y="148">face key (X, Y) or Hirth serration.</text>';
+    s += '<text class="cap" x="200" y="164">Hole pattern fixed per size.</text></svg>';
+    $('diagram').innerHTML = '<div class="diag-row">' + s.replace('</svg><svg', '</svg><svg') + '</div>';
+  }
+
+  function renderFormulas() {
+    $('formulas').innerHTML = LIBS.map(function (L) {
+      var D = L.design; var keys = Object.keys(D).filter(function (k) { return D[k] && D[k].expr; });
+      return '<h3>' + esc(L.supplier) + '</h3><div class="mdg-scroll"><table class="mdg-table"><thead><tr><th>Topic</th><th>Formula / rule</th><th class="num">Page</th></tr></thead><tbody>' +
+        keys.map(function (k) {
+          return '<tr><td>' + esc(D[k].title || k) + '</td><td>' + esc(D[k].expr) + '</td><td class="num">' + D[k].page + cite(L, [D[k].ref]) + '</td></tr>';
+        }).join('') + (D.radialVars ? '<tr><td>radial: symbols</td><td colspan="2">' + esc(D.radialVars) + '</td></tr>' : '') + '</tbody></table></div>';
+    }).join('');
+    $('datanotes').innerHTML = LIBS.map(function (L) {
+      return '<h3>' + esc(L.supplier) + '</h3><ol class="ref-list">' + L.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ol>';
+    }).join('');
+  }
+
+  function renderAll() { renderSeries(); renderFilter(); renderResults(); if (state.sel !== null) renderSel(); }
+  renderDiagram(); renderFormulas();
+  var first = ROWS.filter(function (r) { return r.size === '687/688.40' && r.design === '0.02'; })[0] || ROWS[0];
+  state.sel = first._i;
+  renderAll();
+  }
+})();
+</script>
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  var root = document.documentElement;
+  function current(){
+    var t = root.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  // Newest saved choice: localStorage (shared by same-origin pages) vs window.name (follows the tab,
+  // covers browsers that give each file:// page its own storage). Timestamps decide which is newer.
+  function saved(){
+    var s = null, t = 0, m;
+    try { s = localStorage.getItem('mdg-theme'); t = +localStorage.getItem('mdg-theme-ts') || 0; } catch (e) {}
+    m = /^mdg-theme=(auto|light|dark)@(\d+)$/.exec(window.name || '');
+    if (m && +m[2] > t) { s = m[1]; }
+    return STATES.indexOf(s) > -1 ? s : null;
+  }
+  function show(state){
+    if (state === 'auto') { root.removeAttribute('data-theme'); }
+    else { root.setAttribute('data-theme', state); }
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  function save(state){
+    var ts = Date.now();
+    try { localStorage.setItem('mdg-theme', state); localStorage.setItem('mdg-theme-ts', String(ts)); } catch (e) {}
+    if (!window.name || /^mdg-theme=/.test(window.name)) { window.name = 'mdg-theme=' + state + '@' + ts; }
+  }
+  // Re-apply the saved choice when the page is shown from the back/forward cache, when the tab regains
+  // focus, or when another tab changes it, so the toggle never shows a stale state.
+  function sync(){ var s = saved(); if (s && s !== current()) { show(s); } }
+  show(current());
+  sync();
+  window.addEventListener('pageshow', sync);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) { sync(); } });
+  window.addEventListener('storage', function(e){ if (!e.key || e.key.indexOf('mdg-theme') === 0) { sync(); } });
+  if (btn) {
+    btn.addEventListener('click', function(){
+      var next = STATES[(STATES.indexOf(current()) + 1) % STATES.length];
+      show(next);
+      save(next);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  // Legibility floor: never shrink below this, even if that means the page then
+  // spills onto a 2nd (or 3rd) sheet. A handful of very long pages (e.g. the
+  // Material Library table, the O-Ring groove-design page) would otherwise need
+  // to zoom out well below half size to fit a single sheet, which prints too
+  // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
+  var MIN_SCALE = 0.65;
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
+</body>
+</html>

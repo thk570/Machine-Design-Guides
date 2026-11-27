@@ -7,8 +7,8 @@
 // meant to be a short summary, fully visible, not the page's full feature list. Longer detail belongs
 // on the page itself.
 window.MDG_MANIFEST = {
-  "rev": 16,
-  "updated": "2026-11-24",
+  "rev": 17,
+  "updated": "2026-11-27",
   "categories": [
     {
       "slug": "fits",
@@ -255,6 +255,17 @@ window.MDG_MANIFEST = {
       "tags": ["bearing", "rolling bearing", "SKF", "deep groove", "cylindrical roller", "angular contact", "four-point contact", "thrust bearing", "load rating", "limiting speed", "abutment", "2RS", "2Z", "COTS"],
       "status": "done",
       "rev": 7
+    },
+    {
+      "id": "driveshaft-library",
+      "title": "Driveshaft Library",
+      "category": "libraries",
+      "path": "calculators/components/driveshaft-library.html",
+      "standard": "Makers' catalogue data · GWB (Release 05/2022)",
+      "description": "Industrial cardan shafts: torque ratings, joint angle, flange, length, mass, inertia and stiffness. GWB series 390–687/688.",
+      "tags": ["driveshaft", "cardan shaft", "universal joint", "propshaft", "GWB", "Dana", "Spicer", "length compensation", "slip spline", "flange", "COTS"],
+      "status": "done",
+      "rev": 1
     },
     {
       "id": "wave-spring-library",
