@@ -7,7 +7,7 @@
 // meant to be a short summary, fully visible, not the page's full feature list. Longer detail belongs
 // on the page itself.
 window.MDG_MANIFEST = {
-  "rev": 20,
+  "rev": 22,
   "updated": "2026-11-27",
   "categories": [
     {
@@ -322,10 +322,10 @@ window.MDG_MANIFEST = {
       "category": "drawings",
       "path": "calculators/drawing-notes/drawing-notes-generator.html",
       "standard": "BS 8888 style · Drawing Notes Library",
-      "description": "Build a drawing notes block from material and process choices, fill values, drag to order, and copy for CAD.",
-      "tags": ["drawing notes", "notes", "drawing", "generator", "BS 8888", "CAD", "process", "part marking", "polymer", "3D printing"],
+      "description": "Build a drawing notes block from a standard template or material and process choices, fill values, drag to order, and copy for CAD.",
+      "tags": ["drawing notes", "notes", "drawing", "generator", "BS 8888", "CAD", "process", "part marking", "polymer", "3D printing", "template"],
       "status": "done",
-      "rev": 1
+      "rev": 3
     }
   ]
 };

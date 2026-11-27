@@ -2,7 +2,7 @@
 // (calculators/drawing-notes/drawing-notes-library.html). Plain JS (not .json), loaded via
 // <script src="../../data/drawing-notes.js"> — same reasoning as data/manifest.js (works under file://).
 //
-// Assigns window.MDG_DRAWING_NOTES = { updated, extra, sections }.
+// Assigns window.MDG_DRAWING_NOTES = { updated, extra, templates, sections }.
 //   sections[]  id, num, title, notes[]. One section per process group; the page sorts notes A to Z by topic.
 //               step (generator question row: general, process, heat, surface, inspect, marking, assy; none = Other)
 //               and order (generator default note order, low first). The library page ignores both.
@@ -13,6 +13,8 @@
 //   m[]         { t: material type slug from data/materials.js, label, g?: [grade name fragments] } or
 //               { t: null, label: "All metals", metals: true }. An empty/absent m means any material.
 //   extra[]     material classes the page offers that are not in data/materials.js yet (slug, title).
+//   templates[] generator standard setups: id, name, mat { cls (generator material class), t (type slug), g (grade
+//               name fragment) }, notes [[note id, type name]]. `last` notes are added automatically. Library page ignores.
 //   text        One sentence per line (\n). [] = value the engineer must supply, [A | B] = pick one,
 //               [COMPANY] = company name. Wording follows BS 8888.
 //   cost        Approximate relative process cost per part for a small lot: 1 lowest to 5 highest. Estimates, not live.
@@ -21,6 +23,28 @@
 window.MDG_DRAWING_NOTES = {
   "updated": "2026-11-27",
   "extra": [{"slug": "composites", "title": "Composites"}, {"slug": "electrical-steel", "title": "Electrical steel"}, {"slug": "magnets", "title": "Magnets"}],
+  "templates": [
+    {"id": "t-3dp-fdm-pekk", "name": "3D printed — FDM, PEKK (Antero 800NA)", "mat": {"cls": "polymer", "t": "insulating-materials", "g": "PEEK"}, "notes": [["n8_1", "Antero 800NA (PEKK)"], ["n5_4", "Self-adhesive label"]]},
+    {"id": "t-3dp-mjf-pa12", "name": "3D printed — MJF, PA12", "mat": {"cls": "polymer", "t": "insulating-materials", "g": "polyamide"}, "notes": [["n8_2", "PA12 nylon"], ["n5_4", "Self-adhesive label"]]},
+    {"id": "t-3dp-sls-pa12", "name": "3D printed — SLS, PA12", "mat": {"cls": "polymer", "t": "insulating-materials", "g": "polyamide"}, "notes": [["n8_3", "PA12 nylon"], ["n5_4", "Self-adhesive label"]]},
+    {"id": "t-al-cast", "name": "Aluminium — cast housing, machined", "mat": {"cls": "metal", "t": "aluminum", "g": "LM25"}, "notes": [["n1_1"], ["n1_2", "Material"], ["n1_5"], ["n7_1"], ["n7_3"], ["n2_4", "Surtec 650"], ["n4_3"], ["n4_4"], ["n5_2", "Batch number cast in"]]},
+    {"id": "t-al-clear", "name": "Aluminium — machined, clear anodise", "mat": {"cls": "metal", "t": "aluminum", "g": "6082"}, "notes": [["n1_1"], ["n1_2", "Material"], ["n1_5"], ["n2_1", "Clear anodise"], ["n5_5", "Laser engrave"]]},
+    {"id": "t-al-hard", "name": "Aluminium — machined, hard anodise", "mat": {"cls": "metal", "t": "aluminum", "g": "6082"}, "notes": [["n1_1"], ["n1_2", "Material"], ["n1_5"], ["n2_1", "Hard anodise"], ["n5_5", "Laser engrave"]]},
+    {"id": "t-cfrp-sleeve", "name": "Composite — CFRP sleeve", "mat": {"cls": "composite", "t": "composites"}, "notes": [["n9_1", "CFRP sleeve"], ["n4_1"]]},
+    {"id": "t-cu-busbar", "name": "Copper — busbar, tin plated and insulated", "mat": {"cls": "metal", "t": "copper-alloy", "g": "C101"}, "notes": [["n1_1"], ["n1_2", "Material"], ["n2_5", "Tin plate"], ["n2_3"], ["n5_4", "Self-adhesive label"]]},
+    {"id": "t-es-stack", "name": "Electrical steel — bonded lamination stack", "mat": {"cls": "esteel", "t": "electrical-steel"}, "notes": [["n6_6", "Stamping"], ["n10_1"], ["n10_2"], ["n10_3"]]},
+    {"id": "t-es-vpi", "name": "Electrical steel — stator VPI", "mat": {"cls": "esteel", "t": "electrical-steel"}, "notes": [["n9_7"], ["n9_6"], ["n9_8"], ["n9_4"], ["n9_5"]]},
+    {"id": "t-gap-pad", "name": "Gap pad — die cut", "mat": {"cls": "polymer", "t": "insulating-materials", "g": "Silicone"}, "notes": [["n6_6", "Die cutting"], ["n9_3", "Gap pad"]]},
+    {"id": "t-magnet", "name": "Magnet — bonded segments", "mat": {"cls": "magnet", "t": "magnets"}, "notes": [["n6_4"], ["n10_6"], ["n10_5"], ["n10_7", "Laser marking"]]},
+    {"id": "t-moulded", "name": "Polymer — injection moulded", "mat": {"cls": "polymer"}, "notes": [["n1_1"], ["n9_2"], ["n5_3", "Date insert"]]},
+    {"id": "t-ss-174ph", "name": "Stainless — 17-4PH, precipitation hardened", "mat": {"cls": "metal", "t": "stainless-steel", "g": "17-4PH"}, "notes": [["n1_1"], ["n1_2", "Material and heat treatment"], ["n1_3"], ["n3_2", "Precipitation harden (17-4PH)"], ["n3_3"], ["n2_4", "Passivation"], ["n5_5", "Laser engrave"]]},
+    {"id": "t-ss-passivated", "name": "Stainless — machined, passivated", "mat": {"cls": "metal", "t": "stainless-steel", "g": "AISI 316"}, "notes": [["n1_1"], ["n1_2", "Material"], ["n2_4", "Passivation"], ["n5_5", "Laser engrave"]]},
+    {"id": "t-st-case", "name": "Steel — case hardened shaft", "mat": {"cls": "metal", "t": "steel-carbon-alloy"}, "notes": [["n1_1"], ["n1_2", "Material and heat treatment"], ["n1_5"], ["n6_3", "Grinding allowance"], ["n3_1", "Carburise, case harden and temper"], ["n3_3"], ["n4_2", "Magnetic particle (MPI)"], ["n5_5", "Laser engrave"]]},
+    {"id": "t-st-qt", "name": "Steel — quench and temper, black oxide", "mat": {"cls": "metal", "t": "steel-carbon-alloy", "g": "AISI 4140"}, "notes": [["n1_1"], ["n1_2", "Material and heat treatment"], ["n1_3"], ["n3_2", "Quench and temper"], ["n3_3"], ["n2_4", "Black oxide"], ["n4_2", "Magnetic particle (MPI)"], ["n5_5", "Laser engrave"]]},
+    {"id": "t-st-sheet", "name": "Steel — sheet metal, powder coated", "mat": {"cls": "metal", "t": "steel-carbon-alloy"}, "notes": [["n1_1"], ["n6_6", "Laser"], ["n6_5"], ["n2_7", "Zinc phosphate + powder coat"], ["n5_4", "Self-adhesive label"]]},
+    {"id": "t-st-weld", "name": "Steel — welded fabrication, painted", "mat": {"cls": "metal", "t": "steel-carbon-alloy"}, "notes": [["n1_1"], ["n1_2", "Material"], ["n6_8", "Fabrication welding"], ["n3_4"], ["n2_7", "Blast, prime and paint"], ["n5_5", "Laser engrave"]]},
+    {"id": "t-st-zinc", "name": "Steel — zinc plated", "mat": {"cls": "metal", "t": "steel-carbon-alloy"}, "notes": [["n1_1"], ["n1_2", "Material"], ["n2_5", "Zinc plate"], ["n5_5", "Laser engrave"]]}
+  ],
   "sections": [
     {"id": "s1", "num": 1, "title": "General and certification", "step": "general", "order": 1, "notes": [
       {"id": "n1_1", "topic": "3D model use", "text": "UNDIMENSIONED FEATURES ARE DEFINED BY 3D MODEL [] REV [].\nGENERAL GEOMETRICAL SPECIFICATION ISO 22081 ⌓ 0.4 A B C.", "c": "Makes the 3D model (named with its revision) the definition of undimensioned features. ISO 22081 ⌓ = general profile tolerance to datums A B C for anything not otherwise toleranced. Splines and threads still need tabulated data.", "m": [], "cost": 1, "types": []},

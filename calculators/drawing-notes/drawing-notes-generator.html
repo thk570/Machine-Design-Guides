@@ -98,6 +98,9 @@
   .input-row { display: flex; align-items: center; gap: 0.4rem; }
   .unit { font-size: 0.8rem; color: var(--mdg-text-muted); }
 
+  .tpl-status { font-size: 0.8rem; color: var(--mdg-text-muted); padding-bottom: 0.45rem; }
+  .tpl-status button { font: inherit; font-size: 0.8rem; border: 0; background: none; color: var(--mdg-accent); cursor: pointer; text-decoration: underline; padding: 0; }
+  input#company:disabled { opacity: 0.45; cursor: not-allowed; }
   .questions { margin-top: 0.8rem; border-top: 1px solid var(--mdg-border); }
   .q { display: grid; grid-template-columns: 11rem 1fr; gap: 0.6rem; padding: 0.55rem 0; border-bottom: 1px solid var(--mdg-border); align-items: start; }
   .q:last-child { border-bottom: 0; }
@@ -186,13 +189,19 @@
   <div class="mdg-card">
     <h2>1. Part definition</h2>
     <div class="fields">
+      <label class="field">Start from a template
+        <select id="tpl"></select>
+      </label>
+      <span class="tpl-status" id="tplStatus"></span>
+    </div>
+    <div class="fields" style="margin-top:0.75rem">
       <div class="fields" id="matRow"></div>
       <label class="field">Company name (fills [COMPANY])
         <input type="text" id="company" placeholder="[COMPANY]" style="width:12rem">
       </label>
     </div>
     <div class="questions" id="questions"></div>
-    <p class="note">Notes and types from the Drawing Notes Library<sup><a href="#ref1">1</a></sup>, filtered by material (materials from the shared library<sup><a href="#ref2">2</a></sup>). Use “Add another…” where a step needs more than one note.</p>
+    <p class="note">Notes and types from the Drawing Notes Library<sup><a href="#ref1">1</a></sup>, filtered by material (materials from the shared library<sup><a href="#ref2">2</a></sup>). A template sets the material and replaces the notes; use “Add another…” where a step needs more than one note.</p>
   </div>
 
   <div class="work">
@@ -234,7 +243,7 @@
       <li id="ref2"><a href="../materials/material-library.html">Material Library</a> — internal (<code>data/materials.js</code>; material types and grades).</li>
     </ol>
 
-    <p>Last updated: 2026-11-27 &middot; Rev 1</p>
+    <p>Last updated: 2026-11-27 &middot; Rev 3</p>
   </div>
 
 </main>
@@ -325,7 +334,7 @@
   function noteOk(n) { return n.types.length ? n.types.some(function (t) { return typeOk(n, t); }) : matOk(n.m); }
 
   // ---------- material row (class → material → grade)
-  (function mountMaterial() {
+  var matUI = (function mountMaterial() {
     var el = document.getElementById('matRow');
     el.innerHTML =
       '<label class="field">Material class<select id="mCls"><option value="">Any</option>' +
@@ -358,6 +367,21 @@
     opt.addEventListener('change', function () { fillGrade(); read(); renderAll(); });
     gr.addEventListener('change', function () { read(); renderAll(); });
     fillOpt();
+    return {
+      get: function () { return [cls.value, opt.value, gr.value]; },
+      put: function (v) { cls.value = v[0]; fillOpt(); opt.value = v[1]; fillGrade(); gr.value = v[2]; read(); },
+      // template material: class id, type slug t, grade fragment g
+      set: function (m) {
+        var c = CLASS_BY[m.cls], g = (m.g || '').toLowerCase();
+        cls.value = c ? c.id : ''; fillOpt();
+        if (c && m.t) c.opts.forEach(function (o, i) {
+          if (o.slug === m.t && (!o.grade || (g && o.grade.toLowerCase().indexOf(g) >= 0))) { if (opt.value === '') opt.value = String(i); }
+        });
+        fillGrade();
+        if (g) Array.prototype.forEach.call(gr.options, function (op) { if (op.value && gr.value === '' && op.value.toLowerCase().indexOf(g) >= 0) gr.value = op.value; });
+        read();
+      }
+    };
   })();
 
   // ---------- token parser: [] value, [A | B] choice, [COMPANY], [phrase] optional, short [5] typical value
@@ -588,7 +612,34 @@
   }
   cardsEl.addEventListener('pointerup', endDrag); cardsEl.addEventListener('pointercancel', endDrag);
   document.getElementById('resetOrder').addEventListener('click', function () { state.cards.sort(function (a, b) { return RANK[a.id] - RANK[b.id]; }); renderCards(); renderOut(); });
-  document.getElementById('clearAll').addEventListener('click', function () { defaults(); renderAll(); });
+  document.getElementById('clearAll').addEventListener('click', function () { defaults(); tplSel.value = ''; tplSel.dataset.last = ''; tplStatus.innerHTML = ''; undo = null; renderAll(); });
+
+  // ---------- templates (data/drawing-notes.js `templates`): set material, replace notes, undo
+  var TEMPLATES = (NOTES.templates || []).slice().sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { numeric: true }); });
+  var tplSel = document.getElementById('tpl'), tplStatus = document.getElementById('tplStatus'), undo = null;
+  tplSel.innerHTML = '<option value="">None (blank)</option>' + TEMPLATES.map(function (t, i) { return '<option value="' + i + '">' + esc(t.name) + '</option>'; }).join('');
+  tplSel.disabled = !TEMPLATES.length;
+  function applyTemplate(t) {
+    undo = { mat: matUI.get(), cards: JSON.parse(JSON.stringify(state.cards)), tpl: tplSel.dataset.last || '' };
+    if (t) matUI.set(t.mat || {}); else matUI.set({});
+    state.cards = [];
+    (t ? t.notes : []).forEach(function (p) {
+      var n = BY_ID[p[0]]; if (!n) return;
+      var ty = null;
+      if (p[1]) n.types.forEach(function (x, xi) { if (x.name === p[1]) ty = xi; });
+      addCard(p[0], ty, true);
+    });
+    LAST.forEach(function (id) { addCard(id, null, true); });
+    tplSel.dataset.last = tplSel.value;
+    tplStatus.innerHTML = undo.cards.length ? (t ? 'Applied. ' : 'Cleared. ') + '<button type="button" id="tplUndo">Undo</button>' : '';
+    renderAll();
+  }
+  tplSel.addEventListener('change', function () { applyTemplate(tplSel.value === '' ? null : TEMPLATES[+tplSel.value]); });
+  tplStatus.addEventListener('click', function (e) {
+    if (e.target.id !== 'tplUndo' || !undo) return;
+    matUI.put(undo.mat); state.cards = undo.cards; tplSel.value = undo.tpl; tplSel.dataset.last = undo.tpl;
+    undo = null; tplStatus.innerHTML = ''; renderAll();
+  });
 
   // ---------- section 3: output and copy
   function wrapLine(s, w) {
@@ -606,7 +657,15 @@
     });
     return { text: state.cards.length ? 'NOTES:\n\n' + blocks.join('\n\n') : '', open: open };
   }
+  // Company box is only live when a selected note uses [COMPANY]; the value is kept while it is shaded.
+  var companyEl = document.getElementById('company');
+  function updateCompany() {
+    var need = state.cards.some(function (c) { return noteText(c).indexOf('[COMPANY]') >= 0; });
+    companyEl.disabled = !need;
+    companyEl.title = need ? '' : 'No selected note uses [COMPANY]';
+  }
   function renderOut() {
+    updateCompany();
     var o = buildOut();
     outEl.textContent = o.text || 'NOTES:\n\n(no notes selected)';
     statusEl.className = o.open ? 'warn' : '';
