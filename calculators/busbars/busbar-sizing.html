@@ -136,8 +136,8 @@
   }
   html.mdg-pdf-mode body { background: #ffffff; }
   html.mdg-pdf-mode .mdg-header,
-  html.mdg-pdf-mode .mdg-collapsible,
   html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-collapsible:not([open]) { display: none !important; }
   html.mdg-pdf-mode .mdg-print-header {
     display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
     padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
@@ -384,7 +384,7 @@
       <li id="ref7"><a href="https://electrical-engineering-portal.com/calculating-the-short-circuit-heating-of-busbars" target="_blank" rel="noopener">Calculating The Short-Circuit Heating Of Busbars</a> — electrical-engineering-portal.com (adiabatic heating formula; ~200&nbsp;°C short-time temperature limit for bare copper).</li>
       <li id="ref8"><a href="https://industrialmonitordirect.com/blogs/knowledgebase/calculating-copper-busbar-cross-section-for-7000a-peak-and-1600a-continuous" target="_blank" rel="noopener">Copper Busbar Sizing: 7000A Peak and 1600A Continuous Current</a> — industrialmonitordirect.com (worked example: continuous current governs cross-section, peak current checked separately via adiabatic heating since a short pulse doesn't reach thermal equilibrium).</li>
     </ol>
-    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-11-23 &middot; Rev 9.</p>
+    <p class="note" style="margin-top:0.75rem;">Last updated: 2026-11-27 &middot; Rev 10.</p>
   </div>
 
 </main>

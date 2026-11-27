@@ -150,8 +150,8 @@
   .ref-list { margin: 0 0 0.6rem; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
   .ref-list li { margin-bottom: 0.3rem; }
 
-  /* Print and Save-as-PDF (see MDG/structure-and-conventions.md). Unlike other pages, Save PDF opens every
-     section's table (the tables are this page's content) and keeps the current search and material filter. */
+  /* Print and Save-as-PDF (see MDG/structure-and-conventions.md). Save PDF exports open sections only and
+     keeps the current search and material filter. */
   @media print {
     .mdg-header, .mdg-no-print { display: none !important; }
     .mdg-collapsible:not([open]) { display: block; }
@@ -167,6 +167,7 @@
   html.mdg-pdf-mode body { background: #ffffff; padding-left: 0; padding-right: 0; }
   html.mdg-pdf-mode .mdg-header,
   html.mdg-pdf-mode .mdg-no-print,
+  html.mdg-pdf-mode .mdg-collapsible:not([open]),
   html.mdg-pdf-mode .tbl-bar,
   html.mdg-pdf-mode .mini,
   html.mdg-pdf-mode .copy-row { display: none !important; }
@@ -259,7 +260,7 @@
       <li><a href="https://www.iso.org/standard/55979.html">ISO 8015</a> — Geometrical product specifications (GPS) — Fundamentals — Concepts, principles and rules.</li>
     </ul>
     <p>This page does not reproduce the text of any standard. Check the specification called up in a note for conformance-critical work.</p>
-    <p>Last updated: 2026-11-24 &middot; Rev 4</p>
+    <p>Last updated: 2026-11-27 &middot; Rev 5</p>
   </div>
 
 </main>
@@ -694,7 +695,7 @@
   // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
   var MIN_SCALE = 0.65;  // the full library runs to many pages at this floor, as the Material Library does
 
-  // This page's tables sit in collapsed sections: open them all for the PDF (and for Ctrl+P), then restore.
+  // Ctrl+P opens every section, then restores. Save PDF exports open sections only (site rule).
   var opened = [];
   function openAll(){
     Array.prototype.forEach.call(document.querySelectorAll('details.mdg-collapsible'), function(d){
@@ -707,7 +708,6 @@
   }
   function enterPdfMode(){
     document.documentElement.classList.add('mdg-pdf-mode');
-    openAll();
     var main = document.querySelector('main');
     if (!main) return;
     main.style.maxWidth = 'none';
@@ -727,7 +727,6 @@
   }
   function exitPdfMode(){
     document.documentElement.classList.remove('mdg-pdf-mode');
-    restoreAll();
     var main = document.querySelector('main');
     if (main) {
       main.style.maxWidth = '';
@@ -748,6 +747,7 @@
   }
   window.addEventListener('beforeprint', function(){ if (!document.documentElement.classList.contains('mdg-pdf-mode')) openAll(); });
   window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('afterprint', restoreAll);
   window.addEventListener('focus', function(){
     if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
   });

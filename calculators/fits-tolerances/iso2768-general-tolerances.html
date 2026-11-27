@@ -109,8 +109,8 @@
   }
   html.mdg-pdf-mode body { background: #ffffff; }
   html.mdg-pdf-mode .mdg-header,
-  html.mdg-pdf-mode .mdg-collapsible,
   html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-collapsible:not([open]) { display: none !important; }
   html.mdg-pdf-mode .mdg-print-header {
     display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
     padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
@@ -198,7 +198,7 @@
       <li id="ref1">General Tolerances to DIN ISO 2768 — internal PDF supplied by Theo Kokubun, 2026-10-23 (linear, external radius / chamfer and angular deviation tables, classes f, m, c, v).</li>
     </ol>
 
-    <p>Last updated: 2026-10-29 &middot; Rev 2</p>
+    <p>Last updated: 2026-11-27 &middot; Rev 3</p>
   </div>
 
 </main>

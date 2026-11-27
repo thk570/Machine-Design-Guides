@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var s=null,t=0,m;try{s=localStorage.getItem('mdg-theme');t=+localStorage.getItem('mdg-theme-ts')||0;}catch(e){}m=/^mdg-theme=(auto|light|dark)@(\d+)$/.exec(window.name||'');if(m&&+m[2]>t){s=m[1];}if(s==='light'||s==='dark'){document.documentElement.setAttribute('data-theme',s);}}catch(e){}})();</script>
+<title>Drawing Notes Generator — Machine Design Guides</title>
+<style>
+  /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #3b6ea5;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: var(--mdg-accent); }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 900px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.4rem 0.6rem; text-align: left; font-size: 0.9rem; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  .mdg-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }  /* wide tables side-scroll on narrow screens (REQ-0019) */
+  /* Citations & references — see MDG/structure-and-conventions.md.
+     sup a = in-body superscript marker linking down to its reference entry;
+     .ref-list = the "Applicable design standards" and "References" lists
+     at the bottom of the page. */
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+  @media print { .mdg-header, .mdg-no-print { display: none !important; } }
+
+  /* Save-as-PDF — see MDG/structure-and-conventions.md ("Save as PDF"). Forces a light,
+     compact one-page A4 layout via a temporary .mdg-pdf-mode class on <html>, applied just
+     before window.print() and removed on afterprint/focus. */
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-collapsible:not([open]) { display: none !important; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+
+  /* --- page-specific (Drawings category: accent #a5893b, input tint) --- */
+  :root { --mdg-accent: #a5893b; --input-bg: #f6f2e6; --input-border: #dccfa9; --card-bg: #fbfaf6;
+    --open-bg: #fff3d6; --open-text: #8a5a00; --ok: #2f7d4f;
+    --mdg-mono: ui-monospace, "Cascadia Mono", Consolas, "Liberation Mono", monospace; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --mdg-accent: #c4a95a; --input-bg: #2e2b22; --input-border: #574e37; --card-bg: #1b1b1d;
+      --open-bg: #3a2f17; --open-text: #f0c46a; --ok: #6cc28f; }
+  }
+  :root[data-theme="dark"] { --mdg-accent: #c4a95a; --input-bg: #2e2b22; --input-border: #574e37; --card-bg: #1b1b1d;
+    --open-bg: #3a2f17; --open-text: #f0c46a; --ok: #6cc28f; }
+  .mdg-tag { background: #a5893b; }
+  main { max-width: 1120px; }
+  .mdg-card h2 { font-size: 1rem; margin: 0 0 0.6rem; }
+  p.note { font-size: 0.82rem; color: var(--mdg-text-muted); margin: 0.6rem 0 0; }
+  select, input[type=text], input[type=number] { font: inherit; font-size: 0.88rem; padding: 0.35rem 0.5rem; border: 1px solid var(--input-border);
+    border-radius: 6px; background: var(--input-bg); color: var(--mdg-text); }
+  select:focus, input:focus { outline: none; border-color: var(--mdg-accent); }
+  .fields { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; align-items: flex-end; }
+  .field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .input-row { display: flex; align-items: center; gap: 0.4rem; }
+  .unit { font-size: 0.8rem; color: var(--mdg-text-muted); }
+
+  .questions { margin-top: 0.8rem; border-top: 1px solid var(--mdg-border); }
+  .q { display: grid; grid-template-columns: 11rem 1fr; gap: 0.6rem; padding: 0.55rem 0; border-bottom: 1px solid var(--mdg-border); align-items: start; }
+  .q:last-child { border-bottom: 0; }
+  .q-label { font-size: 0.84rem; font-weight: 600; padding-top: 0.35rem; }
+  .q-label small { display: block; font-weight: 400; font-size: 0.75rem; color: var(--mdg-text-muted); }
+  .q-ctl { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+  .q-row { display: flex; gap: 0.35rem; align-items: center; }
+  .q-row select { flex: 1; min-width: 0; max-width: 30rem; }
+  .q-row select.add { color: var(--mdg-text-muted); border-style: dashed; background: transparent; }
+  .q-none { font-size: 0.8rem; color: var(--mdg-text-muted); padding-top: 0.35rem; }
+  @media (max-width: 640px) { .q { grid-template-columns: 1fr; gap: 0.25rem; } }
+
+  .work { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+  .work > .mdg-card { margin-bottom: 0; }
+  .out-card { position: sticky; top: 0.75rem; }
+  @media (max-width: 860px) { .work { grid-template-columns: minmax(0, 1fr); } .out-card { position: static; } }
+  .card-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+  .card-head h2 { margin: 0; flex: 1; }
+  .btn { font: inherit; font-size: 0.8rem; padding: 0.3rem 0.7rem; border-radius: 6px; border: 1px solid var(--input-border);
+    background: var(--mdg-surface); color: var(--mdg-text); cursor: pointer; }
+  .btn:hover { border-color: var(--mdg-accent); }
+  .btn.primary { background: var(--mdg-accent); border-color: var(--mdg-accent); color: #fff; font-weight: 600; padding: 0.4rem 1rem; font-size: 0.88rem; }
+
+  #cards { display: flex; flex-direction: column; gap: 0.5rem; }
+  .empty { font-size: 0.85rem; color: var(--mdg-text-muted); padding: 1.2rem; text-align: center; border: 1px dashed var(--input-border); border-radius: 6px; }
+  .ncard { border: 1px solid var(--mdg-border); border-radius: 6px; background: var(--card-bg); padding: 0.5rem 0.6rem 0.55rem; }
+  .ncard.dragging { border-color: var(--mdg-accent); box-shadow: 0 6px 18px rgba(0,0,0,0.18); }
+  .nc-head { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+  .handle { cursor: grab; touch-action: none; user-select: none; color: var(--mdg-text-muted); font-size: 1rem; line-height: 1; padding: 0.2rem 0.15rem; letter-spacing: -2px; }
+  .ncard.dragging .handle { cursor: grabbing; }
+  .nc-grp { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--mdg-text-muted); }
+  .nc-title { font-size: 0.88rem; font-weight: 600; }
+  .nc-head select { font-size: 0.8rem; padding: 0.2rem 0.4rem; max-width: 15rem; }
+  .spacer { flex: 1; }
+  .badge { font-size: 0.7rem; padding: 0.1rem 0.45rem; border-radius: 999px; background: var(--open-bg); color: var(--open-text); white-space: nowrap; }
+  .badge.done { background: transparent; color: var(--ok); }
+  .ib { font: inherit; font-size: 0.8rem; width: 1.6rem; height: 1.6rem; border-radius: 5px; border: 1px solid transparent; background: transparent; color: var(--mdg-text-muted); cursor: pointer; }
+  .ib:hover { border-color: var(--input-border); color: var(--mdg-text); }
+  .ib:disabled { opacity: 0.35; cursor: default; }
+  .nc-text { font-family: var(--mdg-mono); font-size: 0.78rem; line-height: 1.9; margin: 0.35rem 0 0 1.4rem; word-break: break-word; }
+  .nc-text input, .nc-text select { font-family: var(--mdg-mono); font-size: 0.76rem; padding: 0.05rem 0.3rem; border-radius: 4px; vertical-align: baseline; max-width: 100%; }
+  .nc-text input.filled, .nc-text select.filled { border-color: var(--mdg-accent); }
+  .nc-text .company { background: var(--open-bg); color: var(--open-text); padding: 0 0.2rem; border-radius: 3px; }
+  .nc-text .company.set { background: transparent; color: inherit; border-bottom: 1px dotted var(--mdg-accent); }
+  .nc-text .raw { color: var(--mdg-text-muted); }
+  .nc-text .omitted { color: var(--mdg-text-muted); text-decoration: line-through; opacity: 0.7; }
+  .nc-c { margin: 0.3rem 0 0 1.4rem; font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .nc-c summary { cursor: pointer; }
+
+  .out-opts { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.6rem; }
+  .out-opts input[type=number] { width: 4.5rem; }
+  pre#out { font-family: var(--mdg-mono); font-size: 0.8rem; line-height: 1.45; margin: 0; padding: 0.8rem 0.9rem; border-radius: 6px;
+    background: #141516; color: #e8d44d; border: 1px solid var(--mdg-border); overflow-x: auto; min-height: 8rem; white-space: pre; }
+  #status { font-size: 0.8rem; margin-top: 0.5rem; min-height: 1.2em; }
+  #status.warn { color: var(--open-text); }
+  #status.ok { color: var(--ok); }
+  html.mdg-pdf-mode .work { grid-template-columns: minmax(0, 1fr); }
+  html.mdg-pdf-mode .out-card { position: static; }
+  html.mdg-pdf-mode pre#out { background: #ffffff; color: #1c1c1a; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem;">
+      <strong>Drawing Notes Generator</strong>
+      <span class="mdg-tag">Drawings</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">Drawing notes block (BS 8888 style)</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Drawing Notes Generator<span class="mdg-print-tag">Drawings</span></div>
+    <div class="mdg-print-meta">Drawing notes block (BS 8888 style) &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+  <div class="mdg-card">
+    <h2>1. Part definition</h2>
+    <div class="fields">
+      <div class="fields" id="matRow"></div>
+      <label class="field">Company name (fills [COMPANY])
+        <input type="text" id="company" placeholder="[COMPANY]" style="width:12rem">
+      </label>
+    </div>
+    <div class="questions" id="questions"></div>
+    <p class="note">Notes and types from the Drawing Notes Library<sup><a href="#ref1">1</a></sup>, filtered by material (materials from the shared library<sup><a href="#ref2">2</a></sup>). Use “Add another…” where a step needs more than one note.</p>
+  </div>
+
+  <div class="work">
+    <div class="mdg-card">
+      <div class="card-head">
+        <h2>2. Notes and order</h2>
+        <button type="button" class="btn mdg-no-print" id="resetOrder" title="Sort back to the default process order">Reset order</button>
+        <button type="button" class="btn mdg-no-print" id="clearAll" title="Remove all notes except the default ones">Start over</button>
+      </div>
+      <div id="cards"></div>
+      <p class="note">Drag ⋮⋮ or use ↑ ↓ to reorder. Values left empty, and options left unpicked, are copied as written (e.g. <code>[]</code>).</p>
+    </div>
+
+    <div class="mdg-card out-card">
+      <div class="card-head">
+        <h2>3. Generated note</h2>
+        <button type="button" class="btn primary mdg-no-print" id="copyBtn">Copy note</button>
+      </div>
+      <div class="out-opts mdg-no-print">
+        <label class="field" style="flex-direction:row; align-items:center; gap:0.4rem;">Wrap lines at
+          <span class="input-row"><input type="number" id="wrap" min="0" max="400" step="1" value="150"><span class="unit">characters (0 = off)</span></span>
+        </label>
+      </div>
+      <pre id="out"></pre>
+      <div id="status"></div>
+    </div>
+  </div>
+
+  <div class="mdg-card mdg-footer" style="margin-top:1rem">
+    <p><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li><a href="https://knowledge.bsigroup.com/products/technical-product-documentation-and-specification">BS 8888</a> — Technical product documentation and specification.</li>
+    </ul>
+    <p>This page does not reproduce the standard; conformance-critical work should refer to the standard itself.</p>
+
+    <p><strong>References</strong></p>
+    <ol class="ref-list">
+      <li id="ref1"><a href="drawing-notes-library.html">Drawing Notes Library</a> — internal (<code>data/drawing-notes.js</code>; note wording, types, comments, applicable materials).</li>
+      <li id="ref2"><a href="../materials/material-library.html">Material Library</a> — internal (<code>data/materials.js</code>; material types and grades).</li>
+    </ol>
+
+    <p>Last updated: 2026-11-27 &middot; Rev 1</p>
+  </div>
+
+</main>
+
+<script src="../../data/drawing-notes.js"></script>
+<script src="../../data/materials.js"></script>
+<script>
+// Drawing Notes Generator. Reads data/drawing-notes.js (notes, section step/order, `last` notes) and
+// data/materials.js (types, grades). New notes, types and sections in the library need no change here:
+// a section's `step` picks its question row (no step = Other) and `order` sets the default note order.
+(function () {
+  'use strict';
+  var NOTES = window.MDG_DRAWING_NOTES, MATS = window.MDG_MATERIALS;
+  var qEl = document.getElementById('questions'), cardsEl = document.getElementById('cards'),
+      outEl = document.getElementById('out'), statusEl = document.getElementById('status');
+  if (!NOTES || !MATS) {
+    qEl.innerHTML = '<div class="empty">Could not load <code>data/drawing-notes.js</code> or <code>data/materials.js</code>. Keep the <code>data/</code> folder alongside <code>calculators/</code>.</div>';
+    return;
+  }
+  var METAL_SLUGS = ['steel-carbon-alloy', 'stainless-steel', 'tool-steel', 'aluminum', 'magnesium', 'titanium', 'copper-alloy'];
+  var STEPS = [
+    { key: 'general', label: 'General and certification' },
+    { key: 'process', label: 'Manufacturing process' },
+    { key: 'heat', label: 'Heat treatment' },
+    { key: 'surface', label: 'Surface treatment' },
+    { key: 'inspect', label: 'Inspection and NDT' },
+    { key: 'marking', label: 'Part marking' },
+    { key: 'assy', label: 'Assembly and test' },
+    { key: 'other', label: 'Other' }
+  ];
+  var STEP_KEYS = STEPS.map(function (s) { return s.key; });
+
+  // ---------- groups (library sections) in default order
+  var GROUPS = NOTES.sections.map(function (s) {
+    return { key: STEP_KEYS.indexOf(s.step) >= 0 ? s.step : 'other', label: s.title, ord: s.order != null ? s.order : 1000 + s.num, src: s };
+  }).sort(function (a, b) { return a.ord - b.ord; });
+  var BY_ID = {}, RANK = {}, LAST = [];
+  GROUPS.forEach(function (g, gi) {
+    g.notes = g.src.notes.slice().sort(function (a, b) { return a.topic.localeCompare(b.topic, undefined, { numeric: true }); });
+    g.notes.forEach(function (n, ni) {
+      n.types = n.types || []; n.grp = g; BY_ID[n.id] = n; RANK[n.id] = gi * 1000 + ni;
+      if (n.last) LAST.push(n.id);
+    });
+  });
+  LAST.forEach(function (id, i) { RANK[id] = 1e6 + i; });
+
+  // ---------- material classes (polymers split out of Insulating Materials; unknown types go to Other)
+  var INS = 'insulating-materials';
+  var allTypes = MATS.types.concat(NOTES.extra || []);
+  var insGrades = MATS.grades.filter(function (g) { return g.type === INS; }).map(function (g) { return g.grade; })
+    .filter(function (v, i, a) { return a.indexOf(v) === i; });
+  var CERAMIC_RE = /^(Glass|Ceramic)/i, LAMINATE_RE = /FR-4|Phenolic/i;
+  function ins(re, keep) { return insGrades.filter(function (g) { return re.test(g) === keep; }); }
+  function gradeOpts(list) { return list.map(function (g) { return { label: g, slug: INS, grade: g }; }); }
+  var KNOWN = METAL_SLUGS.concat([INS, 'composites', 'electrical-steel', 'magnets']);
+  var CLASSES = [
+    { id: 'ceramic', title: 'Ceramic and glass', opts: gradeOpts(ins(CERAMIC_RE, true)) },
+    { id: 'composite', title: 'Composite and laminate', opts: [{ label: 'Composites (CFRP, GRP, pre-preg)', slug: 'composites' }].concat(gradeOpts(ins(LAMINATE_RE, true))) },
+    { id: 'esteel', title: 'Electrical steel', opts: [], slugs: ['electrical-steel'] },
+    { id: 'magnet', title: 'Magnet', opts: [], slugs: ['magnets'] },
+    { id: 'metal', title: 'Metal', metal: true, slugs: METAL_SLUGS,
+      opts: allTypes.filter(function (t) { return METAL_SLUGS.indexOf(t.slug) >= 0; }).map(function (t) { return { label: t.title, slug: t.slug, metalType: true }; }) },
+    { id: 'other', title: 'Other',
+      opts: allTypes.filter(function (t) { return KNOWN.indexOf(t.slug) < 0; }).map(function (t) { return { label: t.title, slug: t.slug, metalType: true }; }) },
+    { id: 'polymer', title: 'Polymer', polymer: true, slugs: [INS],
+      opts: gradeOpts(insGrades.filter(function (g) { return !CERAMIC_RE.test(g) && !LAMINATE_RE.test(g); })) }
+  ].filter(function (c) { return c.id !== 'other' || c.opts.length; });
+  CLASSES.forEach(function (c) {
+    if (!c.slugs) c.slugs = c.opts.map(function (o) { return o.slug; }).filter(function (v, i, a) { return a.indexOf(v) === i; });
+    c.opts.sort(function (a, b) { return a.label.localeCompare(b.label, undefined, { numeric: true }); });
+  });
+  var CLASS_BY = {}; CLASSES.forEach(function (c) { CLASS_BY[c.id] = c; });
+
+  var state = { mat: null, company: '', cards: [], wrap: 150 };
+
+  // ---------- material filter (same rules as the library page, plus class level)
+  function entryOk(e) {
+    var f = state.mat; if (!f) return true;
+    var c = CLASS_BY[f.cls];
+    if (e.metals) return !!c.metal;
+    if (!f.slug) return c.slugs.indexOf(e.t) >= 0;
+    if (e.t !== f.slug) return false;
+    if (f.grade && e.g && e.g.length) { var gn = f.grade.toLowerCase(); return e.g.some(function (p) { return gn.indexOf(p.toLowerCase()) >= 0; }); }
+    return true;
+  }
+  function matOk(list) { if (!state.mat || !list || !list.length) return true; return list.some(entryOk); }
+  function typeOk(n, t) { return matOk(t.m || n.m); }
+  function noteOk(n) { return n.types.length ? n.types.some(function (t) { return typeOk(n, t); }) : matOk(n.m); }
+
+  // ---------- material row (class → material → grade)
+  (function mountMaterial() {
+    var el = document.getElementById('matRow');
+    el.innerHTML =
+      '<label class="field">Material class<select id="mCls"><option value="">Any</option>' +
+        CLASSES.map(function (c) { return '<option value="' + c.id + '">' + esc(c.title) + '</option>'; }).join('') + '</select></label>' +
+      '<label class="field">Material<select id="mOpt"></select></label>' +
+      '<label class="field">Grade<select id="mGrade"></select></label>';
+    var cls = el.querySelector('#mCls'), opt = el.querySelector('#mOpt'), gr = el.querySelector('#mGrade');
+    function fillOpt() {
+      var c = CLASS_BY[cls.value];
+      opt.innerHTML = '<option value="">' + (c ? 'Any ' + c.title.toLowerCase() : 'Any') + '</option>' +
+        (c ? c.opts.map(function (o, i) { return '<option value="' + i + '">' + esc(o.label) + '</option>'; }).join('') : '');
+      opt.disabled = !c || !c.opts.length;
+      fillGrade();
+    }
+    function fillGrade() {
+      var c = CLASS_BY[cls.value], o = c && opt.value !== '' ? c.opts[+opt.value] : null;
+      var gs = o && o.metalType ? MATS.grades.filter(function (g) { return g.type === o.slug; }).map(function (g) { return g.grade; })
+        .filter(function (v, i, a) { return a.indexOf(v) === i; }).sort(function (a, b) { return a.localeCompare(b, undefined, { numeric: true }); }) : [];
+      gr.innerHTML = '<option value="">All grades</option>' + gs.map(function (g) { return '<option>' + esc(g) + '</option>'; }).join('');
+      gr.disabled = !gs.length;
+      gr.parentNode.style.display = c && !(c.metal || c.id === 'other') ? 'none' : '';
+    }
+    function read() {
+      var c = CLASS_BY[cls.value];
+      if (!c) { state.mat = null; return; }
+      var o = opt.value !== '' ? c.opts[+opt.value] : null;
+      state.mat = { cls: c.id, slug: o ? o.slug : null, grade: o ? (o.grade || gr.value || '') : '' };
+    }
+    cls.addEventListener('change', function () { fillOpt(); read(); renderAll(); });
+    opt.addEventListener('change', function () { fillGrade(); read(); renderAll(); });
+    gr.addEventListener('change', function () { read(); renderAll(); });
+    fillOpt();
+  })();
+
+  // ---------- token parser: [] value, [A | B] choice, [COMPANY], [phrase] optional, short [5] typical value
+  function parse(s) {
+    var out = [], i = 0, buf = '';
+    while (i < s.length) {
+      if (s.charAt(i) === '[') {
+        var d = 0, j = i;
+        for (; j < s.length; j++) { var c = s.charAt(j); if (c === '[') d++; else if (c === ']') { d--; if (!d) break; } }
+        if (j >= s.length) { buf += s.slice(i); break; }
+        if (buf) { out.push({ k: 'text', v: buf }); buf = ''; }
+        out.push(classify(s.slice(i + 1, j), s.slice(i, j + 1)));
+        i = j + 1;
+      } else { buf += s.charAt(i++); }
+    }
+    if (buf) out.push({ k: 'text', v: buf });
+    return out;
+  }
+  function classify(inner, raw) {
+    var parts = [], d = 0, cur = '';
+    for (var i = 0; i < inner.length; i++) {
+      var c = inner.charAt(i);
+      if (c === '[') d++; else if (c === ']') d--;
+      if (c === '|' && !d) { parts.push(cur.trim()); cur = ''; } else cur += c;
+    }
+    parts.push(cur.trim());
+    if (parts.length > 1) return { k: 'choice', opts: parts, raw: raw };
+    var t = inner.trim();
+    if (!t) return { k: 'value', sug: '', raw: raw };
+    if (t === 'COMPANY') return { k: 'company', raw: raw };
+    if (t.indexOf(' ') < 0 && t.indexOf('[') < 0 && t.length <= 6) return { k: 'value', sug: t, raw: raw };
+    return { k: 'opt', kids: parse(inner), raw: raw };
+  }
+  function noteText(card) { var n = BY_ID[card.id]; return card.type >= 0 ? n.types[card.type].text : n.text; }
+  function noteComment(card) { var n = BY_ID[card.id]; return (card.type >= 0 && n.types[card.type].c) || n.c || ''; }
+  function vals(card) { var k = String(card.type); return card.vals[k] || (card.vals[k] = {}); }
+
+  function toHtml(toks, v, prefix) {
+    return toks.map(function (t, i) {
+      var key = prefix + i;
+      if (t.k === 'text') return esc(t.v).replace(/\n/g, '<br>');
+      if (t.k === 'company') return state.company ? '<span class="company set">' + esc(state.company.toUpperCase()) + '</span>' : '<span class="company" title="Set the company name in section 1">[COMPANY]</span>';
+      if (t.k === 'value') {
+        var val = v[key] || '';
+        return '<input type="text" data-k="' + key + '" class="' + (val ? 'filled' : '') + '" value="' + esc(val) + '" placeholder="' + esc(t.sug || '[ ]') +
+          '" title="' + (t.sug ? 'Typical: ' + esc(t.sug) + '. Leave empty to copy ' + esc(t.raw) : 'Leave empty to copy []') + '" style="width:' + Math.max(5, (val || t.sug || '').length + 2) + 'em">';
+      }
+      if (t.k === 'choice') {
+        var cv = v[key] == null ? '' : v[key];
+        return '<select data-k="' + key + '" class="' + (cv !== '' ? 'filled' : '') + '"><option value="">' + esc(t.raw) + '</option>' +
+          t.opts.map(function (o, oi) { return '<option value="' + oi + '"' + (String(oi) === String(cv) ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>';
+      }
+      if (t.k === 'opt') {
+        var ov = v[key] || '';
+        var sel = '<select data-k="' + key + '" class="' + (ov ? 'filled' : '') + '" title="Optional text">' +
+          ['', 'inc', 'omit'].map(function (x) { return '<option value="' + x + '"' + (x === ov ? ' selected' : '') + '>' + ({ '': 'Optional…', inc: 'Include', omit: 'Omit' })[x] + '</option>'; }).join('') + '</select> ';
+        if (ov === 'inc') return sel + toHtml(t.kids, v, key + '.');
+        return sel + '<span class="' + (ov === 'omit' ? 'omitted' : 'raw') + '">' + esc(t.raw).replace(/\n/g, '<br>') + '</span>';
+      }
+      return '';
+    }).join('');
+  }
+  function toText(toks, v, prefix, ctx) {
+    return toks.map(function (t, i) {
+      var key = prefix + i;
+      if (t.k === 'text') return t.v;
+      if (t.k === 'company') { if (state.company) return state.company.toUpperCase(); ctx.open++; return t.raw; }
+      if (t.k === 'value') { if (v[key]) return v[key]; ctx.open++; return t.raw; }
+      if (t.k === 'choice') { var cv = v[key]; if (cv != null && cv !== '') return t.opts[+cv]; ctx.open++; return t.raw; }
+      if (t.k === 'opt') {
+        var ov = v[key];
+        if (ov === 'inc') return toText(t.kids, v, key + '.', ctx);
+        if (ov === 'omit') { ctx.omitted = true; return ''; }
+        ctx.open++; return t.raw;
+      }
+      return '';
+    }).join('');
+  }
+  function cardLines(card) {
+    var ctx = { open: 0, omitted: false };
+    var lines = toText(parse(noteText(card)), vals(card), '', ctx).split('\n');
+    if (ctx.omitted) lines = lines.map(function (l) { return l.replace(/ {2,}/g, ' ').replace(/ ([.,;:])/g, '$1').trim(); }).filter(Boolean);
+    return { lines: lines, open: ctx.open };
+  }
+
+  // ---------- card list
+  function isOn(id) { return state.cards.some(function (c) { return c.id === id; }); }
+  function cardFor(id) { return state.cards.filter(function (c) { return c.id === id; })[0]; }
+  function firstType(n) { if (!n.types.length) return -1; for (var i = 0; i < n.types.length; i++) if (typeOk(n, n.types[i])) return i; return 0; }
+  function addCard(id, type, silent) {
+    var n = BY_ID[id]; if (!n) return;
+    var ex = cardFor(id);
+    if (ex) { if (type != null && type >= 0) ex.type = type; if (!silent) renderAll(); return; }
+    var card = { id: id, type: type != null ? type : firstType(n), vals: {} };
+    var pos = state.cards.length;
+    for (var k = 0; k < state.cards.length; k++) if (RANK[state.cards[k].id] > RANK[id]) { pos = k; break; }
+    state.cards.splice(pos, 0, card);
+    if (!silent) renderAll();
+  }
+  function removeCard(id, silent) { state.cards = state.cards.filter(function (c) { return c.id !== id; }); if (!silent) renderAll(); }
+  function defaults() { state.cards = []; LAST.forEach(function (id) { addCard(id, null, true); }); }
+
+  // ---------- section 1: one row per step, one drop-down per note
+  function options(key) {
+    var out = [];
+    GROUPS.filter(function (g) { return g.key === key; }).forEach(function (g) {
+      var items = [];
+      g.notes.forEach(function (n) {
+        if (!noteOk(n)) return;
+        if (!n.types.length) items.push({ v: n.id + ':-1', label: n.topic });
+        else n.types.forEach(function (t, ti) { if (typeOk(n, t)) items.push({ v: n.id + ':' + ti, label: n.types.length > 1 ? n.topic + ' — ' + t.name : n.topic }); });
+      });
+      items.sort(function (a, b) { return a.label.localeCompare(b.label, undefined, { numeric: true }); });
+      if (items.length) out.push({ grp: g.label, items: items });
+    });
+    return out;
+  }
+  function optHtml(groups, sel) {
+    var multi = groups.length > 1;
+    return groups.map(function (g) {
+      var inner = g.items.map(function (it) { return '<option value="' + it.v + '"' + (it.v === sel ? ' selected' : '') + '>' + esc(it.label) + '</option>'; }).join('');
+      return multi ? '<optgroup label="' + esc(g.grp) + '">' + inner + '</optgroup>' : inner;
+    }).join('');
+  }
+  function renderQuestions() {
+    qEl.innerHTML = STEPS.map(function (q) {
+      if (!GROUPS.some(function (g) { return g.key === q.key; })) return '';
+      var groups = options(q.key), html;
+      var cards = state.cards.filter(function (c) { return BY_ID[c.id].grp.key === q.key; });
+      if (!groups.length && !cards.length) html = '<div class="q-none">None for this material.</div>';
+      else {
+        html = cards.map(function (c) {
+          var cur = c.id + ':' + c.type, g2 = groups;
+          if (!groups.some(function (g) { return g.items.some(function (it) { return it.v === cur; }); })) {
+            var n = BY_ID[c.id];   // card no longer matches the material: keep it selectable
+            g2 = groups.concat([{ grp: 'Other material', items: [{ v: cur, label: n.topic + (c.type >= 0 && n.types.length > 1 ? ' — ' + n.types[c.type].name : '') + ' (other material)' }] }]);
+          }
+          return '<div class="q-row"><select data-card="' + c.id + '">' + optHtml(g2, cur) + '</select>' +
+            '<button type="button" class="ib" data-del="' + c.id + '" title="Remove">✕</button></div>';
+        }).join('') +
+          (groups.length ? '<div class="q-row"><select class="add" data-add="' + q.key + '"><option value="">' + (cards.length ? 'Add another…' : 'None — choose to add…') + '</option>' + optHtml(groups, '') + '</select></div>' : '');
+      }
+      return '<div class="q"><div class="q-label">' + esc(q.label) + '</div><div class="q-ctl">' + html + '</div></div>';
+    }).join('');
+  }
+  qEl.addEventListener('change', function (e) {
+    var t = e.target; if (!t.value) return;
+    var p = t.value.split(':'), id = p[0], ty = +p[1];
+    if (t.hasAttribute('data-card')) { var old = t.getAttribute('data-card'); if (old !== id) removeCard(old, true); }
+    addCard(id, ty);
+  });
+  qEl.addEventListener('click', function (e) { var b = e.target.closest('[data-del]'); if (b) removeCard(b.getAttribute('data-del')); });
+
+  // ---------- section 2: cards
+  function renderCards() {
+    if (!state.cards.length) { cardsEl.innerHTML = '<div class="empty">No notes yet. Add notes in section 1.</div>'; return; }
+    cardsEl.innerHTML = state.cards.map(function (c, i) { return cardHtml(c, i); }).join('');
+  }
+  function cardHtml(c, i) {
+    var n = BY_ID[c.id], open = cardLines(c).open, typeSel = '';
+    if (n.types.length > 1) {
+      typeSel = '<select class="tsel" title="Type">' + n.types.map(function (t, ti) {
+        return '<option value="' + ti + '"' + (ti === c.type ? ' selected' : '') + '>' + esc(t.name) + (typeOk(n, t) ? '' : ' (other material)') + '</option>';
+      }).join('') + '</select>';
+    } else if (n.types.length === 1) typeSel = '<span class="nc-grp" style="text-transform:none">' + esc(n.types[0].name) + '</span>';
+    var com = noteComment(c);
+    return '<div class="ncard" data-id="' + c.id + '">' +
+      '<div class="nc-head"><span class="handle mdg-no-print" title="Drag to reorder" aria-hidden="true">⋮⋮</span>' +
+      '<span class="nc-title">' + esc(n.topic) + '</span>' + typeSel +
+      '<span class="nc-grp">' + esc(n.grp.label) + '</span><span class="spacer"></span>' +
+      '<span class="badge' + (open ? '' : ' done') + '">' + (open ? open + ' open' : '✓ complete') + '</span>' +
+      '<button type="button" class="ib mdg-no-print" data-act="up" title="Move up"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
+      '<button type="button" class="ib mdg-no-print" data-act="down" title="Move down"' + (i === state.cards.length - 1 ? ' disabled' : '') + '>↓</button>' +
+      '<button type="button" class="ib mdg-no-print" data-act="del" title="Remove">✕</button></div>' +
+      '<div class="nc-text">' + toHtml(parse(noteText(c)), vals(c), '') + '</div>' +
+      (com ? '<details class="nc-c mdg-no-print"><summary>Comment</summary>' + esc(com) + '</details>' : '') + '</div>';
+  }
+  function cardOf(el) { var d = el.closest('.ncard'); return d ? cardFor(d.getAttribute('data-id')) : null; }
+  function refreshCard(card) {
+    var el = cardsEl.querySelector('.ncard[data-id="' + card.id + '"]'); if (!el) return;
+    var tmp = document.createElement('div'); tmp.innerHTML = cardHtml(card, state.cards.indexOf(card)); el.parentNode.replaceChild(tmp.firstChild, el);
+  }
+  function refreshBadge(card) {
+    var el = cardsEl.querySelector('.ncard[data-id="' + card.id + '"] .badge'); if (!el) return;
+    var open = cardLines(card).open; el.className = 'badge' + (open ? '' : ' done'); el.textContent = open ? open + ' open' : '✓ complete';
+  }
+  cardsEl.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var card = cardOf(b), i = state.cards.indexOf(card), act = b.getAttribute('data-act');
+    if (act === 'del') return removeCard(card.id);
+    var j = act === 'up' ? i - 1 : i + 1; if (j < 0 || j >= state.cards.length) return;
+    state.cards.splice(i, 1); state.cards.splice(j, 0, card); renderCards(); renderOut();
+  });
+  cardsEl.addEventListener('change', function (e) {
+    var card = cardOf(e.target); if (!card) return;
+    if (e.target.classList.contains('tsel')) { card.type = +e.target.value; refreshCard(card); renderQuestions(); renderOut(); return; }
+    var k = e.target.getAttribute('data-k');
+    if (k != null && e.target.tagName === 'SELECT') { vals(card)[k] = e.target.value; refreshCard(card); renderOut(); }
+  });
+  cardsEl.addEventListener('input', function (e) {
+    var card = cardOf(e.target); if (!card) return;
+    var k = e.target.getAttribute('data-k');
+    if (k != null && e.target.tagName === 'INPUT') {
+      vals(card)[k] = e.target.value.trim(); e.target.classList.toggle('filled', !!e.target.value.trim());
+      e.target.style.width = Math.max(5, (e.target.value || e.target.placeholder).length + 2) + 'em';
+      refreshBadge(card); renderOut();
+    }
+  });
+  // drag and drop (pointer events: mouse, pen, touch)
+  var drag = null;
+  cardsEl.addEventListener('pointerdown', function (e) {
+    var h = e.target.closest('.handle'); if (!h) return;
+    e.preventDefault(); var el = h.closest('.ncard');
+    drag = { el: el, pid: e.pointerId }; el.classList.add('dragging'); h.setPointerCapture(e.pointerId);
+  });
+  cardsEl.addEventListener('pointermove', function (e) {
+    if (!drag || e.pointerId !== drag.pid) return;
+    var sibs = Array.prototype.slice.call(cardsEl.querySelectorAll('.ncard:not(.dragging)')), before = null;
+    for (var i = 0; i < sibs.length; i++) { var r = sibs[i].getBoundingClientRect(); if (e.clientY < r.top + r.height / 2) { before = sibs[i]; break; } }
+    if (before) { if (drag.el.nextElementSibling !== before) cardsEl.insertBefore(drag.el, before); }
+    else if (cardsEl.lastElementChild !== drag.el) cardsEl.appendChild(drag.el);
+  });
+  function endDrag() {
+    if (!drag) return;
+    var order = Array.prototype.map.call(cardsEl.querySelectorAll('.ncard'), function (d) { return d.getAttribute('data-id'); });
+    state.cards.sort(function (a, b) { return order.indexOf(a.id) - order.indexOf(b.id); });
+    drag = null; renderCards(); renderOut();
+  }
+  cardsEl.addEventListener('pointerup', endDrag); cardsEl.addEventListener('pointercancel', endDrag);
+  document.getElementById('resetOrder').addEventListener('click', function () { state.cards.sort(function (a, b) { return RANK[a.id] - RANK[b.id]; }); renderCards(); renderOut(); });
+  document.getElementById('clearAll').addEventListener('click', function () { defaults(); renderAll(); });
+
+  // ---------- section 3: output and copy
+  function wrapLine(s, w) {
+    if (!w || s.length <= w) return [s];
+    var lines = [], cur = '';
+    s.split(' ').forEach(function (wd) { if (!cur) cur = wd; else if ((cur + ' ' + wd).length <= w) cur += ' ' + wd; else { lines.push(cur); cur = wd; } });
+    if (cur) lines.push(cur); return lines;
+  }
+  function buildOut() {
+    var w = state.wrap > 4 ? state.wrap - 2 : 0, open = 0, blocks = [];
+    state.cards.forEach(function (c) {
+      var r = cardLines(c), rows = []; open += r.open;
+      r.lines.forEach(function (l) { wrapLine(l, w).forEach(function (x) { rows.push(x); }); });
+      blocks.push(rows.map(function (x, i) { return (i ? '  ' : '- ') + x; }).join('\n'));
+    });
+    return { text: state.cards.length ? 'NOTES:\n\n' + blocks.join('\n\n') : '', open: open };
+  }
+  function renderOut() {
+    var o = buildOut();
+    outEl.textContent = o.text || 'NOTES:\n\n(no notes selected)';
+    statusEl.className = o.open ? 'warn' : '';
+    statusEl.textContent = !state.cards.length ? '' : o.open ? o.open + ' value' + (o.open > 1 ? 's' : '') + ' still open — copied as written.' : 'All values filled.';
+  }
+  document.getElementById('wrap').addEventListener('input', function (e) { state.wrap = Math.max(0, +e.target.value || 0); renderOut(); });
+  document.getElementById('company').addEventListener('input', function (e) { state.company = e.target.value.trim(); renderCards(); renderOut(); });
+  document.getElementById('copyBtn').addEventListener('click', function () {
+    var o = buildOut(); if (!o.text) { statusEl.className = 'warn'; statusEl.textContent = 'Nothing to copy yet.'; return; }
+    function done(ok) {
+      statusEl.className = ok ? 'ok' : 'warn';
+      statusEl.textContent = ok ? '✓ Copied ' + state.cards.length + ' note' + (state.cards.length > 1 ? 's' : '') + (o.open ? ' (' + o.open + ' open)' : '') + '.' : 'Copy blocked — text selected, press Ctrl+C.';
+      if (!ok) { var r = document.createRange(); r.selectNodeContents(outEl); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
+    }
+    function fallback() {
+      try { var ta = document.createElement('textarea'); ta.value = o.text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+        var ok = document.execCommand('copy'); document.body.removeChild(ta); done(ok); } catch (err) { done(false); }
+    }
+    try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(o.text).then(function () { done(true); }, fallback); else fallback(); } catch (err) { fallback(); }
+  });
+
+  function renderAll() { renderQuestions(); renderCards(); renderOut(); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  defaults();
+  renderAll();
+})();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  var root = document.documentElement;
+  function current(){
+    var t = root.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  // Newest saved choice: localStorage (shared by same-origin pages) vs window.name (follows the tab,
+  // covers browsers that give each file:// page its own storage). Timestamps decide which is newer.
+  function saved(){
+    var s = null, t = 0, m;
+    try { s = localStorage.getItem('mdg-theme'); t = +localStorage.getItem('mdg-theme-ts') || 0; } catch (e) {}
+    m = /^mdg-theme=(auto|light|dark)@(\d+)$/.exec(window.name || '');
+    if (m && +m[2] > t) { s = m[1]; }
+    return STATES.indexOf(s) > -1 ? s : null;
+  }
+  function show(state){
+    if (state === 'auto') { root.removeAttribute('data-theme'); }
+    else { root.setAttribute('data-theme', state); }
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  function save(state){
+    var ts = Date.now();
+    try { localStorage.setItem('mdg-theme', state); localStorage.setItem('mdg-theme-ts', String(ts)); } catch (e) {}
+    if (!window.name || /^mdg-theme=/.test(window.name)) { window.name = 'mdg-theme=' + state + '@' + ts; }
+  }
+  // Re-apply the saved choice when the page is shown from the back/forward cache, when the tab regains
+  // focus, or when another tab changes it, so the toggle never shows a stale state.
+  function sync(){ var s = saved(); if (s && s !== current()) { show(s); } }
+  show(current());
+  sync();
+  window.addEventListener('pageshow', sync);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) { sync(); } });
+  window.addEventListener('storage', function(e){ if (!e.key || e.key.indexOf('mdg-theme') === 0) { sync(); } });
+  if (btn) {
+    btn.addEventListener('click', function(){
+      var next = STATES[(STATES.indexOf(current()) + 1) % STATES.length];
+      show(next);
+      save(next);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  // Legibility floor: never shrink below this, even if that means the page then
+  // spills onto a 2nd (or 3rd) sheet. A handful of very long pages (e.g. the
+  // Material Library table, the O-Ring groove-design page) would otherwise need
+  // to zoom out well below half size to fit a single sheet, which prints too
+  // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
+  var MIN_SCALE = 0.65;
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
+</body>
+</html>

@@ -137,8 +137,8 @@
   }
   html.mdg-pdf-mode body { background: #ffffff; }
   html.mdg-pdf-mode .mdg-header,
-  html.mdg-pdf-mode .mdg-collapsible,
   html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-collapsible:not([open]) { display: none !important; }
   html.mdg-pdf-mode .mdg-print-header {
     display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
     padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
@@ -297,7 +297,7 @@
       <li id="ref2">Spline Stress Calculations — DIN 5480 (internal spreadsheet) — stress equations, factor and allowable tables. The sheet cites Machinery's Handbook 27th ed., Gears, Splines and Cams (pp. 2169–2174) and D. W. Dudley, <em>When Splines Need Stress Control</em>; neither opened for this page. The sheet applies Le even where the spline is shorter; this page uses the smaller of L and Le.</li>
       <li id="ref3">DIN 5480-1:2006-03 (PDF supplied) — Tables 4, 7, 9; DIN 5480-2:2006-05 (English translation read via <a href="https://www.scribd.com/document/379274426/DIN-5480-2">scribd.com</a>) — Tables 2–33 preferred sizes, pin diameters DM, teeth measured k and Wk reliability flags. Wk calculated, matching table values to 0.002 mm.</li>
     </ol>
-    <p>Last updated: 2026-10-29 &middot; Rev 4</p>
+    <p>Last updated: 2026-11-27 &middot; Rev 5</p>
   </div>
 </main>
 

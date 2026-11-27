@@ -135,8 +135,9 @@
   }
   html.mdg-pdf-mode body { background: #ffffff; }
   html.mdg-pdf-mode .mdg-header,
-  html.mdg-pdf-mode .mdg-collapsible,
   html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-collapsible:not([open]),
+  html.mdg-pdf-mode #clamp-section:not([open]) { display: none !important; }
   html.mdg-pdf-mode .mdg-print-header {
     display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
     padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
@@ -520,7 +521,7 @@
       <li id="ref14"><a href="https://www.crestindustrial.com/prevailing-torque-lock-nut-values---metric.html">Prevailing Torque Lock Nut Values — Metric</a> — crestindustrial.com (all-metal lock nut first-installation max prevailing torque, classes 5/8 and 10/12, M4–M24; waxed-nut K&nbsp;0.10–0.125).</li>
     </ol>
 
-    <p>Last updated: 2026-10-29 &middot; Rev 15</p>
+    <p>Last updated: 2026-11-27 &middot; Rev 17</p>
   </div>
 
 </main>
@@ -1359,13 +1360,13 @@ updateAll();
   // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
   var MIN_SCALE = 0.65;
 
-  // Section 5 is collapsed on screen; open it for PDF/print and restore afterwards.
+  // Section 5: Ctrl+P prints it open; Save PDF exports it only when open (site rule).
   var clampSec = document.getElementById('clamp-section');
   function openClamp(){ if (clampSec && !clampSec.open) { clampSec.open = true; clampSec.dataset.mdgForced = '1'; } }
   function restoreClamp(){ if (clampSec && clampSec.dataset.mdgForced) { clampSec.open = false; delete clampSec.dataset.mdgForced; } }
-  window.addEventListener('beforeprint', openClamp);
+  window.addEventListener('beforeprint', function(){ if (!document.documentElement.classList.contains('mdg-pdf-mode')) openClamp(); });
+  window.addEventListener('afterprint', restoreClamp);
   function enterPdfMode(){
-    openClamp();
     document.documentElement.classList.add('mdg-pdf-mode');
     var main = document.querySelector('main');
     if (!main) return;
@@ -1385,7 +1386,6 @@ updateAll();
     if (d) d.textContent = new Date().toLocaleDateString();
   }
   function exitPdfMode(){
-    restoreClamp();
     document.documentElement.classList.remove('mdg-pdf-mode');
     var main = document.querySelector('main');
     if (main) {
