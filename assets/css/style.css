@@ -24,6 +24,7 @@
   --cat-libraries: #5b5b5b;
   --cat-thermal: #2b8799;
   --cat-drawings: #a5893b;
+  --cat-shafts: #5f7f1f;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -1,0 +1,921 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){try{var s=null,t=0,m;try{s=localStorage.getItem('mdg-theme');t=+localStorage.getItem('mdg-theme-ts')||0;}catch(e){}m=/^mdg-theme=(auto|light|dark)@(\d+)$/.exec(window.name||'');if(m&&+m[2]>t){s=m[1];}if(s==='light'||s==='dark'){document.documentElement.setAttribute('data-theme',s);}}catch(e){}})();</script>
+<title>Cardan Shaft Bearing Loads — Machine Design Guides</title>
+<style>
+  /* --- shared tokens (copy of assets/css/style.css — keep pages self-contained) --- */
+  /* Shafts & Bearings category: olive accent, olive-tinted inputs. Amber dashed = value not in catalogue. */
+  :root {
+    --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #5f7f1f;
+    --mdg-radius: 8px;
+    --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --input-bg: #eff3e6; --input-border: #c9d4ad;
+    --manual-bg: #fff1cc; --manual-border: #9a5b00; --manual-text: #7a4700;
+    --pass-bg: #e3f1e8; --pass-text: #1d6b42; --fail-bg: #fbe4e2; --fail-text: #9b1c13;
+    --info-bg: #eef0f3; --info-text: #3d4450; --alpha0: #a5623b; --alpha90: #5f7f1f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+      --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent: #9cbd57;
+      --input-bg: #252b1c; --input-border: #46542f; color-scheme: dark;
+      --manual-bg: #3a2f12; --manual-border: #c98a2a; --manual-text: #f0c070;
+      --pass-bg: #1d3a2a; --pass-text: #8fd6a8; --fail-bg: #45201d; --fail-text: #f3a49c;
+      --info-bg: #2a2d33; --info-text: #c3c8d0; --alpha0: #d08a5e; --alpha90: #9cbd57;
+    }
+  }
+  :root[data-theme="dark"] {
+    --mdg-bg: #17181a; --mdg-surface: #201f22; --mdg-border: #35353a;
+    --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96; --mdg-accent: #9cbd57;
+    --input-bg: #252b1c; --input-border: #46542f; color-scheme: dark;
+    --manual-bg: #3a2f12; --manual-border: #c98a2a; --manual-text: #f0c070;
+    --pass-bg: #1d3a2a; --pass-text: #8fd6a8; --fail-bg: #45201d; --fail-text: #f3a49c;
+    --info-bg: #2a2d33; --info-text: #c3c8d0; --alpha0: #d08a5e; --alpha90: #9cbd57;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--mdg-bg); color: var(--mdg-text); font-family: var(--mdg-font); }
+  .mdg-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--mdg-border); flex-wrap: wrap; }
+  .mdg-header a.mdg-home { color: var(--mdg-text-muted); text-decoration: none; font-size: 0.9rem; }
+  .mdg-header a.mdg-home:hover { color: var(--mdg-text); }
+  .mdg-tag { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; color: #fff; background: #5f7f1f; }
+  .mdg-theme-toggle { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.3rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; background: var(--mdg-surface); color: var(--mdg-text-muted);
+    font-family: var(--mdg-font); }
+  .mdg-theme-toggle:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  main { max-width: 960px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; }
+  .mdg-card { background: var(--mdg-surface); border: 1px solid var(--mdg-border);
+    border-radius: var(--mdg-radius); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .mdg-card h2 { font-size: 1.05rem; margin: 0 0 0.75rem; }
+  .mdg-footer { margin-top: 2rem; padding-top: 0.75rem; border-top: 1px solid var(--mdg-border);
+    font-size: 0.8rem; color: var(--mdg-text-muted); }
+  table.mdg-table { border-collapse: collapse; width: 100%; }
+  table.mdg-table th, table.mdg-table td { border: 1px solid var(--mdg-border);
+    padding: 0.4rem 0.6rem; text-align: left; font-size: 0.9rem; }
+  table.mdg-table th { background: var(--mdg-bg); font-weight: 600; }
+  table.mdg-table td.num, table.mdg-table th.num { text-align: right; white-space: nowrap; }
+  .mdg-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }  /* wide tables side-scroll on narrow screens (REQ-0019) */
+  .input-row { display: flex; align-items: center; gap: 0.4rem; }
+  .input-row input, .input-row select { flex: 1 1 auto; min-width: 0; }
+  .input-row .unit { font-size: 0.85rem; color: var(--mdg-text-muted); white-space: nowrap; }
+  input[type=number], input[type=text], select { padding: 0.35rem 0.5rem; font: inherit; font-size: 0.9rem;
+    border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); color: var(--mdg-text); }
+  input:focus, select:focus { outline: none; border-color: var(--mdg-accent); box-shadow: 0 0 0 2px rgba(95,127,31,0.25); }
+  input[readonly] { background: transparent; border-style: dotted; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.75rem 1rem; }
+  .field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; min-width: 0; }
+  .field > label, .field > .lbl { color: var(--mdg-text-muted); }
+  .field.manual input { background: var(--manual-bg); border: 1.5px dashed var(--manual-border); }
+  .field.manual > label { color: var(--manual-text); font-weight: 600; }
+  .mtag { display: none; margin-left: 0.3rem; padding: 0 0.4rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700;
+    background: var(--manual-bg); color: var(--manual-text); border: 1px dashed var(--manual-border); }
+  .field.manual .mtag { display: inline-block; }
+  .src { font-size: 0.72rem; color: var(--mdg-text-muted); }
+  .sub { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--mdg-text-muted); margin: 1rem 0 0.5rem; }
+  .note { font-size: 0.8rem; color: var(--mdg-text-muted); margin: 0.6rem 0 0; line-height: 1.45; }
+  .legend { display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.8rem; color: var(--mdg-text-muted); margin: 0 0 0.75rem; }
+  .sw { display: inline-block; width: 1.6rem; height: 0.85rem; border-radius: 4px; vertical-align: middle; margin-right: 0.35rem; }
+  .arr { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 0.75rem; }
+  .opt { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius); padding: 0.6rem 0.75rem; background: var(--mdg-surface);
+    font: inherit; text-align: left; color: var(--mdg-text); display: flex; flex-direction: column; gap: 0.3rem; cursor: pointer; }
+  .opt.on { border: 2px solid var(--mdg-accent); }
+  .opt span { font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.6rem; }
+  .kpi { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius); padding: 0.55rem 0.75rem; }
+  .kpi .v { font-size: 1.25rem; font-weight: 700; }
+  .kpi .l { font-size: 0.75rem; color: var(--mdg-text-muted); }
+  .ro { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem; }
+  .ro div { border: 1px solid var(--mdg-border); border-radius: 6px; padding: 0.35rem 0.6rem; font-size: 0.75rem; color: var(--mdg-text-muted); }
+  .ro b { display: block; font-size: 0.95rem; color: var(--mdg-text); }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr)); gap: 1rem; }
+  .two > div { min-width: 0; }
+  .badge { display: inline-block; padding: 0.1rem 0.45rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+  .badge.pass { background: var(--pass-bg); color: var(--pass-text); }
+  .badge.fail { background: var(--fail-bg); color: var(--fail-text); }
+  .badge.info { background: var(--info-bg); color: var(--info-text); }
+  .pill { border: 1px solid var(--mdg-border); border-radius: 999px; padding: 0.25rem 0.7rem; font: inherit; font-size: 0.78rem;
+    background: var(--mdg-surface); color: var(--mdg-text-muted); cursor: pointer; }
+  .pill:hover { border-color: var(--mdg-accent); color: var(--mdg-text); }
+  .warn { border: 1px solid var(--fail-text); background: var(--fail-bg); color: var(--fail-text); border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.85rem; margin-bottom: 1rem; }
+  #duty td input[type=number] { width: 5.5rem; }
+  #duty td input[type=text] { width: 9rem; }
+  svg.diag { width: 100%; height: auto; display: block; }
+  svg .ln { stroke: var(--mdg-text); fill: none; }
+  svg .thin { stroke: var(--mdg-text-muted); fill: none; stroke-width: 1; }
+  svg .dash { stroke: var(--mdg-text-muted); fill: none; stroke-dasharray: 4 3; }
+  svg .acc { stroke: var(--mdg-accent); fill: none; stroke-width: 1.5; }
+  svg .brg { fill: var(--mdg-accent); }
+  svg .joint { fill: var(--mdg-surface); stroke: var(--mdg-accent); stroke-width: 2.5; }
+  svg .box { fill: none; stroke: var(--mdg-text-muted); stroke-width: 1.5; }
+  svg text { fill: var(--mdg-text); font-size: 12px; font-family: var(--mdg-font); }
+  svg text.mut { fill: var(--mdg-text-muted); }
+  svg text.ac { fill: var(--mdg-accent); font-size: 13px; }
+  code { font-size: 0.82rem; }
+  /* Collapsible sections — see MDG/structure-and-conventions.md ("Collapsible reference tables"). */
+  .mdg-collapsible { border: 1px solid var(--mdg-border); border-radius: var(--mdg-radius); background: var(--mdg-surface); margin: 0; }
+  .mdg-collapsible > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.65rem 0.9rem; font-size: 0.92rem; font-weight: 600; user-select: none; flex-wrap: wrap; }
+  .mdg-collapsible > summary::-webkit-details-marker { display: none; }
+  .mdg-collapsible > summary::before { content: ''; flex: none; width: 0; height: 0; border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent; border-left: 6px solid var(--mdg-text-muted); transition: transform 0.18s ease; }
+  .mdg-collapsible[open] > summary::before { transform: rotate(90deg); }
+  .mdg-collapsible > summary .hint { font-weight: 400; font-size: 0.78rem; color: var(--mdg-text-muted); }
+  .mdg-collapsible-body { padding: 0 0.9rem 0.9rem; }
+  .mdg-collapsible-body h3 { font-size: 0.95rem; margin: 1rem 0 0.5rem; }
+  /* Citations & references — see MDG/structure-and-conventions.md. */
+  sup a, .ref-list a { color: var(--mdg-accent); text-decoration: none; }
+  sup a:hover, .ref-list a:hover { text-decoration: underline; }
+  .ref-list { margin: 0; padding-left: 1.25rem; font-size: 0.8rem; color: var(--mdg-text-muted); }
+  .ref-list li { margin-bottom: 0.35rem; }
+  @media print {
+    .mdg-header, .mdg-no-print { display: none !important; }
+    .mdg-collapsible:not([open]) { display: block; }
+    .mdg-collapsible > summary::before { display: none; }
+    .mdg-collapsible-body { display: block !important; }
+  }
+
+  /* Save-as-PDF — see MDG/structure-and-conventions.md ("Save as PDF"). */
+  @page { size: A4; margin: 12mm; }
+  .mdg-print-header { display: none; }
+  :root.mdg-pdf-mode {
+    --mdg-bg: #ffffff; --mdg-surface: #ffffff; --mdg-border: #d0d0cc;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #5f7f1f;
+    --input-bg: #eff3e6; --input-border: #c9d4ad; --manual-bg: #fff1cc; --manual-border: #9a5b00; --manual-text: #7a4700;
+    --pass-bg: #e3f1e8; --pass-text: #1d6b42; --fail-bg: #fbe4e2; --fail-text: #9b1c13; --info-bg: #eef0f3; --info-text: #3d4450;
+    --alpha0: #a5623b; --alpha90: #5f7f1f;
+  }
+  html.mdg-pdf-mode body { background: #ffffff; }
+  html.mdg-pdf-mode .mdg-header,
+  html.mdg-pdf-mode .mdg-no-print { display: none !important; }
+  html.mdg-pdf-mode .mdg-collapsible:not([open]) { display: none !important; }
+  html.mdg-pdf-mode .mdg-print-header {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-bottom: 0.5rem; margin-bottom: 0.9rem; border-bottom: 2px solid #1c1c1a;
+  }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title { font-size: 1.05rem; font-weight: 700; color: #1c1c1a; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-title .mdg-print-tag { font-weight: 600; font-size: 0.7rem; color: #6b6b64; margin-left: 0.5rem; }
+  html.mdg-pdf-mode .mdg-print-header .mdg-print-meta { font-size: 0.72rem; color: #6b6b64; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="mdg-header">
+  <div>
+    <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
+    <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem;">
+      <strong>Cardan Shaft Bearing Loads</strong>
+      <span class="mdg-tag">Shafts &amp; Bearings</span>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">GWB technical instructions &middot; ISO 281 &middot; ISO 1940-1</div>
+    <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
+    <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="mdg-print-header">
+    <div class="mdg-print-title">Cardan Shaft Bearing Loads<span class="mdg-print-tag">Shafts &amp; Bearings</span></div>
+    <div class="mdg-print-meta">GWB technical instructions &middot; ISO 281 &middot; ISO 1940-1 &middot; <span id="mdg-print-date"></span></div>
+  </div>
+
+  <!-- ============ 1. ARRANGEMENT ============ -->
+  <div class="mdg-card">
+    <h2>1. Arrangement</h2>
+    <div class="arr">
+      <button type="button" class="opt" id="arr-Z" aria-pressed="true">
+        <svg viewBox="0 0 200 60" width="100%" aria-hidden="true"><path class="ln" stroke-width="4" d="M10 18 H60 L140 42 H190"/><circle class="joint" stroke-width="2" cx="60" cy="18" r="5"/><circle class="joint" stroke-width="2" cx="140" cy="42" r="5"/></svg>
+        <strong>Z arrangement</strong><span>Parallel offset shafts. β1 = β2 cancels speed ripple.</span>
+      </button>
+      <button type="button" class="opt" id="arr-W" aria-pressed="false">
+        <svg viewBox="0 0 200 60" width="100%" aria-hidden="true"><path class="ln" stroke-width="4" d="M10 42 L60 30 H140 L190 42"/><circle class="joint" stroke-width="2" cx="60" cy="30" r="5"/><circle class="joint" stroke-width="2" cx="140" cy="30" r="5"/></svg>
+        <strong>W arrangement</strong><span>Intersecting shafts. β1 = β2 cancels speed ripple.</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ 2. LAYOUT ============ -->
+  <div class="mdg-card">
+    <h2>2. Layout — <span id="arr-name">Z arrangement</span></h2>
+    <figure style="margin:0" id="layout"></figure>
+    <p class="note">Schematic, not to scale; symbols as GWB<sup><a href="#ref1">1</a></sup>. α = 0°: flange yoke at right angles to the drawing plane; α = 90°: in the plane.</p>
+  </div>
+
+  <!-- ============ 3. DRIVESHAFT ============ -->
+  <div class="mdg-card">
+    <h2>3. Driveshaft</h2>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--input-bg);border:1px solid var(--input-border)"></span>From catalogue (editable)</span>
+      <span><span class="sw" style="background:var(--manual-bg);border:1.5px dashed var(--manual-border)"></span>Not in catalogue — enter value</span>
+    </div>
+    <div class="grid">
+      <div class="field"><label for="ds-mfr">Manufacturer</label><div class="input-row"><select id="ds-mfr"></select></div></div>
+      <div class="field"><label for="ds-series">Series</label><div class="input-row"><select id="ds-series"></select></div></div>
+      <div class="field"><label for="ds-size">Size</label><div class="input-row"><select id="ds-size"></select></div></div>
+      <div class="field"><label for="ds-var">Flange / tube variant</label><div class="input-row"><select id="ds-var"></select></div></div>
+      <div class="field"><label for="ds-design">Design</label><div class="input-row"><select id="ds-design"></select></div></div>
+      <div class="field" id="ds-opt-f"><label for="ds-opt">Length option</label><div class="input-row"><select id="ds-opt"></select></div></div>
+    </div>
+    <div class="sub">Catalogue values<sup><a href="#ref2">2</a></sup></div>
+    <div class="ro" id="ds-ro"></div>
+    <div class="sub">Shaft at operating length</div>
+    <div class="grid">
+      <div class="field"><label for="ds-LB">Operating length L<sub>B</sub> = L + 2M</label><div class="input-row"><input id="ds-LB" type="number" readonly><span class="unit">mm</span></div></div>
+      <div class="field"><label for="ds-Lz" id="ds-Lz-l">Compressed length L<sub>z</sub> = L<sub>B</sub> − L<sub>a</sub>/3<sup><a href="#ref3">3</a></sup></label><div class="input-row"><input id="ds-Lz" type="number" readonly><span class="unit">mm</span></div></div>
+      <div class="field" id="f-m"><label for="ds-m">Shaft mass <span class="src">G + G<sub>R</sub></span><span class="mtag">Not in catalogue</span></label><div class="input-row"><input id="ds-m" type="number" step="0.1" min="0"><span class="unit">kg</span></div></div>
+      <div class="field" id="f-J"><label for="ds-J">Moment of inertia <span class="src">J<sub>m</sub> + J<sub>mR</sub></span><span class="mtag">Not in catalogue</span></label><div class="input-row"><input id="ds-J" type="number" step="0.0001" min="0"><span class="unit">kg·m²</span></div></div>
+      <div class="field" id="f-rm"><label for="ds-rm">Spline pitch radius r<sub>m</sub> <span class="src">m·z/2<sup><a href="#ref4">4</a></sup></span><span class="mtag">Not in catalogue</span></label><div class="input-row"><input id="ds-rm" type="number" step="0.01" min="0"><span class="unit">mm</span></div></div>
+      <div class="field" id="f-mu"><label for="ds-mu">Spline friction μ<sup><a href="#ref5">5</a></sup><span class="mtag">Not in catalogue</span></label><div class="input-row"><input id="ds-mu" type="number" step="0.01" min="0"><span class="unit"></span></div></div>
+    </div>
+    <p class="note">Values fill from the shared driveshaft libraries and can be overwritten; a new selection refills them. GWB gives μ only for plastic-coated splines (0.08), so other series need a value entered<sup><a href="#ref5">5</a></sup>.</p>
+  </div>
+
+  <!-- ============ 4. INPUTS ============ -->
+  <div class="mdg-card">
+    <h2>4. Inputs</h2>
+    <div class="sub" style="margin-top:0">Drive (rated case)</div>
+    <div class="grid">
+      <div class="field"><label for="in-T">Torque T</label><div class="input-row"><input id="in-T" type="number" value="500" step="10"><span class="unit">N·m</span></div></div>
+      <div class="field"><label for="in-n">Speed n</label><div class="input-row"><input id="in-n" type="number" value="1500" step="10"><span class="unit">r/min</span></div></div>
+      <div class="field"><label for="in-Tsp">Max. peak torque T<sub>SP</sub></label><div class="input-row"><input id="in-Tsp" type="number" value="1500" step="10" min="0"><span class="unit">N·m</span></div></div>
+      <div class="field"><label for="in-K1">Shock factor K<sub>1</sub><sup><a href="#ref6">6</a></sup></label><div class="input-row"><select id="in-K1"><option value="1" selected>1.00 Electric motor / turbine</option><option value="1.15">1.15 Petrol engine</option><option value="1.2">1.20 Diesel engine</option></select></div></div>
+      <div class="field"><label for="in-b1">Angle β<sub>1</sub> (motor end)</label><div class="input-row"><input id="in-b1" type="number" value="6" step="0.5" min="0"><span class="unit">°</span></div></div>
+      <div class="field"><label for="in-b2">Angle β<sub>2</sub> (driven end)</label><div class="input-row"><input id="in-b2" type="number" value="6" step="0.5" min="0"><span class="unit">°</span></div></div>
+      <div class="field"><label for="in-L">Joint centre distance L</label><div class="input-row"><input id="in-L" type="number" value="800" step="10" min="1"><span class="unit">mm</span></div></div>
+    </div>
+    <div class="sub">Motor bearings</div>
+    <div class="grid">
+      <div class="field"><label for="in-a">Bearing spacing a (A–B)</label><div class="input-row"><input id="in-a" type="number" value="300" step="5" min="1"><span class="unit">mm</span></div></div>
+      <div class="field"><label for="in-b">Distance b (B → joint 1)</label><div class="input-row"><input id="in-b" type="number" value="120" step="5" min="0"><span class="unit">mm</span></div></div>
+      <div class="field"><label for="in-loc">Located bearing</label><div class="input-row"><select id="in-loc"><option value="A">A (NDE)</option><option value="B" selected>B (DE)</option></select></div></div>
+      <div class="field"><label for="in-G">Shaft balance grade<sup><a href="#ref7">7</a></sup></label><div class="input-row"><select id="in-G"><option value="2.5">G 2.5</option><option value="6.3">G 6.3</option><option value="16" selected>G 16</option><option value="40">G 40</option></select></div></div>
+    </div>
+    <p class="note">Negative torque or speed (reverse, regen) is allowed; loads use magnitudes. GWB balance their shafts to G 16<sup><a href="#ref7">7</a></sup>.</p>
+  </div>
+
+  <!-- ============ 5. PEAK LOADS ============ -->
+  <div class="mdg-card">
+    <h2>5. Peak bearing loads (rated case)</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="v" id="k-B">–</div><div class="l">B (DE) radial</div></div>
+      <div class="kpi"><div class="v" id="k-A">–</div><div class="l">A (NDE) radial</div></div>
+      <div class="kpi"><div class="v" id="k-Fa">–</div><div class="l" id="k-Fa-l">Axial F<sub>RL</sub> on located bearing, spline sliding under torque</div></div>
+    </div>
+    <div class="sub">Radial breakdown (N)</div>
+    <div class="mdg-scroll"><table class="mdg-table" id="t-break"></table></div>
+    <p class="note">GWB give torque loads at α = 0° and 90° only<sup><a href="#ref1">1</a></sup>, so the larger is taken and weight and unbalance<sup><a href="#ref8">8</a></sup> are added in phase. F<sub>RL</sub> = T·μ·cos β / r<sub>m</sub><sup><a href="#ref5">5</a></sup>; lubrication-pressure force F<sub>p</sub> is not included.</p>
+  </div>
+
+  <!-- ============ 6. SHAFT CHECKS ============ -->
+  <div class="mdg-card">
+    <h2>6. Shaft checks</h2>
+    <details class="mdg-collapsible">
+      <summary>Torque, joint life, length and angle <span class="hint">against the selected shaft</span></summary>
+      <div class="mdg-collapsible-body">
+        <div class="mdg-scroll"><table class="mdg-table" id="t-checks"></table></div>
+        <p class="note">T<sub>DW</sub> applies when the torque reverses, otherwise T<sub>DSch</sub> = 1.4·T<sub>DW</sub><sup><a href="#ref6">6</a></sup>. n·β limits and n<sub>crit</sub> are read from the catalogue charts<sup><a href="#ref9">9</a></sup> (±3 %), or the steel-tube formula<sup><a href="#ref10">10</a></sup> for tubes not charted; both assume rigid supports near the flanges. Near ½ n<sub>crit</sub> the joint's twice-per-revolution excitation can cause vibration<sup><a href="#ref11">11</a></sup>.</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- ============ 7. YOKE POSITIONS ============ -->
+  <div class="mdg-card">
+    <h2>7. Load at the two yoke positions</h2>
+    <details class="mdg-collapsible">
+      <summary>Torque-induced bearing loads, α = 0° and 90° <span class="hint">plus speed non-uniformity</span></summary>
+      <div class="mdg-collapsible-body">
+        <div id="bars"></div>
+        <div class="kpis" style="margin-top:0.75rem">
+          <div class="kpi"><div class="v" id="k-U">–</div><div class="l">Non-uniformity U = tan β·sin β, joint 1<sup><a href="#ref12">12</a></sup></div></div>
+          <div class="kpi"><div class="v" id="k-phi">–</div><div class="l">Max. gimbal error φ<sub>K</sub>, joint 1<sup><a href="#ref12">12</a></sup></div></div>
+        </div>
+        <p class="note">Torque only (rated case); weight and unbalance are added in section 5. GWB give no loads between the two positions.</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- ============ 8. LIFE & DAMAGE ============ -->
+  <div class="mdg-card">
+    <h2>8. Life &amp; damage</h2>
+    <details class="mdg-collapsible">
+      <summary>Duty cycle, motor bearings and joint life <span class="hint">ISO 281 and GWB L<sub>C</sub>, damage share per case</span></summary>
+      <div class="mdg-collapsible-body">
+        <h3>Duty cycle</h3>
+        <div class="grid" style="margin-bottom:0.6rem">
+          <div class="field" id="f-slide"><label for="in-slide">Spline sliding (all cases)</label><div class="input-row"><select id="in-slide"><option value="no">No</option><option value="yes" selected>Yes</option></select></div></div>
+        </div>
+        <div class="mdg-scroll"><table class="mdg-table" id="duty"></table></div>
+        <div class="mdg-no-print" style="margin-top:0.5rem"><button type="button" class="pill" id="add-case">+ Add case</button></div>
+        <p class="note">Case names are free text; results only calculate when the time shares total 100 %. Sliding applies the full F<sub>RL</sub> to every case; hidden for shafts without length compensation.</p>
+        <div class="two">
+          <div>
+            <h3>Motor bearings<sup><a href="#ref13">13</a></sup></h3>
+            <div class="grid">
+              <div class="field"><label for="brgB-type">B (DE) type</label><div class="input-row"><select id="brgB-type"></select></div></div>
+              <div class="field"><label for="brgB">B (DE) bearing</label><div class="input-row"><select id="brgB"></select></div></div>
+              <div class="field"><label for="brgA-type">A (NDE) type</label><div class="input-row"><select id="brgA-type"></select></div></div>
+              <div class="field"><label for="brgA">A (NDE) bearing</label><div class="input-row"><select id="brgA"></select></div></div>
+              <div class="field" id="f-f0B"><label for="f0B">B calculation factor f<sub>0</sub><span class="mtag">Not in library</span></label><div class="input-row"><input id="f0B" type="number" step="0.1" min="0"><span class="unit"></span></div></div>
+              <div class="field" id="f-f0A"><label for="f0A">A calculation factor f<sub>0</sub><span class="mtag">Not in library</span></label><div class="input-row"><input id="f0A" type="number" step="0.1" min="0"><span class="unit"></span></div></div>
+              <div class="field"><label for="in-Lreq">Required life</label><div class="input-row"><input id="in-Lreq" type="number" value="30000" step="1000" min="0"><span class="unit">h</span></div></div>
+              <div class="field"><label for="in-rel">Reliability<sup><a href="#ref14">14</a></sup></label><div class="input-row"><select id="in-rel"><option value="1" selected>90 % (L10, a1 = 1)</option><option value="0.64">95 % (a1 = 0.64)</option><option value="0.55">96 % (a1 = 0.55)</option><option value="0.47">97 % (a1 = 0.47)</option><option value="0.37">98 % (a1 = 0.37)</option><option value="0.25">99 % (a1 = 0.25)</option></select></div></div>
+            </div>
+            <p class="note">The located bearing must be a deep groove ball bearing; a floating cylindrical roller bearing takes radial load only.</p>
+          </div>
+          <div>
+            <h3>Results</h3>
+            <div class="kpis" id="life-kpis"></div>
+            <p class="note" id="life-note"></p>
+          </div>
+        </div>
+        <h3>Per-case breakdown</h3>
+        <div class="mdg-scroll"><table class="mdg-table" id="t-cases"></table></div>
+        <p class="note">P = X·F<sub>r</sub> + Y·F<sub>a</sub> with the deep-groove factors<sup><a href="#ref15">15</a></sup>; L<sub>10</sub> = (C/P)<sup>p</sup>, p = 3 ball, 10/3 roller<sup><a href="#ref14">14</a></sup>. Joint: L<sub>h</sub> = L<sub>C</sub>·10¹⁰ / (n·β·T<sup>10/3</sup>·K<sub>1</sub>), T in kN·m<sup><a href="#ref6">6</a></sup>. Combined life = 1 / Σ(t<sub>i</sub> / L<sub>i</sub>).</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- ============ 9. EQUATIONS ============ -->
+  <div class="mdg-card">
+    <h2>9. Equations used</h2>
+    <details class="mdg-collapsible">
+      <summary>Formulas and sources <span class="hint">catalogue page for each manufacturer formula</span></summary>
+      <div class="mdg-collapsible-body">
+        <div class="mdg-scroll"><table class="mdg-table">
+          <thead><tr><th>Quantity</th><th>Formula</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr><td>Operating length</td><td>L<sub>B</sub> = L<sub>z</sub> + L<sub>a</sub>/3 (optimum); L<sub>B max</sub> = L<sub>z</sub> + L<sub>a</sub></td><td>GWB p. 44<sup><a href="#ref3">3</a></sup></td></tr>
+            <tr><td>Shaft mass, inertia at length</td><td>G + G<sub>R</sub>·(L<sub>z</sub> − L<sub>z min</sub>)/1000; J<sub>m</sub> + J<sub>mR</sub>·(L<sub>z</sub> − L<sub>z min</sub>)/1000</td><td>GWB data sheets<sup><a href="#ref2">2</a></sup></td></tr>
+            <tr><td>Spline pitch radius</td><td>r<sub>m</sub> = m·z/2, z from DIN 5480 (smaller z where two fit)</td><td>DIN 5480 library<sup><a href="#ref4">4</a></sup></td></tr>
+            <tr><td>Axial (slip) force</td><td>F<sub>RL</sub> = T·μ·cos β / r<sub>m</sub>; μ 0.08 plastic-coated</td><td>GWB p. 45<sup><a href="#ref5">5</a></sup></td></tr>
+            <tr><td>Radial loads, α = 0°</td><td>A<sub>1</sub> = T·cos β<sub>1</sub>·b/(L·a)·(tan β<sub>1</sub> ∓ tan β<sub>2</sub>); B<sub>1</sub> = T·cos β<sub>1</sub>·(a+b)/(L·a)·(tan β<sub>1</sub> ∓ tan β<sub>2</sub>) — minus Z, plus W</td><td>GWB p. 46<sup><a href="#ref1">1</a></sup></td></tr>
+            <tr><td>Radial loads, α = 90°</td><td>A<sub>2</sub> = B<sub>2</sub> = T·tan β<sub>1</sub>/a</td><td>GWB p. 46<sup><a href="#ref1">1</a></sup></td></tr>
+            <tr><td>Torque limits</td><td>T·K<sub>1</sub> &lt; T<sub>DW</sub> (reversing) or T<sub>DSch</sub> = 1.4·T<sub>DW</sub>; T<sub>SP</sub> &lt; T<sub>CS</sub></td><td>GWB p. 48–49<sup><a href="#ref6">6</a></sup></td></tr>
+            <tr><td>Speed × angle</td><td>n·β ≤ D, D per size from the chart</td><td>GWB p. 39–40<sup><a href="#ref9">9</a></sup></td></tr>
+            <tr><td>Critical bending speed</td><td>n ≤ 0.7·n<sub>crit</sub>; n<sub>crit</sub> = K/L<sub>B</sub>² (K per tube from the chart) or 1.211×10⁸·√(D² + d²)/L<sub>B</sub>², mm</td><td>GWB p. 41–43<sup><a href="#ref9">9</a></sup>; formula<sup><a href="#ref10">10</a></sup></td></tr>
+            <tr><td>Joint bearing life</td><td>L<sub>h</sub> = L<sub>C</sub>·10¹⁰ / (n·β·T<sup>10/3</sup>·K<sub>1</sub>)</td><td>GWB p. 49<sup><a href="#ref6">6</a></sup></td></tr>
+            <tr><td>Residual unbalance force</td><td>F = m·(G/1000)·Ω, half at each joint; Ω at the case speed</td><td>ISO 1940-1<sup><a href="#ref8">8</a></sup></td></tr>
+            <tr><td>Weight reactions</td><td>half shaft weight at joint 1; B = W·(a+b)/a, A = W·b/a</td><td>Statics</td></tr>
+            <tr><td>Non-uniformity, gimbal error</td><td>U = tan β·sin β; φ<sub>K max</sub> = arctan((cos β − 1)/(2√cos β))</td><td>GWB p. 36<sup><a href="#ref12">12</a></sup></td></tr>
+            <tr><td>Equivalent loads</td><td>P = F<sub>r</sub> if F<sub>a</sub>/F<sub>r</sub> ≤ e, else 0.56·F<sub>r</sub> + Y·F<sub>a</sub>; P<sub>0</sub> = 0.6·F<sub>r</sub> + 0.5·F<sub>a</sub> ≥ F<sub>r</sub></td><td>SKF catalogue<sup><a href="#ref15">15</a></sup></td></tr>
+            <tr><td>Bearing life</td><td>L<sub>nh</sub> = a<sub>1</sub>·(C/P)<sup>p</sup>·10⁶/(60·n)</td><td>ISO 281<sup><a href="#ref14">14</a></sup></td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </details>
+  </div>
+
+  <div class="mdg-card mdg-footer">
+    <p><strong>Applicable design standards</strong></p>
+    <ul class="ref-list">
+      <li><a href="https://www.iso.org/standard/38102.html"><strong>ISO 281</strong></a> — Rolling bearings — Dynamic load ratings and rating life</li>
+      <li><a href="https://www.iso.org/standard/38101.html"><strong>ISO 76</strong></a> — Rolling bearings — Static load ratings</li>
+      <li><a href="https://www.iso.org/standard/54074.html"><strong>ISO 21940-11</strong></a> — Mechanical vibration — Rotor balancing — Part 11: Procedures and tolerances for rotors with rigid behaviour (replaces ISO 1940-1)</li>
+      <li><a href="https://www.dinmedia.de/en/standard/din-5480-1/127379425"><strong>DIN 5480-1</strong></a> — Involute splines based on reference diameters — Part 1: General</li>
+    </ul>
+    <p>This page does not reproduce the standards' own tables; conformance-critical work should refer to the standards and the shaft manufacturer.</p>
+
+    <p><strong>References</strong></p>
+    <ol class="ref-list">
+      <li id="ref1"><a href="https://medialibrary.allisonoffhighway.com/wp-content/uploads/IK_englisch.pdf#page=48">GWB Driveshafts for Industrial Applications, p. 46 (radial forces on connecting bearings)</a> — allisonoffhighway.com (Z and W bearing loads, symbols).</li>
+      <li id="ref2"><a href="https://medialibrary.allisonoffhighway.com/wp-content/uploads/IK_englisch.pdf#page=14">GWB Driveshafts for Industrial Applications, Release 05/2022, data sheets p. 12–23</a> — allisonoffhighway.com (torque ratings, angle, M, lengths, mass, inertia, spline; via data/driveshafts_gwb.js).</li>
+      <li id="ref3"><a href="https://medialibrary.allisonoffhighway.com/wp-content/uploads/IK_englisch.pdf#page=46">GWB Driveshafts for Industrial Applications, p. 44 (length)</a> — allisonoffhighway.com (operating length).</li>
+      <li id="ref4">Involute Splines (DIN 5480) shared library — data/splines_din5480.js (teeth number z for the shaft's spline).</li>
+      <li id="ref5"><a href="https://medialibrary.allisonoffhighway.com/wp-content/uploads/IK_englisch.pdf#page=47">GWB Driveshafts for Industrial Applications, p. 45 (axial forces)</a> — allisonoffhighway.com (F<sub>RL</sub>, μ).</li>
+      <li id="ref6"><a href="https://medialibrary.allisonoffhighway.com/wp-content/uploads/IK_englisch.pdf#page=50">GWB Driveshafts for Industrial Applications, p. 48–49 (selection)</a> — allisonoffhighway.com (torque limits, L<sub>C</sub> life, K<sub>1</sub>).</li>
+      <li id="ref7"><a href="https://medialibrary.allisonoffhighway.com/wp-content/uploads/IK_englisch.pdf#page=49">GWB Driveshafts for Industrial Applications, p. 47 (balancing)</a> — allisonoffhighway.com (balance grades, G 16 producer balancing).</li>
+      <li id="ref8"><a href="https://www.dcma.mil/Portals/31/Documents/NPP/Forms/ISO_1940-1.pdf">ISO 1940-1:2003, clauses 5.3 and 6.2</a> — dcma.mil (G = e<sub>per</sub>·Ω in mm/s, permissible residual unbalance).</li>
+      <li id="ref9"><a href="https://medialibrary.allisonoffhighway.com/wp-content/uploads/IK_englisch.pdf#page=40">GWB Driveshafts for Industrial Applications, p. 38–43 (angles, speed)</a> — allisonoffhighway.com (angle difference, n·β limit, critical speed).</li>
+      <li id="ref10"><a href="https://calculator.academy/driveshaft-critical-speed-calculator/">Driveshaft Critical Speed Calculator</a> — calculator.academy (steel-tube critical speed constant, simply supported).</li>
+      <li id="ref11"><a href="https://spicerparts.com/en-emea/node/203">Spicer driveshaft safe operating speed calculator</a> — spicerparts.com (vibration near ½ critical speed).</li>
+      <li id="ref12"><a href="https://medialibrary.allisonoffhighway.com/wp-content/uploads/IK_englisch.pdf#page=38">GWB Driveshafts for Industrial Applications, p. 36 (kinematics)</a> — allisonoffhighway.com (non-uniformity, gimbal error).</li>
+      <li id="ref13">SKF rolling bearing data — data/bearings_skf.js (C, C<sub>0</sub>, f<sub>0</sub>).</li>
+      <li id="ref14"><a href="https://nsk.com/content/dam/nsk/eu/en_gb/documents/bearings-europe/P_TI-0102_EN.pdf">NSK Technical Insight TI/E/0102, Bearing life</a> — nsk.com (life exponent p, reliability factor a<sub>1</sub>).</li>
+      <li id="ref15"><a href="https://help.bdsbearing.com/hubfs/Knowledge%20Base/SKF/SKF%20Deep%20Groove%20Ball%20Bearings.pdf">SKF General Catalogue, Single row deep groove ball bearings, p. 299</a> — bdsbearing.com (e, X, Y factors, Normal clearance; P<sub>0</sub>).</li>
+    </ol>
+
+    <p>Last updated: 2026-11-27 &middot; Rev 2</p>
+  </div>
+
+</main>
+
+<script src="../../data/bearings_skf.js"></script>
+<script src="../../data/splines_din5480.js"></script>
+<script src="../../data/driveshafts.js"></script>
+<script>
+(function () {
+  // ---------- load every manufacturer listed in data/driveshafts.js (same loader as the Driveshaft Library) ----------
+  var files = window.MDG_DRIVESHAFT_FILES || [];
+  var pending = files.length, missing = [];
+  function fail(msg) { document.querySelector('main').insertAdjacentHTML('afterbegin', '<div class="warn">' + msg + '</div>'); }
+  if (!pending) { fail('data/driveshafts.js could not be loaded — this page needs the shared driveshaft libraries.'); return; }
+  files.forEach(function (f) {
+    var s = document.createElement('script');
+    s.src = '../../data/' + f;
+    s.onload = done; s.onerror = function () { missing.push(f); done(); };
+    document.body.appendChild(s);
+  });
+  function done() { if (--pending === 0) { if (missing.length) fail('Could not load: ' + missing.join(', ')); start(); } }
+
+  function start() {
+  var LIBS = (window.MDG_DRIVESHAFT_LIBS || []).slice();
+  var BRG = window.MDG_BEARINGS_SKF, SPL = window.MDG_SPLINES_DIN5480;
+  if (!LIBS.length) { fail('No driveshaft library loaded.'); return; }
+  if (!BRG) fail('data/bearings_skf.js could not be loaded — the life section needs it.');
+  if (!SPL) fail('data/splines_din5480.js could not be loaded — enter the spline pitch radius by hand.');
+
+  // ---------- helpers ----------
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
+  function ncmp(a, b) { return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }); }
+  function num(id) { var v = parseFloat($(id).value); return isFinite(v) ? v : null; }
+  function f(v, dp) { if (v === null || v === undefined || !isFinite(v)) return '–'; return v.toLocaleString('en-GB', { minimumFractionDigits: dp || 0, maximumFractionDigits: dp || 0 }); }
+  function life(h) { if (h === null || h === undefined || isNaN(h)) return '–'; if (!isFinite(h) || h > 1e6) return '&gt; 1,000,000'; return f(Math.round(h / 10) * 10); }
+  function sym(s) { var p = String(s).split('_'); return esc(p[0]) + (p[1] ? '<sub>' + esc(p.slice(1).join(' ')) + '</sub>' : ''); }
+  function badge(kind, txt) { return '<span class="badge ' + kind + '">' + txt + '</span>'; }
+  var RAD = Math.PI / 180, g = 9.81;
+
+  // ---------- driveshaft records ----------
+  LIBS.sort(function (a, b) { return ncmp(a.supplier, b.supplier); });
+  LIBS.forEach(function (L) {
+    L._rows = L.rows.map(function (r) { var o = {}; L.columns.forEach(function (c, i) { o[c] = r[i]; }); return o; });
+  });
+  function lib() { return LIBS.filter(function (L) { return L.id === $('ds-mfr').value; })[0] || LIBS[0]; }
+  function uniq(arr) { var o = []; arr.forEach(function (v) { if (o.indexOf(v) < 0) o.push(v); }); return o.sort(ncmp); }
+  function fill(sel, vals, labels, keep) {
+    var cur = keep !== undefined ? keep : sel.value;
+    sel.innerHTML = vals.map(function (v) { return '<option value="' + esc(v) + '">' + esc(labels ? labels(v) : v) + '</option>'; }).join('');
+    if (vals.map(String).indexOf(String(cur)) >= 0) sel.value = cur;
+  }
+  fill($('ds-mfr'), LIBS.map(function (L) { return L.id; }), function (id) { return LIBS.filter(function (L) { return L.id === id; })[0].supplier; }, 'gwb');
+  function rowsF() {
+    var L = lib(), s = $('ds-series').value, z = $('ds-size').value, v = $('ds-var').value, d = $('ds-design').value;
+    return L._rows.filter(function (r) { return (!s || r.series === s) && (!z || r.size === z) && (!v || r.var === v) && (!d || r.design === d); });
+  }
+  function cascade(level, keep) {
+    var L = lib(); keep = keep || {};
+    if (level <= 0) fill($('ds-series'), L.series.map(function (s) { return s.id; }).sort(ncmp), null, keep.series);
+    if (level <= 1) fill($('ds-size'), uniq(L._rows.filter(function (r) { return r.series === $('ds-series').value; }).map(function (r) { return r.size; })), null, keep.size);
+    if (level <= 2) fill($('ds-var'), uniq(L._rows.filter(function (r) { return r.size === $('ds-size').value; }).map(function (r) { return r.var; })), null, keep.var);
+    if (level <= 3) fill($('ds-design'), uniq(L._rows.filter(function (r) { return r.size === $('ds-size').value && r.var === $('ds-var').value; }).map(function (r) { return r.design; })),
+      function (d) { return d + ' ' + ((L.designs[d] || {}).title || ''); }, keep.design);
+    var opts = rowsF().map(function (r) { return r.opt; }).filter(function (o) { return o !== null && o !== undefined; });
+    fill($('ds-opt'), uniq(opts.map(String)), function (o) {
+      var r = rowsF().filter(function (x) { return String(x.opt) === o; })[0]; return o + ' (L_z ' + r.Lz + ', L_a ' + r.La + ' mm)'; }, keep.opt);
+    $('ds-opt-f').style.display = opts.length ? '' : 'none';
+    autoFill = { m: true, J: true, rm: true, mu: true };
+    calc();
+  }
+  function rec() {
+    var rs = rowsF(); if (!rs.length) return null;
+    if (rs.length > 1) { var o = $('ds-opt').value; rs = rs.filter(function (r) { return String(r.opt) === o; }).concat(rs); }
+    return rs[0];
+  }
+  function seriesOf(r) { return lib().series.filter(function (s) { return s.id === r.series; })[0] || {}; }
+  var autoFill = { m: true, J: true, rm: true, mu: true };
+  ['m', 'J', 'rm', 'mu'].forEach(function (k) {
+    $('ds-' + k).addEventListener('input', function () { autoFill[k] = false; calc(); });
+  });
+  function markManual(k, on) { $('f-' + k).classList.toggle('manual', !!on); }
+  function setAuto(k, v, dp) {
+    if (!autoFill[k]) return;
+    if (v === null || v === undefined || !isFinite(v)) { $('ds-' + k).value = ''; markManual(k, true); }
+    else { $('ds-' + k).value = +v.toFixed(dp); markManual(k, false); }
+  }
+
+  // spline pitch radius from the DIN 5480 library (smaller z where two fit = smaller r_m, higher slip force)
+  function splineRm(r) {
+    if (!SPL || !r.W_dB || !r.W_m) return null;
+    var p = SPL.teethForAny(r.W_dB, r.W_m) || []; if (!p.length) return null;
+    var z = Math.min.apply(null, p.map(function (x) { return x.z; }));
+    return { rm: r.W_m * z / 2, z: z };
+  }
+
+  // shaft length, mass and inertia at operating length (catalogue p. 44 and data-sheet notes)
+  function shaftAt(r, Lmm) {
+    var o = { LB: Lmm + 2 * (r.M || 0), ok: null, Lz: null, base: null, msg: '' };
+    if (r.slip) {
+      var La = r.La;
+      if (r.Lz_max && r.La_max) { // short designs: La rises from La to La_max over Lz..Lz_max
+        var t = Math.max(0, Math.min(1, (o.LB - r.La / 3 - r.Lz) / ((r.Lz_max + r.La_max / 3) - (r.Lz + r.La / 3) || 1)));
+        La = r.La + t * (r.La_max - r.La);
+      }
+      o.La = La; o.Lz = o.LB - La / 3; o.base = r.Lz;
+      o.ok = r.Lz_max ? (o.Lz >= r.Lz - 1e-9 && o.Lz <= r.Lz_max + 1e-9) : (o.Lz >= r.Lz - 1e-9);
+      o.limit = r.Lz_max ? ('L_z ' + r.Lz + '–' + r.Lz_max + ' mm') : ('≥ L_z min ' + r.Lz + ' mm');
+      o.len = o.Lz;
+    } else {
+      o.base = r.Lf; o.len = o.LB; o.ok = r.Lf ? o.LB >= r.Lf : null; o.limit = r.Lf ? '≥ L_f ' + r.Lf + ' mm' : '–';
+    }
+    var ext = (o.len - (o.base || 0)) / 1000;
+    o.m = (r.G !== null && r.G !== undefined) ? r.G + (r.GR ? r.GR * ext : 0) : null;
+    if (o.m !== null && !r.GR && ext > 0.001 && /^0\./.test(r.design)) o.m = null;
+    o.J = (r.Jm !== null && r.Jm !== undefined) ? r.Jm + (r.JmR ? r.JmR * ext : 0) : null;
+    if (o.J !== null && !r.JmR && ext > 0.001 && /^0\./.test(r.design)) o.J = null;
+    return o;
+  }
+
+  // ---------- GWB radial loads (p. 46), motor side ----------
+  function torqueLoads(T, b1, b2, arr, a, b, L) {
+    var k = Math.tan(b1 * RAD) + (arr === 'W' ? 1 : -1) * Math.tan(b2 * RAD);
+    var c = Math.abs(T) * Math.cos(b1 * RAD);
+    return { A0: Math.abs(c * b / (L * a) * k), B0: Math.abs(c * (a + b) / (L * a) * k), A90: Math.abs(T) * Math.tan(b1 * RAD) / a, B90: Math.abs(T) * Math.tan(b1 * RAD) / a };
+  }
+  function bearingLoads(T, n, b1, b2, ctx) {
+    var t = torqueLoads(T, b1, b2, ctx.arr, ctx.a, ctx.b, ctx.L);
+    var W = ctx.m !== null ? ctx.m * g / 2 : 0;
+    var U = ctx.m !== null ? ctx.m * (ctx.G / 1000) * (2 * Math.PI * Math.abs(n) / 60) / 2 : 0;
+    var kB = (ctx.a + ctx.b) / ctx.a, kA = ctx.b / ctx.a;
+    var Fax = (ctx.slip && ctx.sliding && ctx.rm && ctx.mu !== null) ? Math.abs(T) * ctx.mu * Math.cos(b1 * RAD) / ctx.rm : 0;
+    return { t: t, W: W, U: U, wB: W * kB, wA: W * kA, uB: U * kB, uA: U * kA,
+      B: Math.max(t.B0, t.B90) + (W + U) * kB, A: Math.max(t.A0, t.A90) + (W + U) * kA, Fax: Fax };
+  }
+
+  // ---------- bearings ----------
+  var TYPES = { dgbb: 'Deep groove ball', crb: 'Cylindrical roller (NU/N)' };
+  var BLIST = {};
+  if (BRG) {
+    BRG.bearings.forEach(function (x) {
+      if (x.type === 'dgbb' || (x.type === 'crb' && /^(NU|N) /.test(x.series || '') )) { (BLIST[x.type] = BLIST[x.type] || []).push(x); }
+    });
+    Object.keys(BLIST).forEach(function (k) { BLIST[k].sort(function (p, q) { return ncmp(p.des, q.des); }); });
+  }
+  function fillType(slot) {
+    var located = $('in-loc').value === slot, sel = $('brg' + slot + '-type'), cur = sel.value || 'dgbb';
+    sel.innerHTML = ['crb', 'dgbb'].sort(function (p, q) { return ncmp(TYPES[p], TYPES[q]); }).map(function (k) {
+      return '<option value="' + k + '"' + (located && k === 'crb' ? ' disabled' : '') + '>' + TYPES[k] + '</option>'; }).join('');
+    sel.value = located ? 'dgbb' : cur;
+  }
+  function fillBrg(slot, want) {
+    var sel = $('brg' + slot), list = BLIST[$('brg' + slot + '-type').value] || [], cur = want || sel.value;
+    sel.innerHTML = list.map(function (x) { return '<option value="' + esc(x.des) + '">' + esc(x.des) + ' — d ' + x.d + ', C ' + x.C + ' kN, C₀ ' + x.C0 + ' kN</option>'; }).join('');
+    if (list.some(function (x) { return x.des === cur; })) sel.value = cur;
+    syncF0(slot);
+  }
+  function brg(slot) { var t = $('brg' + slot + '-type').value; return (BLIST[t] || []).filter(function (x) { return x.des === $('brg' + slot).value; })[0] || null; }
+  function syncF0(slot) {
+    var b = brg(slot), fld = $('f-f0' + slot), need = b && b.type === 'dgbb';
+    fld.style.display = need ? '' : 'none';
+    if (!need) return;
+    if (b.f0) { $('f0' + slot).value = b.f0; fld.classList.remove('manual'); $('f0' + slot).readOnly = true; }
+    else { if ($('f0' + slot).readOnly) $('f0' + slot).value = ''; $('f0' + slot).readOnly = false; fld.classList.add('manual'); }
+  }
+  var FAC = [[0.172, 0.19, 2.30], [0.345, 0.22, 1.99], [0.689, 0.26, 1.71], [1.03, 0.28, 1.55], [1.38, 0.30, 1.45], [2.07, 0.34, 1.31], [3.45, 0.38, 1.15], [5.17, 0.42, 1.04], [6.89, 0.44, 1.00]];
+  function eY(x) {
+    if (x <= FAC[0][0]) return { e: FAC[0][1], Y: FAC[0][2] };
+    for (var i = 1; i < FAC.length; i++) if (x <= FAC[i][0]) {
+      var p = FAC[i - 1], q = FAC[i], t = (x - p[0]) / (q[0] - p[0]);
+      return { e: p[1] + t * (q[1] - p[1]), Y: p[2] + t * (q[2] - p[2]) };
+    }
+    return { e: FAC[FAC.length - 1][1], Y: FAC[FAC.length - 1][2] };
+  }
+  function equiv(b, f0, Fr, Fa) { // N
+    if (!b) return null;
+    if (b.type === 'crb') return { P: Fr, P0: Fr, p: 10 / 3, Y: null };
+    if (Fa <= 0) return { P: Fr, P0: Fr, p: 3, Y: null };
+    if (!f0) return null;
+    var k = eY(f0 * Fa / (b.C0 * 1000));
+    var P = (Fr > 0 && Fa / Fr <= k.e) ? Fr : 0.56 * Fr + k.Y * Fa;
+    return { P: P, P0: Math.max(0.6 * Fr + 0.5 * Fa, Fr), p: 3, Y: k.Y };
+  }
+  function L10h(b, P, p, n) { if (!b || P === null) return null; if (P <= 0 || !n) return Infinity; return Math.pow(b.C * 1000 / P, p) * 1e6 / (60 * Math.abs(n)); }
+
+  // ---------- duty cycle ----------
+  var cases = [
+    { name: 'Rated', t: 50, T: 500, n: 1500 }, { name: 'High speed', t: 25, T: 250, n: 3000 }, { name: 'Peak', t: 5, T: 900, n: 750 },
+    { name: 'Regen', t: 15, T: -300, n: 1500 }, { name: 'Reverse', t: 5, T: -500, n: -1500 }
+  ].map(function (c) { c.b1 = 6; c.b2 = 6; return c; });
+  function drawDuty() {
+    var h = '<thead><tr><th>#</th><th>Case</th><th class="num">Time (%)</th><th class="num">Torque (N·m)</th><th class="num">Speed (r/min)</th><th class="num">β<sub>1</sub> (°)</th><th class="num">β<sub>2</sub> (°)</th><th class="mdg-no-print"></th></tr></thead><tbody>';
+    cases.forEach(function (c, i) {
+      h += '<tr><td>' + (i + 1) + '</td><td><input type="text" data-i="' + i + '" data-k="name" value="' + esc(c.name) + '" aria-label="Case ' + (i + 1) + ' name"></td>' +
+        ['t', 'T', 'n', 'b1', 'b2'].map(function (k) { return '<td class="num"><input type="number" data-i="' + i + '" data-k="' + k + '" value="' + c[k] + '" aria-label="Case ' + (i + 1) + ' ' + k + '"></td>'; }).join('') +
+        '<td class="mdg-no-print"><button type="button" class="pill" data-del="' + i + '" aria-label="Remove case ' + (i + 1) + '">Remove</button></td></tr>';
+    });
+    h += '</tbody><tfoot><tr><th></th><th>Total</th><th class="num" id="t-total"></th><th colspan="5" id="t-total-msg"></th></tr></tfoot>';
+    $('duty').innerHTML = h;
+  }
+  $('duty').addEventListener('input', function (e) {
+    var el = e.target, i = +el.getAttribute('data-i'), k = el.getAttribute('data-k'); if (!k) return;
+    cases[i][k] = k === 'name' ? el.value : parseFloat(el.value); calc();
+  });
+  $('duty').addEventListener('click', function (e) {
+    var d = e.target.getAttribute('data-del'); if (d === null) return;
+    cases.splice(+d, 1); drawDuty(); calc();
+  });
+  $('add-case').addEventListener('click', function () {
+    cases.push({ name: 'Case ' + (cases.length + 1), t: 0, T: 0, n: 0, b1: num('in-b1') || 0, b2: num('in-b2') || 0 }); drawDuty(); calc();
+  });
+
+  // ---------- layout drawings ----------
+  function layoutSVG(arr) {
+    var motor = '<rect class="box" x="20" y="55" width="210" height="110" rx="6"/><text class="mut" x="28" y="48">Motor</text>' +
+      '<path class="ln" stroke-width="4" d="M10 110 H300"/>' +
+      '<rect class="brg" x="46" y="92" width="16" height="10"/><rect class="brg" x="46" y="118" width="16" height="10"/>' +
+      '<rect class="brg" x="192" y="92" width="16" height="10"/><rect class="brg" x="192" y="118" width="16" height="10"/>' +
+      '<text x="30" y="84">A (NDE)</text><text x="180" y="84">B (DE)</text>' +
+      '<path class="ln" stroke-width="5" d="M300 110 L540 152"/><path class="dash" d="M300 110 H420"/>' +
+      '<path class="acc" d="M380 110 A80 80 0 0 1 379 124"/><text class="ac" x="394" y="121">β1</text><text x="414" y="120" style="font-size:13px">L</text>' +
+      '<path class="dash" d="M540 152 L600 162.5"/>' +
+      '<path class="thin" d="M54 205 H200 M54 197 V213 M200 197 V213 M200 205 H300 M300 197 V213"/><text x="122" y="226" style="font-size:13px">a</text><text x="246" y="226" style="font-size:13px">b</text>';
+    var drv = arr === 'Z'
+      ? '<path class="ln" stroke-width="4" d="M540 152 H714"/><path class="acc" d="M580 152 A40 40 0 0 1 579.4 158.9"/><text class="ac" x="574" y="146">β2</text><text class="mut" x="660" y="144">driven</text>'
+      : '<g transform="rotate(19.86 540 152)"><path class="ln" stroke-width="4" d="M540 152 H714"/><text class="mut" x="660" y="144">driven</text></g><path class="acc" d="M579.4 158.9 A40 40 0 0 1 577.6 165.6"/><text class="ac" x="586" y="151">β2</text>';
+    return '<svg class="diag" viewBox="0 0 720 ' + (arr === 'Z' ? 240 : 270) + '" role="img" aria-label="' + arr + ' arrangement: motor bearings A and B, spacing a, distance b to joint 1, joint centre distance L, angles beta 1 and beta 2">' +
+      motor + drv + '<circle class="joint" cx="300" cy="110" r="9"/><circle class="joint" cx="540" cy="152" r="9"/></svg>';
+  }
+  function barsSVG(t) {
+    var max = Math.max(t.A0, t.A90, t.B0, t.B90, 1), top = niceMax(max), sc = 140 / top;
+    function bar(x, v, cls) { var h = Math.max(v * sc, 1); return '<rect x="' + x + '" y="' + (170 - h) + '" width="34" height="' + h + '" style="fill:var(' + cls + ')"/><text x="' + (x + 17) + '" y="' + (165 - h) + '" text-anchor="middle" style="font-size:10px">' + f(v) + '</text>'; }
+    var grid = [0, 0.5, 1].map(function (q) { var y = 170 - q * 140; return '<path class="thin" style="stroke:var(--mdg-border)" d="M40 ' + y + ' H300"/><text class="mut" x="34" y="' + (y + 4) + '" text-anchor="end" style="font-size:10px">' + f(q * top) + '</text>'; }).join('');
+    return '<svg class="diag" style="max-width:440px" viewBox="0 0 320 215" role="img" aria-label="Torque loads: A ' + f(t.A0) + ' N at 0°, ' + f(t.A90) + ' N at 90°; B ' + f(t.B0) + ' N at 0°, ' + f(t.B90) + ' N at 90°">' + grid +
+      bar(80, t.A0, '--alpha0') + bar(118, t.A90, '--alpha90') + bar(200, t.B0, '--alpha0') + bar(238, t.B90, '--alpha90') +
+      '<text x="116" y="188" text-anchor="middle">A (NDE)</text><text x="236" y="188" text-anchor="middle">B (DE)</text>' +
+      '<rect x="90" y="200" width="12" height="10" style="fill:var(--alpha0)"/><text class="mut" x="106" y="209" style="font-size:11px">α = 0°</text>' +
+      '<rect x="170" y="200" width="12" height="10" style="fill:var(--alpha90)"/><text class="mut" x="186" y="209" style="font-size:11px">α = 90° (N)</text></svg>';
+  }
+  function niceMax(v) { var p = Math.pow(10, Math.floor(Math.log10(v))), m = v / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; }
+
+  // ---------- main calculation ----------
+  var arr = 'Z';
+  function setArr(a) {
+    arr = a; ['Z', 'W'].forEach(function (k) { $('arr-' + k).classList.toggle('on', k === a); $('arr-' + k).setAttribute('aria-pressed', String(k === a)); });
+    $('arr-name').textContent = a + ' arrangement'; $('layout').innerHTML = layoutSVG(a); calc();
+  }
+  $('arr-Z').addEventListener('click', function () { setArr('Z'); });
+  $('arr-W').addEventListener('click', function () { setArr('W'); });
+
+  function calc() {
+    var r = rec(); if (!r) return;
+    var S = seriesOf(r), Lmm = num('in-L') || 0;
+    // section 3: catalogue values and shaft at length
+    var ro = [['Functional limit torque T_CS', r.TCS, 'kN·m'], ['Reversing fatigue torque T_DW', r.TDW, 'kN·m'], ['Bearing capacity factor L_C', r.LC, ''],
+      ['Max. deflection angle', r.beta, '°'], ['Flange face to joint centre M', r.M, 'mm']];
+    if (r.slip) ro.push(['Compressed length L_z' + (r.Lz_max ? ' range' : ' min'), r.Lz_max ? r.Lz + '–' + r.Lz_max : r.Lz, 'mm'], ['Length compensation L_a', r.La_max ? r.La + '–' + r.La_max : r.La, 'mm']);
+    else ro.push(['Shortest fixed length L_f', r.Lf, 'mm']);
+    ro.push(['Spline (DIN 5480)', r.W ? r.W.replace(' x ', ' × ') : null, ''], ['Spline coating', S.spline || null, '']);
+    $('ds-ro').innerHTML = ro.map(function (x) { return '<div>' + sym(x[0]) + '<b>' + (x[1] === null || x[1] === undefined ? '–' : esc(x[1]) + (x[2] === '°' ? '°' : x[2] ? ' ' + x[2] : '')) + '</b></div>'; }).join('');
+    var sh = shaftAt(r, Lmm);
+    $('ds-LB').value = Math.round(sh.LB);
+    $('ds-Lz').value = r.slip ? Math.round(sh.Lz) : '';
+    $('ds-Lz').closest('.field').style.display = r.slip ? '' : 'none';
+    setAuto('m', sh.m, 2); setAuto('J', sh.J, 4);
+    var sp = splineRm(r); setAuto('rm', sp ? sp.rm : null, 2);
+    setAuto('mu', S.mu !== undefined && S.mu !== null ? S.mu : null, 2);
+    ['rm', 'mu'].forEach(function (k) { $('f-' + k).style.display = r.slip ? '' : 'none'; });
+    $('f-slide').style.display = r.slip ? '' : 'none';
+
+    var ctx = { arr: arr, a: (num('in-a') || 0) / 1000, b: (num('in-b') || 0) / 1000, L: Math.max(Lmm, 1) / 1000, m: num('ds-m'),
+      G: parseFloat($('in-G').value), slip: !!r.slip, rm: num('ds-rm') ? num('ds-rm') / 1000 : null, mu: num('ds-mu'), sliding: true };
+    var T = num('in-T') || 0, n = num('in-n') || 0, b1 = num('in-b1') || 0, b2 = num('in-b2') || 0, K1 = parseFloat($('in-K1').value), Tsp = num('in-Tsp');
+    var okGeo = ctx.a > 0;
+
+    // section 5
+    var R = okGeo ? bearingLoads(T, n, b1, b2, ctx) : null, slipKnown = !r.slip || (ctx.rm && ctx.mu !== null);
+    $('k-B').textContent = R ? f(R.B) + ' N' : '–';
+    $('k-A').textContent = R ? f(R.A) + ' N' : '–';
+    $('k-Fa').textContent = !r.slip ? 'None' : (R && slipKnown ? (R.Fax / 1000).toLocaleString('en-GB', { maximumFractionDigits: 2, minimumFractionDigits: 2 }) + ' kN' : 'Enter r_m, μ');
+    $('k-Fa-l').innerHTML = r.slip ? 'Axial F<sub>RL</sub> on located bearing ' + $('in-loc').value + ', spline sliding under torque' : 'Axial: shaft has no length compensation';
+    if (R) {
+      var mTxt = ctx.m === null ? ' (enter shaft mass)' : ' (' + f(R.W, 1) + ' N each end)';
+      $('t-break').innerHTML = '<thead><tr><th>Source</th><th class="num">A (NDE)</th><th class="num">B (DE)</th></tr></thead><tbody>' +
+        '<tr><td>Torque, α = 0°</td><td class="num">' + f(R.t.A0) + '</td><td class="num">' + f(R.t.B0) + '</td></tr>' +
+        '<tr><td>Torque, α = 90°</td><td class="num">' + f(R.t.A90) + '</td><td class="num">' + f(R.t.B90) + '</td></tr>' +
+        '<tr><td>Shaft weight' + mTxt + '</td><td class="num">' + f(R.wA) + '</td><td class="num">' + f(R.wB) + '</td></tr>' +
+        '<tr><td>Residual unbalance, G ' + $('in-G').value + ' (' + f(R.U, 1) + ' N each end)</td><td class="num">' + f(R.uA) + '</td><td class="num">' + f(R.uB) + '</td></tr>' +
+        '<tr><th>Peak = larger torque position + weight + unbalance</th><th class="num">' + f(R.A) + '</th><th class="num">' + f(R.B) + '</th></tr></tbody>';
+      $('bars').innerHTML = barsSVG(R.t);
+    }
+    var U = Math.tan(b1 * RAD) * Math.sin(b1 * RAD), cb = Math.cos(b1 * RAD);
+    $('k-U').textContent = (U * 100).toFixed(2) + ' %';
+    $('k-phi').textContent = Math.abs(Math.atan((cb - 1) / (2 * Math.sqrt(cb))) / RAD).toFixed(3) + '°';
+
+    // section 8: duty cycle
+    var total = cases.reduce(function (s, c) { return s + (isFinite(c.t) ? c.t : 0); }, 0), dutyOK = Math.abs(total - 100) < 1e-6 && cases.length > 0;
+    $('t-total').textContent = f(total, total % 1 ? 1 : 0) + ' %';
+    $('t-total-msg').innerHTML = dutyOK ? badge('pass', 'OK') : badge('fail', 'Must total 100 % — results not calculated');
+    var sliding = r.slip && $('in-slide').value === 'yes';
+    var loc = $('in-loc').value, bA = brg('A'), bB = brg('B'), f0 = { A: num('f0A'), B: num('f0B') }, a1 = parseFloat($('in-rel').value), Lreq = num('in-Lreq');
+    var rows = [], sum = { A: 0, B: 0, J: 0 }, s0min = { A: Infinity, B: Infinity }, missing = false;
+    if (dutyOK && okGeo) {
+      cases.forEach(function (c) {
+        var cx = Object.assign({}, ctx, { sliding: sliding });
+        var L = bearingLoads(c.T || 0, c.n || 0, c.b1 || 0, c.b2 || 0, cx);
+        var Fa = { A: loc === 'A' ? L.Fax : 0, B: loc === 'B' ? L.Fax : 0 }, Fr = { A: L.A, B: L.B }, o = { c: c, Fr: Fr, Fa: Fa };
+        ['A', 'B'].forEach(function (k) {
+          var b = k === 'A' ? bA : bB, q = equiv(b, f0[k], Fr[k], Fa[k]);
+          if (!q && b) missing = true;
+          o['P' + k] = q ? q.P : null; o['Y' + k] = q ? q.Y : null;
+          o['L' + k] = q ? a1 * L10h(b, q.P, q.p, c.n) : null;
+          if (o['L' + k] !== null && c.t > 0) sum[k] += (c.t / 100) / o['L' + k];
+          if (q && b) s0min[k] = Math.min(s0min[k], q.P0 > 0 ? b.C0 * 1000 / q.P0 : Infinity);
+        });
+        var LJ = Infinity;
+        if (r.LC && c.n && c.T) [c.b1, c.b2].forEach(function (bt) { if (bt > 0) LJ = Math.min(LJ, r.LC * 1e10 / (Math.abs(c.n) * bt * Math.pow(Math.abs(c.T) / 1000, 10 / 3) * K1)); });
+        o.LJ = r.LC ? LJ : null; if (o.LJ !== null && c.t > 0) sum.J += (c.t / 100) / o.LJ;
+        rows.push(o);
+      });
+    }
+    function comb(k) { return sum[k] > 0 ? 1 / sum[k] : Infinity; }
+    function dmg(o, k) { return (o['L' + k] && sum[k] > 0 && o.c.t > 0) ? ((o.c.t / 100) / o['L' + k] / sum[k] * 100).toFixed(1) : (sum[k] > 0 ? '0.0' : '–'); }
+    // static safety at T_SP (rated speed)
+    var sp0 = { A: null, B: null };
+    if (okGeo && Tsp !== null) {
+      var Lsp = bearingLoads(Tsp, n, b1, b2, Object.assign({}, ctx, { sliding: r.slip && $('in-slide').value === 'yes' }));
+      ['A', 'B'].forEach(function (k) {
+        var b = k === 'A' ? bA : bB, Fa = loc === k ? Lsp.Fax : 0, q = equiv(b, f0[k], k === 'A' ? Lsp.A : Lsp.B, Fa);
+        if (b && q) sp0[k] = b.C0 * 1000 / q.P0;
+      });
+    }
+    var jl = dutyOK ? comb('J') : null;
+    function lifeKpi(k, label) {
+      var v = dutyOK && !missing ? comb(k) : null, okv = v !== null && Lreq !== null ? v >= Lreq : null;
+      return '<div class="kpi"><div class="v">' + (v === null ? '–' : life(v) + ' h') + '</div><div class="l">' + label + ' ' + (okv === null ? '' : badge(okv ? 'pass' : 'fail', okv ? 'PASS' : 'FAIL')) + '</div></div>';
+    }
+    $('life-kpis').innerHTML = lifeKpi('B', 'B (DE) combined L<sub>nh</sub>') + lifeKpi('A', 'A (NDE) combined L<sub>nh</sub>') +
+      '<div class="kpi"><div class="v">' + (jl === null ? '–' : life(jl) + ' h') + '</div><div class="l">Joint bearing life L<sub>h</sub> (GWB) ' + (jl === null || Lreq === null ? '' : badge(jl >= Lreq ? 'pass' : 'fail', jl >= Lreq ? 'PASS' : 'FAIL')) + '</div></div>' +
+      '<div class="kpi"><div class="v">' + (sp0.B ? sp0.B.toFixed(1) : '–') + ' / ' + (sp0.A ? sp0.A.toFixed(1) : '–') + '</div><div class="l">Static safety s<sub>0</sub> = C<sub>0</sub>/P<sub>0</sub> at T<sub>SP</sub>, B / A</div></div>';
+    var worst = null; rows.forEach(function (o) { if (o.LJ && sum.J > 0) { var d = (o.c.t / 100) / o.LJ / sum.J; if (!worst || d > worst.d) worst = { d: d, n: o.c.name, t: o.c.t }; } });
+    $('life-note').innerHTML = !dutyOK ? 'Results need the time shares to total 100 %.' : missing ? 'Enter f<sub>0</sub> for the shaded bearing to calculate its life.' :
+      (worst ? 'Joint life is set mostly by "' + esc(worst.n) + '" (' + (worst.d * 100).toFixed(0) + ' % of joint damage in ' + f(worst.t) + ' % of the time). Compare s<sub>0</sub> with the bearing maker\'s guideline.' : '');
+    var h = '<thead><tr><th>#</th><th>Case</th><th class="num">B F<sub>r</sub> (N)</th><th class="num">B F<sub>a</sub> (N)</th><th class="num">B P (N)</th><th class="num">B L<sub>nh</sub> (h)</th><th class="num">B damage (%)</th>' +
+      '<th class="num">A F<sub>r</sub> (N)</th><th class="num">A F<sub>a</sub> (N)</th><th class="num">A L<sub>nh</sub> (h)</th><th class="num">A damage (%)</th><th class="num">Joint L<sub>h</sub> (h)</th><th class="num">Joint damage (%)</th></tr></thead><tbody>';
+    if (rows.length) rows.forEach(function (o, i) {
+      h += '<tr><td>' + (i + 1) + '</td><td>' + esc(o.c.name) + '</td><td class="num">' + f(o.Fr.B) + '</td><td class="num">' + f(o.Fa.B) + '</td><td class="num">' + f(o.PB) + '</td><td class="num">' + life(o.LB) + '</td><td class="num">' + dmg(o, 'B') + '</td>' +
+        '<td class="num">' + f(o.Fr.A) + '</td><td class="num">' + f(o.Fa.A) + '</td><td class="num">' + life(o.LA) + '</td><td class="num">' + dmg(o, 'A') + '</td><td class="num">' + life(o.LJ) + '</td><td class="num">' + dmg(o, 'J') + '</td></tr>';
+    });
+    else h += '<tr><td colspan="13">–</td></tr>';
+    $('t-cases').innerHTML = h + '</tbody>';
+
+    // section 6: shaft checks
+    var useCases = dutyOK ? cases : [{ T: T, n: n }];
+    var Tmax = useCases.reduce(function (m, c) { return Math.max(m, Math.abs(c.T || 0)); }, 0) * K1;
+    var rev = useCases.some(function (c) { return (c.T || 0) < 0; }) && useCases.some(function (c) { return (c.T || 0) > 0; });
+    var Tlim = r.TDW ? (rev ? r.TDW : 1.4 * r.TDW) * 1000 : null;
+    var dB = Math.abs(b1 - b2);
+    // speed × angle (GWB p. 39–40) and critical bending speed (p. 41–43), digitised chart data in the library
+    var LIB = lib(), Dlim = LIB.nBeta && LIB.nBeta.D ? LIB.nBeta.D[r.size] || null : null, nb = null, nMax = 0;
+    (dutyOK ? cases : [{ n: n, b1: b1, b2: b2 }]).forEach(function (c) {
+      var nn = Math.abs(c.n || 0), bb = Math.max(c.b1 || 0, c.b2 || 0); nMax = Math.max(nMax, nn);
+      if (!nb || nn * bb > nb.v) nb = { v: nn * bb, n: nn, b: bb };
+    });
+    var Kc = LIB.ncrit && LIB.ncrit.K ? LIB.ncrit.K[r.S] || null : null, nc = null, ncSrc = '';
+    if (Kc && sh.LB > 0) { nc = Kc / (sh.LB * sh.LB); ncSrc = 'catalogue chart'; }
+    else if (r.S_D && r.S_t && sh.LB > 0) { var di = r.S_D - 2 * r.S_t; nc = 1.211e8 * Math.sqrt(r.S_D * r.S_D + di * di) / (sh.LB * sh.LB); ncSrc = 'steel-tube formula, tube not charted'; }
+    function row(name, val, lim, res) { return '<tr><td>' + name + '</td><td>' + val + '</td><td>' + lim + '</td><td>' + res + '</td></tr>'; }
+    function pf(ok) { return ok === null ? badge('info', 'NO DATA') : badge(ok ? 'pass' : 'fail', ok ? 'PASS' : 'FAIL'); }
+    var bmax = Math.max(b1, b2);
+    var ch = '<thead><tr><th>Check</th><th>Value</th><th>Limit</th><th>Result</th></tr></thead><tbody>' +
+      row('Joint angles β<sub>1</sub>, β<sub>2</sub>', f(b1, 1) + '°, ' + f(b2, 1) + '°', r.beta ? '≤ ' + r.beta + '°' : '–', pf(r.beta ? bmax <= r.beta : null)) +
+      row('Angle difference |β<sub>1</sub> − β<sub>2</sub>|', f(dB, 1) + '°', '≤ 1–1.5° high torque/speed; 3–5° low speed', dB <= 1.5 ? badge('pass', 'PASS') : dB <= 5 ? badge('info', 'LOW SPEED ONLY') : badge('fail', 'FAIL')) +
+      row('Operating torque, max |T|·K<sub>1</sub>' + (dutyOK ? ' (duty cycle)' : ' (rated)'), (Tmax / 1000).toFixed(2) + ' kN·m', r.TDW ? (rev ? 'T<sub>DW</sub> ' : 'T<sub>DSch</sub> = 1.4·T<sub>DW</sub> ') + (Tlim / 1000).toFixed(2) + ' kN·m' + (rev ? ' (reversing)' : '') : '–', pf(Tlim ? Tmax <= Tlim : null)) +
+      row('Max. peak torque T<sub>SP</sub>', Tsp === null ? '–' : (Tsp / 1000).toFixed(2) + ' kN·m', r.TCS ? 'T<sub>CS</sub> ' + r.TCS + ' kN·m' : '–', pf(r.TCS && Tsp !== null ? Tsp <= r.TCS * 1000 : null)) +
+      row(r.slip ? 'Compressed length L<sub>z</sub>' : 'Operating length L<sub>B</sub>', f(r.slip ? sh.Lz : sh.LB) + ' mm', esc(sh.limit).replace(/L_(\w+)/g, 'L<sub>$1</sub>'), pf(sh.ok)) +
+      row('Joint bearing life' + (dutyOK ? ' (duty cycle)' : ''), jl === null ? '–' : life(jl) + ' h', Lreq === null ? '–' : '≥ ' + f(Lreq) + ' h', jl === null || Lreq === null ? badge('info', dutyOK ? 'NO DATA' : 'DUTY ≠ 100 %') : pf(jl >= Lreq)) +
+      row('Speed × angle n·β' + (dutyOK ? ' (duty cycle, max)' : ' (rated)'), nb ? f(nb.v) + ' r/min·° (' + f(nb.n) + ' r/min at ' + f(nb.b, 1) + '°)' : '–',
+        Dlim ? '≤ ' + f(Dlim) + ' r/min·°; β max ' + (nb && nb.n ? f(Math.min(Dlim / nb.n, r.beta || 90), 1) + '° at this speed' : '') : 'Not on catalogue chart', pf(Dlim && nb ? nb.v <= Dlim : null)) +
+      row('Critical bending speed, max |n|' + (dutyOK ? ' (duty cycle)' : ''), f(nMax) + ' r/min', nc ? '≤ 0.7·n<sub>crit</sub> = ' + f(0.7 * nc) + ' r/min (n<sub>crit</sub> ' + f(nc) + ', ' + ncSrc + ')' : '–',
+        !nc ? badge('info', 'NO DATA') : nMax > 0.7 * nc ? badge('fail', 'FAIL') : Math.abs(nMax - nc / 2) <= 0.1 * nc / 2 ? badge('pass', 'PASS') + ' ' + badge('info', 'NEAR ½ n<sub>crit</sub>') : badge('pass', 'PASS')) + '</tbody>';
+    $('t-checks').innerHTML = ch;
+  }
+
+  // ---------- wiring ----------
+  $('ds-mfr').addEventListener('change', function () { cascade(0); });
+  $('ds-series').addEventListener('change', function () { cascade(1); });
+  $('ds-size').addEventListener('change', function () { cascade(2); });
+  $('ds-var').addEventListener('change', function () { cascade(3); });
+  $('ds-design').addEventListener('change', function () { cascade(4); });
+  $('ds-opt').addEventListener('change', function () { autoFill = { m: true, J: true, rm: true, mu: true }; calc(); });
+  ['in-T', 'in-n', 'in-Tsp', 'in-b1', 'in-b2', 'in-L', 'in-a', 'in-b', 'in-Lreq', 'f0A', 'f0B'].forEach(function (id) { $(id).addEventListener('input', calc); });
+  ['in-K1', 'in-G', 'in-rel', 'in-slide'].forEach(function (id) { $(id).addEventListener('change', calc); });
+  $('in-loc').addEventListener('change', function () { fillType('A'); fillType('B'); fillBrg('A'); fillBrg('B'); calc(); });
+  ['A', 'B'].forEach(function (k) {
+    $('brg' + k + '-type').addEventListener('change', function () { fillBrg(k); calc(); });
+    $('brg' + k).addEventListener('change', function () { syncF0(k); calc(); });
+  });
+
+  fillType('A'); fillType('B'); fillBrg('A', '6306'); fillBrg('B', '6309');
+  drawDuty();
+  $('layout').innerHTML = layoutSVG('Z');
+  $('arr-Z').classList.add('on');
+  cascade(0, { series: '687/688', size: '687/688.30', var: 'a', design: '0.02' });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var STATES = ['auto','light','dark'];
+  var LABELS = {auto:'Auto', light:'Light', dark:'Dark'};
+  var btn = document.getElementById('mdg-theme-toggle');
+  var root = document.documentElement;
+  function current(){
+    var t = root.getAttribute('data-theme');
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+  }
+  // Newest saved choice: localStorage (shared by same-origin pages) vs window.name (follows the tab,
+  // covers browsers that give each file:// page its own storage). Timestamps decide which is newer.
+  function saved(){
+    var s = null, t = 0, m;
+    try { s = localStorage.getItem('mdg-theme'); t = +localStorage.getItem('mdg-theme-ts') || 0; } catch (e) {}
+    m = /^mdg-theme=(auto|light|dark)@(\d+)$/.exec(window.name || '');
+    if (m && +m[2] > t) { s = m[1]; }
+    return STATES.indexOf(s) > -1 ? s : null;
+  }
+  function show(state){
+    if (state === 'auto') { root.removeAttribute('data-theme'); }
+    else { root.setAttribute('data-theme', state); }
+    if (btn) { btn.textContent = LABELS[state]; }
+  }
+  function save(state){
+    var ts = Date.now();
+    try { localStorage.setItem('mdg-theme', state); localStorage.setItem('mdg-theme-ts', String(ts)); } catch (e) {}
+    if (!window.name || /^mdg-theme=/.test(window.name)) { window.name = 'mdg-theme=' + state + '@' + ts; }
+  }
+  // Re-apply the saved choice when the page is shown from the back/forward cache, when the tab regains
+  // focus, or when another tab changes it, so the toggle never shows a stale state.
+  function sync(){ var s = saved(); if (s && s !== current()) { show(s); } }
+  show(current());
+  sync();
+  window.addEventListener('pageshow', sync);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) { sync(); } });
+  window.addEventListener('storage', function(e){ if (!e.key || e.key.indexOf('mdg-theme') === 0) { sync(); } });
+  if (btn) {
+    btn.addEventListener('click', function(){
+      var next = STATES[(STATES.indexOf(current()) + 1) % STATES.length];
+      show(next);
+      save(next);
+    });
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var PAGE_W_MM = 210, PAGE_H_MM = 297, MARGIN_MM = 12;
+  var PX_PER_MM = 96 / 25.4;
+  var AVAIL_W_PX = (PAGE_W_MM - MARGIN_MM * 2) * PX_PER_MM;
+  var AVAIL_H_PX = (PAGE_H_MM - MARGIN_MM * 2) * PX_PER_MM;
+  // Legibility floor: never shrink below this, even if that means the page then
+  // spills onto a 2nd (or 3rd) sheet. A handful of very long pages (e.g. the
+  // Material Library table, the O-Ring groove-design page) would otherwise need
+  // to zoom out well below half size to fit a single sheet, which prints too
+  // small to read — a 1-page PDF nobody can actually use is worse than 2 legible ones.
+  var MIN_SCALE = 0.65;
+
+  function enterPdfMode(){
+    document.documentElement.classList.add('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (!main) return;
+    main.style.maxWidth = 'none';
+    main.style.margin = '0';
+    main.style.zoom = '';
+    main.style.width = AVAIL_W_PX + 'px';
+    void main.offsetHeight;
+    var h0 = main.scrollHeight;
+    var scale = Math.min(1, AVAIL_H_PX / h0);
+    if (scale < MIN_SCALE) scale = MIN_SCALE;
+    if (scale < 1) {
+      main.style.width = (AVAIL_W_PX / scale) + 'px';
+      main.style.zoom = scale;
+    }
+    var d = document.getElementById('mdg-print-date');
+    if (d) d.textContent = new Date().toLocaleDateString();
+  }
+  function exitPdfMode(){
+    document.documentElement.classList.remove('mdg-pdf-mode');
+    var main = document.querySelector('main');
+    if (main) {
+      main.style.maxWidth = '';
+      main.style.margin = '';
+      main.style.width = '';
+      main.style.zoom = '';
+    }
+  }
+  window.__mdgEnterPdfMode = enterPdfMode;
+  window.__mdgExitPdfMode = exitPdfMode;
+
+  var btn = document.getElementById('mdg-save-pdf');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      enterPdfMode();
+      window.print();
+    });
+  }
+  window.addEventListener('afterprint', exitPdfMode);
+  window.addEventListener('focus', function(){
+    if (document.documentElement.classList.contains('mdg-pdf-mode')) exitPdfMode();
+  });
+})();
+</script>
+<script src="../../assets/js/requests.js" data-mdg-request="change"></script>
+</body>
+</html>

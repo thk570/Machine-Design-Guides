@@ -6,16 +6,16 @@
 <script>(function(){try{var s=null,t=0,m;try{s=localStorage.getItem('mdg-theme');t=+localStorage.getItem('mdg-theme-ts')||0;}catch(e){}m=/^mdg-theme=(auto|light|dark)@(\d+)$/.exec(window.name||'');if(m&&+m[2]>t){s=m[1];}if(s==='light'||s==='dark'){document.documentElement.setAttribute('data-theme',s);}}catch(e){}})();</script>
 <title>Involute Splines (DIN 5480) — Machine Design Guides</title>
 <style>
-  /* Layout: house calculator page (header, stacked cards). Fits category = blue accent, blue-tinted inputs. */
+  /* Layout: house calculator page (header, stacked cards). Shafts & Bearings category = olive accent, olive-tinted inputs. */
   :root {
     --mdg-bg: #f7f7f5; --mdg-surface: #ffffff; --mdg-border: #dcdcd6;
-    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #3b6ea5;
+    --mdg-text: #1c1c1a; --mdg-text-muted: #6b6b64; --mdg-accent: #5f7f1f;
     --mdg-radius: 8px;
     --mdg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --mdg-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
     --poor: #b5484d; --ok: #2f7d4f;
     --poor-bg: rgba(181,72,77,0.12); --ok-bg: rgba(47,125,79,0.13);
-    --input-bg: #eef3f8; --input-border: #b9cde0;
+    --input-bg: #eff3e6; --input-border: #c9d4ad;
     --hub-c: #b8601a; --shaft-c: #2b64a0;   /* orange / blue pair, colour-blind safe */
   }
   @media (prefers-color-scheme: dark) {
@@ -24,7 +24,7 @@
       --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
       --poor: #e0696d; --ok: #5fbf88;
       --poor-bg: rgba(224,105,109,0.16); --ok-bg: rgba(95,191,136,0.16);
-      --input-bg: #1c2833; --input-border: #3a5878; color-scheme: dark;
+      --input-bg: #252b1c; --input-border: #46542f; color-scheme: dark;
       --hub-c: #eaa24f; --shaft-c: #6aa6e0;
     }
   }
@@ -33,7 +33,7 @@
     --mdg-text: #e9e9e6; --mdg-text-muted: #9c9c96;
     --poor: #e0696d; --ok: #5fbf88;
     --poor-bg: rgba(224,105,109,0.16); --ok-bg: rgba(95,191,136,0.16);
-    --input-bg: #1c2833; --input-border: #3a5878; color-scheme: dark;
+    --input-bg: #252b1c; --input-border: #46542f; color-scheme: dark;
     --hub-c: #eaa24f; --shaft-c: #6aa6e0;
   }
   * { box-sizing: border-box; }
@@ -55,7 +55,7 @@
   label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem; }
   select, input[type=number], input[type=text] { font-family: var(--mdg-font); font-size: 0.9rem; padding: 0.4rem 0.55rem;
     border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); color: var(--mdg-text); }
-  input:focus, select:focus { outline: none; border-color: var(--mdg-accent); box-shadow: 0 0 0 2px rgba(59,110,165,0.25); }
+  input:focus, select:focus { outline: none; border-color: var(--mdg-accent); box-shadow: 0 0 0 2px rgba(95,127,31,0.25); }
   input:disabled { opacity: 0.55; cursor: not-allowed; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 0.75rem 1rem; margin-bottom: 0.75rem; }
   .field { display: flex; flex-direction: column; min-width: 0; }
@@ -153,7 +153,7 @@
   <div>
     <a class="mdg-home" href="../../index.html">&larr; Machine Design Guides</a>
     <div style="margin-top:0.25rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-      <strong>Involute Splines</strong><span class="mdg-tag">Fits</span>
+      <strong>Involute Splines</strong><span class="mdg-tag">Shafts &amp; Bearings</span>
     </div>
   </div>
   <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
@@ -166,7 +166,7 @@
 <main>
 
   <div class="mdg-print-header">
-    <div class="mdg-print-title">Involute Splines (DIN 5480)<span class="mdg-print-tag">Fits</span></div>
+    <div class="mdg-print-title">Involute Splines (DIN 5480)<span class="mdg-print-tag">Shafts &amp; Bearings</span></div>
     <div class="mdg-print-meta">DIN 5480 &middot; drawing data &amp; stress check &middot; <span id="mdg-print-date"></span></div>
   </div>
 
@@ -297,7 +297,7 @@
       <li id="ref2">Spline Stress Calculations — DIN 5480 (internal spreadsheet) — stress equations, factor and allowable tables. The sheet cites Machinery's Handbook 27th ed., Gears, Splines and Cams (pp. 2169–2174) and D. W. Dudley, <em>When Splines Need Stress Control</em>; neither opened for this page. The sheet applies Le even where the spline is shorter; this page uses the smaller of L and Le.</li>
       <li id="ref3">DIN 5480-1:2006-03 (PDF supplied) — Tables 4, 7, 9; DIN 5480-2:2006-05 (English translation read via <a href="https://www.scribd.com/document/379274426/DIN-5480-2">scribd.com</a>) — Tables 2–33 preferred sizes, pin diameters DM, teeth measured k and Wk reliability flags. Wk calculated, matching table values to 0.002 mm.</li>
     </ol>
-    <p>Last updated: 2026-11-27 &middot; Rev 5</p>
+    <p>Last updated: 2026-11-27 &middot; Rev 6</p>
   </div>
 </main>
 

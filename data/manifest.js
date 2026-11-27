@@ -7,7 +7,7 @@
 // meant to be a short summary, fully visible, not the page's full feature list. Longer detail belongs
 // on the page itself.
 window.MDG_MANIFEST = {
-  "rev": 23,
+  "rev": 26,
   "updated": "2026-11-27",
   "categories": [
     {
@@ -49,6 +49,11 @@ window.MDG_MANIFEST = {
       "slug": "drawings",
       "title": "Drawings",
       "color": "#a5893b"
+    },
+    {
+      "slug": "shafts",
+      "title": "Shafts & Bearings",
+      "color": "#5f7f1f"
     }
   ],
   "pages": [
@@ -132,24 +137,35 @@ window.MDG_MANIFEST = {
     {
       "id": "keyways",
       "title": "Keyways & Keys",
-      "category": "fits",
+      "category": "shafts",
       "path": "calculators/shaft-connections/keyways.html",
       "standard": "DIN 6885-1 / ISO/R 773",
       "description": "Parallel key and keyway sizing by shaft diameter to DIN 6885-1, plus a torque-capacity check for minimum key length.",
       "tags": ["keyway", "key", "shaft", "DIN 6885", "ISO 773", "spline", "torque capacity", "shear stress", "bearing stress", "factor of safety"],
       "status": "done",
-      "rev": 10
+      "rev": 11
     },
     {
       "id": "splines-din5480",
       "title": "Involute Splines (DIN 5480)",
-      "category": "fits",
+      "category": "shafts",
       "path": "calculators/shaft-connections/splines-din5480.html",
       "standard": "DIN 5480-1 / -2 · Machinery's Handbook (stress)",
       "description": "DIN 5480 hub and shaft drawing data with a Pass/Fail stress check, plus a finder for library sizes capable of a given torque.",
       "tags": ["spline", "involute spline", "DIN 5480", "module", "pin diameter", "base tangent", "Wk", "M1", "M2", "profile shift", "flank centred", "shaft connection", "torque capacity", "shear stress", "wear", "size finder", "drawing data"],
       "status": "done",
-      "rev": 5
+      "rev": 6
+    },
+    {
+      "id": "cardan-shaft-bearing-loads",
+      "title": "Cardan Shaft Bearing Loads",
+      "category": "shafts",
+      "path": "calculators/shaft-connections/cardan-shaft-bearing-loads.html",
+      "standard": "GWB technical instructions · ISO 281 · ISO 1940-1",
+      "description": "Motor bearing loads from a Z or W cardan shaft: GWB radial and slip forces, shaft checks, and duty-cycle bearing and joint life.",
+      "tags": ["cardan shaft", "driveshaft", "universal joint", "Hooke's joint", "propshaft", "GWB", "bearing load", "secondary couple", "slip spline", "axial force", "bearing life", "ISO 281", "duty cycle", "unbalance", "motor bearings"],
+      "status": "done",
+      "rev": 2
     },
     {
       "id": "screw-torque",
@@ -266,11 +282,11 @@ window.MDG_MANIFEST = {
       "title": "Driveshaft Library",
       "category": "libraries",
       "path": "calculators/components/driveshaft-library.html",
-      "standard": "Makers' catalogue data · GWB (Release 05/2022)",
+      "standard": "Manufacturers' catalogue data · GWB (Release 05/2022)",
       "description": "Industrial cardan shafts: torque ratings, joint angle, flange, length, mass, inertia and stiffness. GWB series 390–687/688.",
       "tags": ["driveshaft", "cardan shaft", "universal joint", "propshaft", "GWB", "Dana", "Spicer", "length compensation", "slip spline", "flange", "COTS"],
       "status": "done",
-      "rev": 2
+      "rev": 3
     },
     {
       "id": "wave-spring-library",

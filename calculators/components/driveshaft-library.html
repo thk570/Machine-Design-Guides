@@ -169,7 +169,7 @@
     </div>
   </div>
   <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
-    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">Makers' catalogue data &middot; cardan shafts</div>
+    <div style="font-size:0.85rem; color:var(--mdg-text-muted);">Manufacturers' catalogue data &middot; cardan shafts</div>
     <button type="button" id="mdg-save-pdf" class="mdg-theme-toggle mdg-no-print" aria-label="Save this page as a one-page PDF">Save PDF</button>
     <button type="button" id="mdg-theme-toggle" class="mdg-theme-toggle" aria-label="Toggle color theme">Auto</button>
   </div>
@@ -179,12 +179,12 @@
 
   <div class="mdg-print-header">
     <div class="mdg-print-title">Driveshaft Library<span class="mdg-print-tag">Libraries</span></div>
-    <div class="mdg-print-meta">Makers' catalogue data &middot; cardan shafts &middot; <span id="mdg-print-date"></span></div>
+    <div class="mdg-print-meta">Manufacturers' catalogue data &middot; cardan shafts &middot; <span id="mdg-print-date"></span></div>
   </div>
 
   <div class="mdg-card">
     <p style="margin:0;">Industrial cardan shafts: torque ratings, joint angle, flange, length, mass, inertia and stiffness.
-      Filter, then pick a row for the full record. Data comes from the shared libraries <code>data/driveshafts_&lt;maker&gt;.js</code>
+      Filter, then pick a row for the full record. Data comes from the shared libraries <code>data/driveshafts_&lt;manufacturer&gt;.js</code>
       (listed in <code>data/driveshafts.js</code>), which the Cardan Shaft Bearing Loads page also reads.</p>
     <p class="note" id="lib-note"></p>
   </div>
@@ -193,14 +193,14 @@
   <div class="mdg-card">
     <h2>1. Series</h2>
     <div class="mdg-scroll"><table class="mdg-table pick" id="series-table"></table></div>
-    <p class="note">Click a series to filter by it. Ranges cover the sizes listed below; μ is the spline friction coefficient where the maker gives one.</p>
+    <p class="note">Click a series to filter by it. Ranges cover the sizes listed below; μ is the spline friction coefficient where the manufacturer gives one.</p>
   </div>
 
   <!-- ============ 2. FILTER ============ -->
   <div class="mdg-card mdg-no-print">
     <h2>2. Filter</h2>
     <div class="row">
-      <div><span class="lbl">Maker</span><div class="seg" id="maker-seg"></div></div>
+      <div><span class="lbl">Manufacturer</span><div class="seg" id="manufacturer-seg"></div></div>
       <div><span class="lbl">Length compensation</span><div class="seg" id="slip-seg"></div></div>
     </div>
     <div class="row">
@@ -223,7 +223,7 @@
     <h2>3. Matching shafts</h2>
     <p class="count" id="count"></p>
     <div class="scroll"><table class="mdg-table pick" id="results"></table></div>
-    <p class="note">G is the weight at L<sub>z</sub> (or L<sub>f</sub> for fixed-length designs); G<sub>R</sub> is added per 1000 mm of extra tube. Variants a–d are the maker's flange/tube columns for one size.</p>
+    <p class="note">G is the weight at L<sub>z</sub> (or L<sub>f</sub> for fixed-length designs); G<sub>R</sub> is added per 1000 mm of extra tube. Variants a–d are the manufacturer's flange/tube columns for one size.</p>
   </div>
 
   <!-- ============ 4. SELECTED ============ -->
@@ -255,7 +255,7 @@
 
   <!-- ============ 7. TECHNICAL INSTRUCTIONS ============ -->
   <div class="mdg-card">
-    <h2>7. Maker's technical instructions and data notes</h2>
+    <h2>7. Manufacturer's technical instructions and data notes</h2>
     <details class="mdg-collapsible">
       <summary>Formulas <span class="hint">bearing loads, axial (slip) force, life, length, speed</span></summary>
       <div class="mdg-collapsible-body" id="formulas"></div>
@@ -264,7 +264,7 @@
       <summary>Data notes <span class="hint">extraction, omitted records, scope</span></summary>
       <div class="mdg-collapsible-body" id="datanotes"></div>
     </details>
-    <p class="note">The maker's own formulas, used by the Cardan Shaft Bearing Loads page. Check final designs with the maker.</p>
+    <p class="note">The manufacturer's own formulas, used by the Cardan Shaft Bearing Loads page. Check final designs with the manufacturer.</p>
   </div>
 
   <div class="mdg-card mdg-footer">
@@ -276,12 +276,12 @@
       <li><strong>DIN 5480-1</strong> — Involute splines based on reference diameters — Part 1: General</li>
       <li><strong>DIN 15451</strong> — Flange connections for cardan shafts (dowel-pin connection)</li>
     </ul>
-    <p>This page reproduces makers' catalogue data, not the standards' tables. Ratings differ between makers; check the current catalogue before release.</p>
+    <p>This page reproduces manufacturers' catalogue data, not the standards' tables. Ratings differ between manufacturers; check the current catalogue before release.</p>
 
     <p style="margin-top:0.75rem;"><strong>References</strong></p>
     <ol class="ref-list" id="ref-list"></ol>
 
-    <p>Last updated: 2026-11-27 &middot; Rev 2</p>
+    <p>Last updated: 2026-11-27 &middot; Rev 3</p>
   </div>
 
 </main>
@@ -289,8 +289,8 @@
 <script src="../../data/driveshafts.js"></script>
 <script>
 (function () {
-  // ---------- load every maker listed in data/driveshafts.js (MDG_DRIVESHAFT_FILES); each file pushes itself
-  // onto window.MDG_DRIVESHAFT_LIBS. Adding a maker = new data file + one line in driveshafts.js; this page is unchanged.
+  // ---------- load every manufacturer listed in data/driveshafts.js (MDG_DRIVESHAFT_FILES); each file pushes itself
+  // onto window.MDG_DRIVESHAFT_LIBS. Adding a manufacturer = new data file + one line in driveshafts.js; this page is unchanged.
   var files = window.MDG_DRIVESHAFT_FILES || [];
   var pending = files.length;
   function fail(msg) { document.querySelector('main').insertAdjacentHTML('afterbegin', '<div class="warn">' + msg + '</div>'); }
@@ -338,7 +338,7 @@
       '" x="' + (x + side * 8) + '" y="' + ((y1 + y2) / 2 + 4) + '">' + label + '</text>';
   }
 
-  // ---------- references: page-sequential (catalogue data, series, then technical sections), per maker ----------
+  // ---------- references: page-sequential (catalogue data, series, then technical sections), per manufacturer ----------
   var ORDER = [], SRC = {};
   LIBS.forEach(function (L) {
     var keys = [L.refs[0]].concat(L.series.slice().sort(function (a, b) { return ncmp(a.id, b.id); }).map(function (s) { return s.src; }), L.refs.slice(1));
@@ -367,11 +367,11 @@
   function seriesOf(r) { return r._lib.series.filter(function (s) { return s.id === r.series; })[0]; }
   function rowName(r) { return r._lib.supplier + ' ' + r.size + (r.design ? ' – ' + r.design : ''); }
 
-  var state = { maker: '', slip: '', series: '', design: '', sel: null };
+  var state = { manufacturer: '', slip: '', series: '', design: '', sel: null };
 
   // ---------- 1. series table ----------
   function renderSeries() {
-    var h = '<thead><tr><th>Maker</th><th>Series</th><th>Use</th><th class="num">T<sub>CS</sub> max (kN·m)</th><th class="num">Flange A (mm)</th><th class="num">β max (°)</th><th>Spline</th><th class="num">μ</th></tr></thead><tbody>';
+    var h = '<thead><tr><th>Manufacturer</th><th>Series</th><th>Use</th><th class="num">T<sub>CS</sub> max (kN·m)</th><th class="num">Flange A (mm)</th><th class="num">β max (°)</th><th>Spline</th><th class="num">μ</th></tr></thead><tbody>';
     LIBS.forEach(function (L) {
       L.series.slice().sort(function (a, b) { return ncmp(a.id, b.id); }).forEach(function (s) {
         var sr = ROWS.filter(function (r) { return r._lib === L && r.series === s.id; });
@@ -395,14 +395,14 @@
     Array.prototype.forEach.call($(id).querySelectorAll('button'), function (b) { b.onclick = function () { state[key] = b.dataset.v; renderAll(); }; });
   }
   function renderFilter() {
-    seg('maker-seg', [['', 'All']].concat(LIBS.map(function (L) { return [L.id, esc(L.supplier)]; })), 'maker');
+    seg('manufacturer-seg', [['', 'All']].concat(LIBS.map(function (L) { return [L.id, esc(L.supplier)]; })), 'manufacturer');
     seg('slip-seg', [['', 'Any'], ['y', 'With'], ['n', 'Without']], 'slip');
     var ser = [];
-    LIBS.forEach(function (L) { if (!state.maker || state.maker === L.id) L.series.forEach(function (s) { ser.push([L.id + '|' + s.id, (LIBS.length > 1 ? L.supplier + ' ' : '') + s.id]); }); });
+    LIBS.forEach(function (L) { if (!state.manufacturer || state.manufacturer === L.id) L.series.forEach(function (s) { ser.push([L.id + '|' + s.id, (LIBS.length > 1 ? L.supplier + ' ' : '') + s.id]); }); });
     ser.sort(function (a, b) { return ncmp(a[1], b[1]); });
     $('series-sel').innerHTML = '<option value="">Any</option>' + ser.map(function (s) { return '<option value="' + esc(s[0]) + '"' + (s[0] === state.series ? ' selected' : '') + '>' + esc(s[1]) + '</option>'; }).join('');
     var des = {};
-    LIBS.forEach(function (L) { if (!state.maker || state.maker === L.id) for (var k in L.designs) des[k] = L.designs[k].title; });
+    LIBS.forEach(function (L) { if (!state.manufacturer || state.manufacturer === L.id) for (var k in L.designs) des[k] = L.designs[k].title; });
     $('design-sel').innerHTML = '<option value="">Any</option>' + Object.keys(des).sort(ncmp).map(function (k) {
       return '<option value="' + k + '"' + (k === state.design ? ' selected' : '') + '>' + k + ' — ' + esc(des[k].toLowerCase()) + '</option>'; }).join('');
   }
@@ -414,7 +414,7 @@
     var tcs = num('tcs-min'), tdw = num('tdw-min'), bmin = num('beta-min'), amax = num('a-max');
     var q = $('search').value.trim().toLowerCase();
     return ROWS.filter(function (r) {
-      if (state.maker && r._lib.id !== state.maker) return false;
+      if (state.manufacturer && r._lib.id !== state.manufacturer) return false;
       if (state.series && r._lib.id + '|' + r.series !== state.series) return false;
       if (state.design && r.design !== state.design) return false;
       if (state.slip === 'y' && r.slip !== true) return false;
@@ -436,7 +436,7 @@
     });
     $('count').textContent = rows.length + ' of ' + ROWS.length + ' records' + (rows.length > 400 ? ' (first 400 shown)' : '');
     var F = LIBS[0].fields;
-    var h = '<thead><tr>' + (LIBS.length > 1 ? '<th>Maker</th>' : '') + COLS.map(function (c) {
+    var h = '<thead><tr>' + (LIBS.length > 1 ? '<th>Manufacturer</th>' : '') + COLS.map(function (c) {
       var f = F[c]; var n = c === 'size' ? 'Size' : c === 'var' ? 'Var.' : c === 'design' ? 'Design' : c === 'opt' ? 'Opt.' : sym(f[1]) + (f[2] ? ' (' + f[2] + ')' : '');
       return '<th' + (['size', 'var', 'design', 'S'].indexOf(c) < 0 ? ' class="num"' : '') + '>' + n + '</th>';
     }).join('') + '</tr></thead><tbody>';
@@ -462,7 +462,7 @@
       '<div class="kpi"><b>' + (r.slip === null || r.slip === undefined ? '–' : r.slip ? 'Yes' : 'No') + '</b><span>Length comp.</span></div>';
     var fl = [];
     if (r.slip && s.mu) fl.push('Spline ' + esc(s.spline.toLowerCase()) + ', μ = ' + s.mu + '; slip force F<sub>RL</sub> = T·μ/r<sub>m</sub>·cos β' + cite(L, ['cat_axial']) + '.');
-    if (r.slip && !s.mu && s.spline) fl.push('Spline ' + esc(s.spline.toLowerCase()) + '; the maker gives no μ for it' + cite(L, ['cat_axial']) + '.');
+    if (r.slip && !s.mu && s.spline) fl.push('Spline ' + esc(s.spline.toLowerCase()) + '; the manufacturer gives no μ for it' + cite(L, ['cat_axial']) + '.');
     $('flags').innerHTML = fl.map(function (t) { return '<div class="info">' + t + '</div>'; }).join('');
     renderLen();
     // full record
